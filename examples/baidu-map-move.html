@@ -251,8 +251,6 @@
             var canvas = document.createElement('canvas');
             var backCanvas = this.backCanvas = document.createElement('canvas');
             var backCtx = this.backCtx = backCanvas.getContext('2d');
-            backCtx.globalAlpha = 0.89;
-            backCtx.globalCompositeOperation = 'copy';
 
             canvas.id = "windCanvas";
             canvas.width = backCanvas.width = map.getSize().width;
