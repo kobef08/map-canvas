@@ -1,0 +1,402 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=Edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0,user-scalable=no">
+    <title>baidu map move</title>
+    <link rel="stylesheet" href="css/style.css">
+    <script type="text/javascript" src="https://api.map.baidu.com/api?v=2.0&ak=nuWah68S1WieW2AEwiT8T3Ro&s=1"></script>
+    <script type="text/javascript" src="js/mapstyle/dark.js"></script>
+</head>
+
+<body>
+    <div id="map"></div>
+    <script type="text/javascript" src="js/dat.gui.js"></script>
+    <script type="text/javascript" src="js/moveLine.js"></script>
+    <script type="text/javascript">
+        var map = new BMap.Map('map', {
+            minZoom: 5
+        });
+        map.centerAndZoom(new BMap.Point(112.03956, 32.063677), 6);
+        map.enableScrollWheelZoom(true);
+        map.setMapStyle({
+            styleJson: styleJson
+        });
+
+        var citys = {
+            '广州': [113.270793, 23.135308],
+            '衡山': [112.612787, 27.317599],
+            '北京': [116.413554, 39.911013],
+            '三亚': [109.518646, 18.258217],
+            '长沙': [112.945333, 28.233971],
+            '上海': [121.480237, 31.236305]
+        };
+        var lines = [{
+            begin: citys['广州'],
+            end: citys['衡山']
+        }, {
+            begin: citys['广州'],
+            end: citys['北京']
+        }, {
+            begin: citys['广州'],
+            end: citys['三亚']
+        }, {
+            begin: citys['长沙'],
+            end: citys['上海']
+        }];
+
+        (function () {
+            var lastTime = 0;
+            var vendors = ['ms', 'moz', 'webkit', 'o'];
+            for (var x = 0; x < vendors.length && !window.requestAnimationFrame; ++x) {
+                window.requestAnimationFrame = window[vendors[x] + 'RequestAnimationFrame'];
+                window.cancelAnimationFrame = window[vendors[x] + 'CancelAnimationFrame'] || window[vendors[x] +
+                    'CancelRequestAnimationFrame'];
+            }
+            if (!window.requestAnimationFrame) window.requestAnimationFrame = function (callback, element) {
+                var currTime = new Date().getTime();
+                var timeToCall = Math.max(0, 16 - (currTime - lastTime));
+                var id = window.setTimeout(function () {
+                    callback(currTime + timeToCall);
+                }, timeToCall);
+                lastTime = currTime + timeToCall;
+                return id;
+            };
+            if (!window.cancelAnimationFrame) window.cancelAnimationFrame = function (id) {
+                clearTimeout(id);
+            };
+        }());
+
+        function Marker(opts) {
+            this.options = opts;
+        }
+
+        Marker.prototype.brush = function (context) {
+            context.save();
+            this.draw(context);
+            context.restore();
+        }
+
+        Marker.prototype.draw = function (context) {
+            var options = this.options;
+            context.strokeStyle = options.strokeStyle;
+            context.fillStyle = options.color;
+            context.beginPath();
+            context.arc(this.x, this.y, options.radius, 0, Math.PI * 2);
+            context.stroke();
+            context.fill();
+        }
+
+        function MarkLine(opts) {
+            this.options = opts;
+        }
+
+        /**
+         * 获取弧线的坐标节点数组
+         */
+        MarkLine.prototype.getCurvePoints = function (points) {
+            var curvePoints = [];
+            for (var i = 0, len = points.length; i < len; i++) {
+                var p = this.getCurveByTwoPoints(points[i], points[i + 1]);
+                if (p && p.length > 0) {
+                    curvePoints = curvePoints.concat(p);
+                }
+            }
+            return curvePoints;
+        }
+
+        /**
+         * 根据两点获取曲线坐标点数组
+         */
+        MarkLine.prototype.getCurveByTwoPoints = function (start, end) {
+            if (!start || !end || !(start instanceof BMap.Point) || !(end instanceof BMap.Point)) {
+                return null;
+            }
+
+            var B1 = function (x) {
+                return 1 - 2 * x + x * x;
+            };
+            var B2 = function (x) {
+                return 2 * x - 2 * x * x;
+            };
+            var B3 = function (x) {
+                return x * x;
+            };
+
+            curveCoordinates = [];
+
+            var count = 30; // 曲线是由一些小的线段组成的，这个表示这个曲线所有到的折线的个数
+            var isFuture = false;
+            var t, h, h2, lat3, lng3, j, t2;
+            var LnArray = [];
+            var i = 0;
+            var inc = 0;
+
+            if (typeof (end) == "undefined") {
+                if (typeof (curveCoordinates) != "undefined") {
+                    curveCoordinates = [];
+                }
+                return;
+            }
+
+            var lat1 = parseFloat(start.lat);
+            var lat2 = parseFloat(end.lat);
+            var lng1 = parseFloat(start.lng);
+            var lng2 = parseFloat(end.lng);
+
+            // 计算曲线角度的方法
+            if (lng2 > lng1) {
+                if (parseFloat(lng2 - lng1) > 180) {
+                    if (lng1 < 0) {
+                        lng1 = parseFloat(180 + 180 + lng1);
+                    }
+                }
+            }
+
+            if (lng1 > lng2) {
+                if (parseFloat(lng1 - lng2) > 180) {
+                    if (lng2 < 0) {
+                        lng2 = parseFloat(180 + 180 + lng2);
+                    }
+                }
+            }
+            j = 0;
+            t2 = 0;
+            if (lat2 == lat1) {
+                t = 0;
+                h = lng1 - lng2;
+            } else if (lng2 == lng1) {
+                t = Math.PI / 2;
+                h = lat1 - lat2;
+            } else {
+                t = Math.atan((lat2 - lat1) / (lng2 - lng1));
+                h = (lat2 - lat1) / Math.sin(t);
+            }
+            if (t2 == 0) {
+                t2 = (t + (Math.PI / 5));
+            }
+            h2 = h / 2;
+            lng3 = h2 * Math.cos(t2) + lng1;
+            lat3 = h2 * Math.sin(t2) + lat1;
+
+            for (i = 0; i < count + 1; i++) {
+                curveCoordinates.push(new BMap.Point(
+                    (lng1 * B1(inc) + lng3 * B2(inc)) + lng2 * B3(inc),
+                    (lat1 * B1(inc) + lat3 * B2(inc) + lat2 * B3(inc))
+                ));
+                inc = inc + (1 / count);
+            }
+            return curveCoordinates;
+        }
+
+        MarkLine.prototype.brush = function (context) {
+            //画曲线
+            context.save();
+            this.drawLinePath(context);
+            context.restore();
+
+        }
+
+        /**
+         * 画曲线
+         */
+        MarkLine.prototype.drawLinePath = function (context) {
+            var pointList = this.markPoints;
+            var options = this.options;
+            var lineType = options.lineType;
+            var len = pointList.length;
+            context.strokeStyle = options.color;
+            context.lineWidth = options.lineWidth;
+            context.beginPath();
+            if (lineType == undefined || lineType == 'solid') {
+                context.moveTo(pointList[0].x, pointList[0].y);
+                for (var i = 1; i < len; i++) {
+                    context.lineTo(pointList[i].x, pointList[i].y);
+                }
+            } else if (lineType == 'dashed' || lineType == 'dotted') {
+                for (var i = 1; i < len; i += 2) {
+                    context.moveTo(pointList[i - 1].x, pointList[i - 1].y);
+                    context.lineTo(pointList[i].x, pointList[i].y);
+                }
+            }
+            context.stroke();
+        }
+
+        MarkLine.prototype.drawMoveCircle = function (context) {
+            var pointList = this.markPoints;
+            var options = this.options;
+            var point = pointList[this.index];
+            context.fillStyle = options.fillColor;
+            context.shadowColor = options.shadowColor;
+            context.shadowBlur = options.shadowBlur;
+            context.beginPath();
+            context.arc(point.x, point.y, options.radius, 0, Math.PI * 2);
+            context.fill();
+            this.index++;
+            if (this.index == pointList.length) {
+                this.index = 0;
+            }
+        }
+
+        /**
+         * 迁徙动画canvas图层
+         */
+        function CurveOverLayer() {}
+
+        CurveOverLayer.prototype = new BMap.Overlay();
+
+        CurveOverLayer.prototype.initialize = function () {
+            var canvas = document.createElement('canvas');
+            var backCanvas = this.backCanvas = document.createElement('canvas');
+            var backCtx = this.backCtx = backCanvas.getContext('2d');
+            backCtx.globalAlpha = 0.89;
+            backCtx.globalCompositeOperation = 'copy';
+
+            canvas.id = "windCanvas";
+            canvas.width = backCanvas.width = map.getSize().width;
+            canvas.height = backCanvas.height = map.getSize().height;
+            canvas.style.position = 'absolute';
+            canvas.style.top = 0;
+            canvas.style.left = 0;
+            map.getPanes().labelPane.appendChild(canvas);
+
+            this._canvas = canvas;
+            this._context = canvas.getContext('2d');
+
+            this.addMarker();
+            this.addLine();
+        }
+
+        CurveOverLayer.prototype.addMarker = function () {
+            this.markers = [];
+            for (var i in citys) {
+                var marker = new Marker({
+                    radius: 3,
+                    color: 'rgba(50,50,255,.8)',
+                    strokeStyle: 'rgba(50,50,255,1)',
+                });
+                marker.city = i;
+                marker.lnglat = new BMap.Point(citys[i][0], citys[i][1]);
+                this.markers.push(marker);
+            }
+        }
+
+        CurveOverLayer.prototype.addLine = function () {
+            this.markLines = [];
+            for (var i = 0; i < lines.length; i++) {
+                var line = lines[i];
+                var begin = new BMap.Point(line.begin[0], line.begin[1]);
+                var end = new BMap.Point(line.end[0], line.end[1]);
+                var markLine = new MarkLine({
+                    lineWidth: 1,
+                    lineType: 'solid', //dashed
+                    // color: 'rgba(200,200,50,1)',//yellow
+                    color: 'rgba(50,50,255,1)', //blue
+                    fillColor: 'white',
+                    shadowColor: 'white',
+                    shadowBlur: 15,
+                    radius: 3
+                });
+                markLine.index = 0;
+                markLine.curvePoints = markLine.getCurvePoints([begin, end]);
+                this.markLines.push(markLine);
+            }
+        }
+
+        CurveOverLayer.prototype.convertToPixel = function (py) {
+            var markers = this.markers;
+            var markLines = this.markLines;
+            markers.forEach(function (marker, i) {
+                var px = map.pointToOverlayPixel(marker.lnglat);
+                marker.x = px.x - py.x;
+                marker.y = px.y - py.y;
+            });
+
+            markLines.forEach(function (markLine, j) {
+                var curvePoints = markLine.curvePoints;
+                var markPoints = markLine.markPoints = [];
+                curvePoints.forEach(function (point) {
+                    var px = map.pointToOverlayPixel(point);
+                    markPoints.push({
+                        x: px.x - py.x,
+                        y: px.y - py.y
+                    });
+                });
+            });
+        }
+
+        CurveOverLayer.prototype.draw = function () {
+            var self = this;
+            var canvas = self._canvas;
+            var backCanvas = self.backCanvas;
+            var context = self._context;
+            var backCtx = self.backCtx;
+            var bounds = map.getBounds();
+            var sw = bounds.getSouthWest();
+            var ne = bounds.getNorthEast();
+            var py = map.pointToOverlayPixel(new BMap.Point(sw.lng, ne.lat));
+            canvas.style.left = backCanvas.style.left = py.x + 'px';
+            canvas.style.top = backCanvas.style.top = py.y + 'px';
+
+            self.convertToPixel(py); //将曲线点经纬度转为像素点
+
+            context.clearRect(0, 0, canvas.width, canvas.height);
+
+            var markers = self.markers;
+            for (var i = 0; i < markers.length; i++) {
+                var marker = markers[i];
+                marker.brush(context);
+            }
+
+            var markLines = self.markLines;
+            for (var j = 0; j < markLines.length; j++) {
+                var markLine = markLines[j];
+                markLine.brush(context);
+            }
+            context.globalAlpha = 0.85;
+
+            function animate() {
+                backCtx.globalCompositeOperation = 'copy';
+                backCtx.drawImage(canvas, 0, 0, canvas.width, canvas.height);
+                context.clearRect(0, 0, canvas.width, canvas.height);
+                markLines.forEach(function (markLine) {
+                    // markLine.brush(context);
+                    markLine.drawMoveCircle(context);
+                });
+                context.drawImage(backCanvas, 0, 0, backCanvas.width, backCanvas.height);
+                requestAnimationFrame(animate);
+            }
+
+            animate();
+
+            // context.clearRect(0, 0, canvas.width, canvas.height);
+
+            // for (var i = 0; i < this.markers.length; i++) {
+            //     var marker = this.markers[i];
+            //     marker.brush(context);
+            // }
+
+            // var markLines = this.markLines;
+            // for (var j = 0; j < markLines.length; j++) {
+            //     var markLine = markLines[j];
+            //     markLine.brush(context);
+            // }
+
+            // function render() {
+            //     context.fillStyle = 'rgba(0,0,0,.95)';
+            //     var prev = context.globalCompositeOperation;
+            //     context.globalCompositeOperation = "destination-in";
+            //     context.fillRect(0, 0, canvas.width, canvas.height);
+            //     context.globalCompositeOperation = prev;
+
+            //     markLines.forEach(function (markLine) {
+            //         markLine.drawMoveCircle(context);
+            //     });
+            // }
+        }
+
+        map.addOverlay(new CurveOverLayer());
+    </script>
+</body>

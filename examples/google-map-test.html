@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=Edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0,user-scalable=no">
+    <title>google map test</title>
+    <link rel="stylesheet" href="css/style.css">
+    <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyAlCwS_WywshhKgi26S4kEZ_21efMvk9-c"></script>
+</head>
+
+<body>
+    <div id="map"></div>
+    <script type="text/javascript" src="js/dat.gui.js"></script>
+    <script type="text/javascript">
+        var overlay;
+        UserOverlay.prototype = new google.maps.OverlayView();
+
+        function initMap() {
+            var map = new google.maps.Map(document.getElementById("map"), {
+                zoom: 8,
+                center: {
+                    lat: 23.117055,
+                    lng: 113.275995
+                }
+            });
+            overlay = new UserOverlay(map);
+        }
+
+        function UserOverlay(map) {
+            this.isAdded = false;
+            this.isAminated = false;
+            this.paneName = UserOverlay.DEFAULT_PANE_NAME;
+            this.requestAnimationFrameId = null;
+
+            var canvas = document.createElement('canvas');
+            canvas.style.position = 'absolute';
+            canvas.style.top = 0;
+            canvas.style.left = 0;
+            canvas.style.pointerEvents = 'none';
+
+            this.canvas = canvas;
+            this.canvasWidth = 300;
+            this.canvas.Height = 150;
+            this.resolutionScale = 1;
+            
+            this._map = map;
+            this._canvas = null;
+            this.setMap(map);
+        }
+
+        UserOverlay.prototype.onAdd = function () {
+            var canvas = document.createElement('canvas');
+            canvas.id = 'userCanvas';
+            canvas.width = '100%';
+            canvas.height = '100%';
+            canvas.style.top = 0;
+            canvas.style.left = 0;
+            canvas.style.position = 'absolute';
+            this.map.getDiv().appendChild(canvas);
+        }
+
+        UserOverlay.prototype.draw = function () {
+
+        }
+
+        google.maps.event.addDomListener(window, 'load', initMap);
+    </script>
+</body>
+
+</html>
