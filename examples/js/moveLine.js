@@ -33,6 +33,7 @@ function update() {
     if (!ctx) {
         return;
     }
+
     backCtx.drawImage(ctx.canvas, 0, 0, ctx.canvas.width, ctx.canvas.height);
 
     ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
@@ -40,6 +41,7 @@ function update() {
     if (!animationFlag) {
         return;
     }
+
     for (var i = 0; i < markLines.length; i++) {
         var markLine = markLines[i];
         markLine.drawMoveCircle(ctx);
@@ -54,13 +56,14 @@ function animate() {
     // setTimeout(arguments.callee, 60);
 }
 
-map.addEventListener('moveStart', function () {
-    // animationFlag = false;
+map.addEventListener('movestart', function () {
+    animationFlag = false;
     cancelAnimationFrame(window.timer);
 });
 
 map.addEventListener('moveend', function () {
     animationFlag = true;
+    animate();
 });
 
 function MarkLine(options) {
@@ -69,21 +72,29 @@ function MarkLine(options) {
 }
 
 MarkLine.prototype.drawMarker = function (context, point) {
+    context.beginPath();
     context.fillStyle = this.options.color;
     context.arc(point.x, point.y, 3, 0, Math.PI * 2);
     context.fill();
+    context.closePath();
+}
+
+MarkLine.prototype.drawText = function (context, point) {
+    context.beginPath();
+    context.closePath();
 }
 
 MarkLine.prototype.drawLinePath = function (context) {
     var options = this.options;
-    var start = map.pointToPixel(options.start);
-    var end = map.pointToPixel(options.end);
+    var start = map.pointToPixel(options.from);
+    var end = map.pointToPixel(options.to);
     var pointList = this.path = this.getPointList(start, end);
     var len = pointList.length;
     context.save();
     context.beginPath();
     context.strokeStyle = options.color;
     context.lineWidth = options.lineWidth || 1;
+    this.drawMarker(context, start);
     this.drawMarker(context, end);
     if (!options.lineType || options.lineType == 'solid') {
         context.moveTo(pointList[0][0], pointList[0][1]);
@@ -98,10 +109,11 @@ MarkLine.prototype.drawLinePath = function (context) {
     }
     context.stroke();
     context.restore();
+    this.index = 0; //缩放地图时重新绘制动画
 }
 
 MarkLine.prototype.drawMoveCircle = function (context) {
-    var pointList = this.path || this.getPointList(map.pointToPixel(this.options.start), map.pointToPixel(this.options.end));
+    var pointList = this.path || this.getPointList(map.pointToPixel(this.options.from), map.pointToPixel(this.options.to));
     context.save();
     context.fillStyle = '#fff';
     // context.fillStyle = this.options.color;
@@ -118,10 +130,10 @@ MarkLine.prototype.drawMoveCircle = function (context) {
     }
 }
 
-MarkLine.prototype.getPointList = function (start, end) {
+MarkLine.prototype.getPointList = function (from, to) {
     var points = [
-        [start.x, start.y],
-        [end.x, end.y]
+        [from.x, from.y],
+        [to.x, to.y]
     ];
     var ex = points[1][0];
     var ey = points[1][1];
@@ -215,23 +227,31 @@ MarkLine.prototype.getDistance = function (p1, p2) {
 
 function addLine() {
     markLines.push(new MarkLine({
-        start: new BMap.Point(lines[0].begin[0], lines[0].begin[1]),
-        end: new BMap.Point(lines[0].end[0], lines[0].end[1]),
+        from: new BMap.Point(citys[lines[0].from][0], citys[lines[0].from][1]),
+        to: new BMap.Point(citys[lines[0].to][0], citys[lines[0].to][1]),
+        s: lines[0].from,
+        e: lines[0].to,
         color: '#a6c84c'
     }));
     markLines.push(new MarkLine({
-        start: new BMap.Point(lines[1].begin[0], lines[1].begin[1]),
-        end: new BMap.Point(lines[1].end[0], lines[1].end[1]),
+        from: new BMap.Point(citys[lines[1].from][0], citys[lines[1].from][1]),
+        to: new BMap.Point(citys[lines[1].to][0], citys[lines[1].to][1]),
+        s: lines[1].from,
+        e: lines[1].to,
         color: '#ffa022'
     }));
     markLines.push(new MarkLine({
-        start: new BMap.Point(lines[2].begin[0], lines[2].begin[1]),
-        end: new BMap.Point(lines[2].end[0], lines[2].end[1]),
+        from: new BMap.Point(citys[lines[2].from][0], citys[lines[2].from][1]),
+        to: new BMap.Point(citys[lines[2].to][0], citys[lines[2].to][1]),
+        s: lines[2].from,
+        e: lines[2].to,
         color: '#46bee9'
     }));
     markLines.push(new MarkLine({
-        start: new BMap.Point(lines[3].begin[0], lines[3].begin[1]),
-        end: new BMap.Point(lines[3].end[0], lines[3].end[1]),
+        from: new BMap.Point(citys[lines[3].from][0], citys[lines[3].from][1]),
+        to: new BMap.Point(citys[lines[3].to][0], citys[lines[3].to][1]),
+        s: lines[3].from,
+        e: lines[3].to,
         color: '#CC3201'
     }));
 }

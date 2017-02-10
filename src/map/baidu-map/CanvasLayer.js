@@ -11,12 +11,12 @@ CanvasLayer.prototype = new BMap.Overlay();
 
 CanvasLayer.prototype.initialize = function (map) {
     this._map = map;
-    var canvas = this.canvas = document.createElement("canvas");
+    var canvas = this.canvas = document.createElement('canvas');
     var ctx = this.ctx = this.canvas.getContext('2d');
-    canvas.style.cssText = "position:absolute;" +
-        "left:0;" +
-        "top:0;" +
-        "z-index:" + this.zIndex + ";";
+    canvas.style.cssText = 'position:absolute;' +
+        'left:0;' +
+        'top:0;' +
+        'z-index:' + this.zIndex + ';';
     this.adjustSize();
     this.adjustRatio(ctx);
     map.getPanes()[this.paneName].appendChild(canvas);
@@ -33,8 +33,8 @@ CanvasLayer.prototype.adjustSize = function () {
     var canvas = this.canvas;
     canvas.width = size.width;
     canvas.height = size.height;
-    canvas.style.width = canvas.width + "px";
-    canvas.style.height = canvas.height + "px";
+    canvas.style.width = canvas.width + 'px';
+    canvas.style.height = canvas.height + 'px';
 }
 
 CanvasLayer.prototype.adjustRatio = function (ctx) {
@@ -61,7 +61,7 @@ CanvasLayer.prototype.draw = function () {
 
     clearTimeout(self.timeoutID);
     self.timeoutID = setTimeout(function () {
-        self._draw.apply(self, args);
+        self._draw();
     }, 15);
 }
 
@@ -74,7 +74,7 @@ CanvasLayer.prototype._draw = function () {
         this.canvas.style.left = pixel.x - size.width / 2 + 'px';
         this.canvas.style.top = pixel.y - size.height / 2 + 'px';
         this.dispatchEvent('draw');
-        this.options.update && this.options.update.apply(this, arguments);
+        this.options.update && this.options.update.call(this);
     }
 }
 
@@ -86,11 +86,11 @@ CanvasLayer.prototype.show = function () {
     if (!this.canvas) {
         this._map.addOverlay(this);
     }
-    this.canvas.style.display = "block";
+    this.canvas.style.display = 'block';
 }
 
 CanvasLayer.prototype.hide = function () {
-    this.canvas.style.display = "none";
+    this.canvas.style.display = 'none';
     //this._map.removeOverlay(this);
 }
 
