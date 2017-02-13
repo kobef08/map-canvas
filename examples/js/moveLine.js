@@ -1,23 +1,32 @@
-var lineLayer = new CanvasLayer({
+var baseLayer = new CanvasLayer({
     map: map,
-    update: brushLine
+    update: brush
 });
 var animationLayer = new CanvasLayer({
     map: map,
     update: update
 });
-var markLines = [];
+var markers = [],
+    markLines = [];
 
-function brushLine() {
-    var context = lineLayer.canvas.getContext('2d');
+function brush() {
+    var context = baseLayer.canvas.getContext('2d');
     if (!context) {
         return;
     }
     context.clearRect(0, 0, context.canvas.width, context.canvas.height);
-    for (var i = 0; i < markLines.length; i++) {
-        var markLine = markLines[i];
+    addMarker();
+
+    addLine();
+
+    markers.forEach(function (marker) {
+        marker.draw(context);
+        marker.drawText(context);
+    });
+
+    markLines.forEach(function (markLine) {
         markLine.drawLinePath(context);
-    }
+    });
 }
 
 var ctx = animationLayer.canvas.getContext('2d');
@@ -66,36 +75,56 @@ map.addEventListener('moveend', function () {
     animate();
 });
 
+function Marker(options) {
+    this.options = options;
+    this.size = options.size || 3;
+    this.location = options.location;
+}
+
+Marker.prototype.draw = function (context) {
+    var options = this.options;
+    var pixel = this.pixel = map.pointToPixel(this.location);
+
+    context.save();
+    context.beginPath();
+    if (options.style) {
+        for (var key in options.style) {
+            context[key] = options.style[key];
+        }
+    }
+    context.arc(pixel.x, pixel.y, this.size, 0, Math.PI * 2, true);
+    context.closePath();
+    context.fill();
+    context.restore();
+}
+
+Marker.prototype.drawText = function (context) {
+    var pixel = this.pixel || map.pointToPixel(this.location);
+    context.save();
+    context.textAlign = 'center';
+    context.textBaseline = 'middle';
+    context.font = '12px Microsoft YaHei';
+    context.fillStyle = this.options.style.fillStyle;
+    context.fillText(this.options.city, pixel.x, pixel.y - 10);
+    context.restore();
+}
+
 function MarkLine(options) {
     this.options = options;
+    this.from = options.from;
+    this.to = options.to;
     this.index = 0;
-}
-
-MarkLine.prototype.drawMarker = function (context, point) {
-    context.beginPath();
-    context.fillStyle = this.options.color;
-    context.arc(point.x, point.y, 3, 0, Math.PI * 2);
-    context.fill();
-    context.closePath();
-}
-
-MarkLine.prototype.drawText = function (context, point) {
-    context.beginPath();
-    context.closePath();
 }
 
 MarkLine.prototype.drawLinePath = function (context) {
     var options = this.options;
-    var start = map.pointToPixel(options.from);
-    var end = map.pointToPixel(options.to);
-    var pointList = this.path = this.getPointList(start, end);
+    var pointList = this.path = this.getPointList(map.pointToPixel(this.from.location), map.pointToPixel(this.to.location));
     var len = pointList.length;
     context.save();
     context.beginPath();
-    context.strokeStyle = options.color;
-    context.lineWidth = options.lineWidth || 1;
-    this.drawMarker(context, start);
-    this.drawMarker(context, end);
+    context.lineWidth = options.style.lineWidth;
+    context.strokeStyle = options.style.color;
+
     if (!options.lineType || options.lineType == 'solid') {
         context.moveTo(pointList[0][0], pointList[0][1]);
         for (var i = 0; i < len; i++) {
@@ -113,12 +142,14 @@ MarkLine.prototype.drawLinePath = function (context) {
 }
 
 MarkLine.prototype.drawMoveCircle = function (context) {
-    var pointList = this.path || this.getPointList(map.pointToPixel(this.options.from), map.pointToPixel(this.options.to));
+    var pointList = this.path || this.getPointList(map.pointToPixel(this.from.location), map.pointToPixel(this.to.location));
+
     context.save();
-    context.fillStyle = '#fff';
-    // context.fillStyle = this.options.color;
-    context.shadowBlur = 5;
-    context.shadowColor = '#fff';
+    if (this.options.style) {
+        for (var key in this.options.style) {
+            context[key] = this.options.style[key];
+        }
+    }
     context.beginPath();
     context.arc(pointList[this.index][0], pointList[this.index][1], 2, 0, Math.PI * 2, true);
     context.fill();
@@ -225,35 +256,47 @@ MarkLine.prototype.getDistance = function (p1, p2) {
     );
 }
 
+function addMarker() {
+    markers = [];
+    var index = 0,
+        colors = ['#F9815C', '#F8AB60', '#EDCC72', '#E2F194', '#94E08A', '#4ECDA5'];
+    for (var name in citys) {
+        var lnglat = citys[name];
+        markers.push(new Marker({
+            city: name,
+            location: new BMap.Point(lnglat[0], lnglat[1]),
+            size: 4,
+            style: {
+                fillStyle: colors[index]
+            }
+        }));
+        index++;
+    }
+}
+
 function addLine() {
-    markLines.push(new MarkLine({
-        from: new BMap.Point(citys[lines[0].from][0], citys[lines[0].from][1]),
-        to: new BMap.Point(citys[lines[0].to][0], citys[lines[0].to][1]),
-        s: lines[0].from,
-        e: lines[0].to,
-        color: '#a6c84c'
-    }));
-    markLines.push(new MarkLine({
-        from: new BMap.Point(citys[lines[1].from][0], citys[lines[1].from][1]),
-        to: new BMap.Point(citys[lines[1].to][0], citys[lines[1].to][1]),
-        s: lines[1].from,
-        e: lines[1].to,
-        color: '#ffa022'
-    }));
-    markLines.push(new MarkLine({
-        from: new BMap.Point(citys[lines[2].from][0], citys[lines[2].from][1]),
-        to: new BMap.Point(citys[lines[2].to][0], citys[lines[2].to][1]),
-        s: lines[2].from,
-        e: lines[2].to,
-        color: '#46bee9'
-    }));
-    markLines.push(new MarkLine({
-        from: new BMap.Point(citys[lines[3].from][0], citys[lines[3].from][1]),
-        to: new BMap.Point(citys[lines[3].to][0], citys[lines[3].to][1]),
-        s: lines[3].from,
-        e: lines[3].to,
-        color: '#CC3201'
-    }));
+    markLines = [];
+    for (var i = 0; i < lines.length; i++) {
+        var line = lines[i];
+        var options = {
+            style: {
+                lineWidth: 1,
+                fillStyle: '#fff',
+                shadowColor: '#fff',
+                shadowBlur: 5,
+            },
+            lineType: 'solid'
+        };
+        markers.forEach(function (marker) {
+            if (line.from === marker.options.city) {
+                options.from = marker;
+            } else if (line.to === marker.options.city) {
+                options.to = marker;
+                options.style.color = marker.options.style.fillStyle;
+            }
+        });
+        markLines.push(new MarkLine(options));
+    }
 }
 
 (function () {
@@ -277,5 +320,4 @@ function addLine() {
     };
 }());
 
-addLine();
 animate();
