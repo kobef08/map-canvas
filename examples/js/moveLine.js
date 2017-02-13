@@ -15,8 +15,8 @@ function brush() {
         return;
     }
     context.clearRect(0, 0, context.canvas.width, context.canvas.height);
-    addMarker();
 
+    addMarker();
     addLine();
 
     markers.forEach(function (marker) {
@@ -42,6 +42,7 @@ function update() {
     if (!ctx) {
         return;
     }
+    backCtx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
 
     backCtx.drawImage(ctx.canvas, 0, 0, ctx.canvas.width, ctx.canvas.height);
 
@@ -67,12 +68,13 @@ function animate() {
 
 map.addEventListener('movestart', function () {
     animationFlag = false;
-    cancelAnimationFrame(window.timer);
 });
 
 map.addEventListener('moveend', function () {
+    markLines.forEach(function (markLine) {
+        markLine.index = 0;
+    });
     animationFlag = true;
-    animate();
 });
 
 function Marker(options) {
@@ -114,6 +116,10 @@ function MarkLine(options) {
     this.from = options.from;
     this.to = options.to;
     this.index = 0;
+}
+
+MarkLine.prototype.updatePath = function () {
+    this.path = this.getPointList(map.pointToPixel(this.from.location), map.pointToPixel(this.to.location));
 }
 
 MarkLine.prototype.drawLinePath = function (context) {
