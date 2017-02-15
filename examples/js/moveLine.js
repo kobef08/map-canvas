@@ -264,7 +264,7 @@
 
             for (var i = 0; i < markLines.length; i++) {
                 var markLine = markLines[i];
-                markLine.drawMoveCircle(animationCtx);
+                markLine.drawMoveCircle(animationCtx); //移动圆点
             }
         }
 
@@ -358,6 +358,5 @@
             clearTimeout(id);
         };
 
-
     return MoveLine;
-}))
+}));
