@@ -1,3 +1,7 @@
+/**
+ * @author https://github.com/chengquan223
+ * @Date 2017-02-15
+ * */
 (function (window, factory) {
     if (typeof define === "function" && define.amd) {
         //AMD
