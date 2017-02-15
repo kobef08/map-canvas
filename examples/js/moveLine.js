@@ -171,7 +171,7 @@
             var v0 = (p2 - p0) * 0.5;
             var v1 = (p3 - p1) * 0.5;
             return (2 * (p1 - p2) + v0 + v1) * t3 + (-3 * (p1 - p2) - 2 * v0 - v1) * t2 + v0 * t + p1;
-        };
+        }
 
         MarkLine.prototype.getDistance = function (p1, p2) {
             return Math.sqrt(
@@ -258,7 +258,7 @@
 
             animationCtx.fillStyle = 'rgba(0,0,0,.93)';
             var prev = animationCtx.globalCompositeOperation;
-            animationCtx.globalCompositeOperation = "destination-in";
+            animationCtx.globalCompositeOperation = 'destination-in';
             animationCtx.fillRect(0, 0, width, height);
             animationCtx.globalCompositeOperation = prev;
 
@@ -275,10 +275,8 @@
             });
 
             map.addEventListener('moveend', function () {
-                markLines.forEach(function (markLine) {
-                    markLine.index = 0;
-                });
                 animationFlag = true;
+                markLines = []; //解决拖动后多余的小圆点bug，没想明白，暂时这样
             });
 
             map.addEventListener('zoomstart', function () {
@@ -286,10 +284,8 @@
             });
 
             map.addEventListener('zoomend', function () {
-                markLines.forEach(function (markLine) {
-                    markLine.index = 0;
-                });
                 animationFlag = true;
+                markLines = [];
             });
         }
 
@@ -330,7 +326,7 @@
             mouseInteract();
 
             (function drawFrame() {
-                window.requestAnimationFrame(drawFrame);
+                window.timer = requestAnimationFrame(drawFrame);
                 render();
             }());
         }
@@ -338,24 +334,30 @@
         init(map, options);
 
         self.options = options;
-    }
+    };
 
     MoveLine.prototype.update = function (resetOpts) {
         for (var key in resetOpts) {
             this.options[key] = resetOpts[key];
         }
-    }
+    };
 
-    window.requestAnimationFrame = (function () {
-        return window.requestAnimationFrame ||
-            window.webkitRequestAnimationFrame ||
-            window.mozRequestAnimationFrame ||
-            window.oRequestAnimationFrame ||
-            window.msRequestAnimationFrame ||
-            function (callback) {
-                window.setTimeout(callback, 1000 / 20);
-            };
-    })();
+    var requestAnimationFrame = window.requestAnimationFrame ||
+        window.mozRequestAnimationFrame ||
+        window.webkitRequestAnimationFrame ||
+        window.msRequestAnimationFrame ||
+        function (callback) {
+            return window.setTimeout(callback, 1000 / 60);
+        };
+
+    var cancelAnimationFrame = window.cancelAnimationFrame ||
+        window.mozCancelAnimationFrame ||
+        window.webkitCancelAnimationFrame ||
+        window.msCancelAnimationFrame ||
+        function (id) {
+            clearTimeout(id);
+        };
+
 
     return MoveLine;
 }))
