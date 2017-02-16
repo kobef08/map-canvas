@@ -86,7 +86,7 @@
             this.from = opts.from;
             this.to = opts.to;
             this.id = opts.id;
-            this.index = 0;
+            this.step = 0;
         }
 
         MarkLine.prototype.getPointList = function (from, to) {
@@ -210,7 +210,7 @@
             }
             context.stroke();
             context.restore();
-            this.index = 0; //缩放地图时重新绘制动画
+            this.step = 0; //缩放地图时重新绘制动画
         }
 
         MarkLine.prototype.drawMoveCircle = function (context) {
@@ -221,13 +221,13 @@
             context.shadowColor = options.shadowColor;
             context.shadowBlur = options.shadowBlur;
             context.beginPath();
-            context.arc(pointList[this.index][0], pointList[this.index][1], options.moveRadius, 0, Math.PI * 2, true);
+            context.arc(pointList[this.step][0], pointList[this.step][1], options.moveRadius, 0, Math.PI * 2, true);
             context.fill();
             context.closePath();
             context.restore();
-            this.index += 1;
-            if (this.index >= pointList.length) {
-                this.index = 0;
+            this.step += 1;
+            if (this.step >= pointList.length) {
+                this.step = 0;
             }
         }
 
@@ -330,7 +330,7 @@
             mouseInteract();
 
             (function drawFrame() {
-                window.timer = requestAnimationFrame(drawFrame);
+                requestAnimationFrame(drawFrame);
                 render();
             }());
         }
