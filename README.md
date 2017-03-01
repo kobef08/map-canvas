@@ -1,2 +1,5 @@
 # map-canvas
-基于baidu、google地图的canvas扩展
+baidu地图、canvas数据可视化
+
+# demos
+[百度地图-闪烁](baidu-map-flashmarker.html)
