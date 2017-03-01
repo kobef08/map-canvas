@@ -11,5 +11,6 @@ baidu地图、canvas数据可视化
 * [百度地图-风](https://chengquan223.github.io/map-canvas/examples/baidu-map-wind.html)
 <img src="./asset/canvas-movewind.png" width = "300" height = "200" alt="百度地图-风" align=center />
 * [canvas-数据眼](https://chengquan223.github.io/map-canvas/examples/canvas-dataEye.html)
+<img src="./asset/canvas-dataEye.png" width = "300" height = "200" alt="canvas-数据眼" align=center />
 * [canvas-气泡](https://chengquan223.github.io/map-canvas/examples/canvas-bubble.html)
 * [canvas-星球](https://chengquan223.github.io/map-canvas/examples/canvas-planet.html)
