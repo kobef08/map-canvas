@@ -51,6 +51,7 @@
         this.w = w; //长轴
         this.h = h; //短轴
         this.r = radius;
+        this.color = '#' + ('00000' + (Math.random() * 0x1000000 << 0).toString(16)).slice(-6); //随机颜色
     }
     Planet.prototype.draw = function () {
         ctx.save();
@@ -88,8 +89,8 @@
     }
 
     var painter = {
-        amount: 9,
-        distance: 90,
+        amount: 8,
+        distance: 40,
         initCanvas: function () {
             var canvas = document.createElement('canvas');
             width = canvas.width = window.innerWidth;
@@ -139,7 +140,7 @@
                 x: this.centerX,
                 y: this.centerY,
                 radius: 2,
-                color: '#6BFFFF'
+                color: 'red'
             });
             middleStar.draw();
         },
@@ -161,7 +162,7 @@
                 planet.x = this.centerX + planet.w / 2 * Math.cos(planet.time);
                 planet.y = this.centerY + planet.h / 2 * Math.sin(planet.time);
                 planet.r = 4 + i;
-                planet.color = '#6BFFFF';
+                // planet.color = '#6BFFFF';
                 planet.draw();
                 planet.time += planet.interval;
             }
