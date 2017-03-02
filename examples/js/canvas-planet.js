@@ -112,7 +112,7 @@
                 distance = this.distance;
             for (var i = 0; i < amount; i++) {
                 var planet = new Planet(this.centerX, this.centerY, this.w + distance * 2 * i, this.h + distance * i, i + 1);
-                planet.time = Math.random();
+                planet.time = Math.random()*3;
                 planet.interval = Math.random() * (0.01 - 0.001) + 0.001;
                 this.planets.push(planet);
             }
