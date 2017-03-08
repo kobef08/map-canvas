@@ -1,0 +1,97 @@
+<!doctype html>
+<html>
+
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+    <title>canvas曲线</title>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+
+<body>
+    <canvas id="canvas" width="400" height="400" style="border: 1px solid #eee">
+        <span>亲，您的浏览器不支持canvas，换个浏览器试试吧！</span>
+    </canvas>
+    <script>
+        var canvas = document.getElementById("canvas"),
+            context = canvas.getContext("2d"),
+            w = canvas.width,
+            h = canvas.height,
+            angle = 10,
+            // point1 = {
+            //     x: Math.floor(Math.random() * w),
+            //     y: Math.floor(Math.random() * h),
+            // },
+            // point2 = {
+            //     x: Math.floor(Math.random() * w),
+            //     y: Math.floor(Math.random() * h),
+            // };
+
+            point1 = {
+                x: 19,
+                y: 384
+            },
+            point2 = {
+                x: 333,
+                y: 116
+            };
+
+        var drawCircle = function (point, r) {
+            r = r || 1;
+            context.beginPath();
+            context.arc(point.x, point.y, r, 0, Math.PI * 2);
+            context.strokeStyle = '#000';
+            context.stroke();
+            context.closePath();
+        }
+
+        var drawLine = function (p1, p2) {
+            context.beginPath();
+            context.moveTo(p1.x, p1.y);
+            context.lineTo(p2.x, p2.y);
+            context.strokeStyle = 'gray';
+            context.stroke();
+            context.closePath();
+        }
+
+        var drawCurve = function (start, control, end) {
+            context.beginPath();
+            context.moveTo(start.x, start.y);
+            context.quadraticCurveTo(control.x, control.y, end.x, end.y);
+            context.stroke();
+            context.closePath();
+        }
+
+        var getDistance = function (p1, p2) {
+            return Math.floor(Math.sqrt(Math.pow((p1.x - p2.x), 2) + Math.pow((p1.y - p2.y), 2)) / 2);
+        }
+
+        var middlePoint = {
+            x: point1.x / 2 + point2.x / 2,
+            y: point1.y / 2 + point2.y / 2
+        }
+        var b = getDistance(point1, point2);
+        var a = Math.floor(Math.tan(angle * Math.PI / 180) * b);
+        var control = {
+            x: middlePoint.x + a * Math.cos((90 - angle) * Math.PI / 180),
+            y: middlePoint.y + a * Math.sin((90 - angle) * Math.PI / 180)
+        };
+
+        drawLine(point1, point2);
+        drawCircle(point1);
+        drawCircle(point2);
+        drawCircle(middlePoint);
+        drawCircle(control);
+        drawCircle(middlePoint, a);
+        drawLine(middlePoint, control);
+        drawLine(point2, control);
+        // drawCurve(point1, control, point2);
+        console.log('point1：' + JSON.stringify(point1));
+        console.log('point2：' + JSON.stringify(point2));
+        console.log('中间点：' + JSON.stringify(middlePoint));
+        console.log('b：' + b);
+        console.log('a：' + a);
+        // console.log('控制点：' + JSON.stringify(control));
+    </script>
+</body>
+
+</html>
