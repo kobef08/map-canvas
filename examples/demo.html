@@ -17,23 +17,23 @@
             w = canvas.width,
             h = canvas.height,
             angle = 10,
-            // point1 = {
-            //     x: Math.floor(Math.random() * w),
-            //     y: Math.floor(Math.random() * h),
-            // },
-            // point2 = {
-            //     x: Math.floor(Math.random() * w),
-            //     y: Math.floor(Math.random() * h),
-            // };
-
             point1 = {
-                x: 19,
-                y: 384
+                x: Math.floor(Math.random() * w),
+                y: Math.floor(Math.random() * h),
             },
             point2 = {
-                x: 333,
-                y: 116
+                x: Math.floor(Math.random() * w),
+                y: Math.floor(Math.random() * h),
             };
+
+        // point1 = {
+        //     x: 165,
+        //     y: 399
+        // },
+        // point2 = {
+        //     x: 389,
+        //     y: 339
+        // };
 
         var drawCircle = function (point, r) {
             r = r || 1;
@@ -48,17 +48,20 @@
             context.beginPath();
             context.moveTo(p1.x, p1.y);
             context.lineTo(p2.x, p2.y);
-            context.strokeStyle = 'gray';
+            context.strokeStyle = '#555';
             context.stroke();
             context.closePath();
         }
 
         var drawCurve = function (start, control, end) {
+            context.save();
             context.beginPath();
             context.moveTo(start.x, start.y);
             context.quadraticCurveTo(control.x, control.y, end.x, end.y);
+            context.strokeStyle = 'red';
             context.stroke();
             context.closePath();
+            context.restore();
         }
 
         var getDistance = function (p1, p2) {
@@ -71,9 +74,14 @@
         }
         var b = getDistance(point1, point2);
         var a = Math.floor(Math.tan(angle * Math.PI / 180) * b);
+
+        var sin = Math.floor((Math.abs(middlePoint.y - point1.y) / b) * 100) / 100;
+        // var sin = Math.floor(((middlePoint.y - point1.y) / b) * 100) / 100;
+        var radian = Math.asin(sin); //sin值在-1~1之间
+        var β = Math.floor(radian * 180 / Math.PI);
         var control = {
-            x: middlePoint.x + a * Math.cos((90 - angle) * Math.PI / 180),
-            y: middlePoint.y + a * Math.sin((90 - angle) * Math.PI / 180)
+            x: middlePoint.x + a * Math.cos((β - 180) * Math.PI / 180),
+            y: middlePoint.y + a * Math.sin((β - 180) * Math.PI / 180)
         };
 
         drawLine(point1, point2);
@@ -84,13 +92,26 @@
         drawCircle(middlePoint, a);
         drawLine(middlePoint, control);
         drawLine(point2, control);
-        // drawCurve(point1, control, point2);
+        drawLine(middlePoint, {
+            x: middlePoint.x + a,
+            y: middlePoint.y
+        });
+        // // drawLine(middlePoint, {x:middlePoint.x,y:point1.y});
+        drawLine(point1, {
+            x: middlePoint.x,
+            y: point1.y
+        });
+
+        drawCurve(point1, control, point2);
         console.log('point1：' + JSON.stringify(point1));
         console.log('point2：' + JSON.stringify(point2));
         console.log('中间点：' + JSON.stringify(middlePoint));
-        console.log('b：' + b);
-        console.log('a：' + a);
+        console.log('邻边：' + b);
+        console.log('对边：' + a);
         // console.log('控制点：' + JSON.stringify(control));
+        console.log('sin：' + sin);
+        console.log('radian：' + radian);
+        console.log('angle：' + β);
     </script>
 </body>
 
