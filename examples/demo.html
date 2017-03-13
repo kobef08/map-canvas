@@ -1,0 +1,154 @@
+<!doctype html>
+<html>
+
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+    <title>canvas曲线</title>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+
+<body>
+    <canvas id="canvas" width="400" height="400" style="border: 1px solid #eee">
+        <span>亲，您的浏览器不支持canvas，换个浏览器试试吧！</span>
+    </canvas>
+    <script>
+        var canvas = document.getElementById("canvas"),
+            context = canvas.getContext("2d"),
+            w = canvas.width,
+            h = canvas.height,
+            angle = 10,
+            point1 = {
+                x: Math.floor(Math.random() * w),
+                y: Math.floor(Math.random() * h),
+            },
+            point2 = {
+                x: Math.floor(Math.random() * w),
+                y: Math.floor(Math.random() * h),
+            };
+
+        // point1 = {
+        //     x: 165,
+        //     y: 399
+        // },
+        // point2 = {
+        //     x: 389,
+        //     y: 339
+        // };
+
+        var drawCircle = function (point, r) {
+            r = r || 1;
+            context.beginPath();
+            context.arc(point.x, point.y, r, 0, Math.PI * 2);
+            context.strokeStyle = '#000';
+            context.stroke();
+            context.closePath();
+        }
+
+        var drawLine = function (p1, p2) {
+            context.beginPath();
+            context.moveTo(p1.x, p1.y);
+            context.lineTo(p2.x, p2.y);
+            context.strokeStyle = '#555';
+            context.stroke();
+            context.closePath();
+        }
+
+        var drawCurve = function (start, control, end) {
+            context.save();
+            context.beginPath();
+            context.moveTo(start.x, start.y);
+            context.quadraticCurveTo(control.x, control.y, end.x, end.y);
+            context.strokeStyle = 'red';
+            context.stroke();
+            context.closePath();
+            context.restore();
+        }
+
+        var getDistance = function (p1, p2) {
+            return Math.floor(Math.sqrt(Math.pow((p1.x - p2.x), 2) + Math.pow((p1.y - p2.y), 2)) / 2);
+        }
+
+        var middlePoint = {
+            x: point1.x / 2 + point2.x / 2,
+            y: point1.y / 2 + point2.y / 2
+        }
+        var b = getDistance(point1, point2);
+        var a = Math.floor(Math.tan(angle * Math.PI / 180) * b);
+
+        var sin = Math.floor((Math.abs(middlePoint.y - point1.y) / b) * 100) / 100;
+        // var sin = Math.floor(((middlePoint.y - point1.y) / b) * 100) / 100;
+        var radian = Math.asin(sin); //sin值在-1~1之间
+        var β = Math.floor(radian * 180 / Math.PI);
+        var control = {
+            x: middlePoint.x + a * Math.cos((β - 180) * Math.PI / 180),
+            y: middlePoint.y + a * Math.sin((β - 180) * Math.PI / 180)
+        };
+
+        drawLine(point1, point2);
+        drawCircle(point1);
+        drawCircle(point2);
+        drawCircle(middlePoint);
+        drawCircle(control);
+        drawCircle(middlePoint, a);
+        drawLine(middlePoint, control);
+        drawLine(point2, control);
+        drawLine(middlePoint, {
+            x: middlePoint.x + a,
+            y: middlePoint.y
+        });
+        // // drawLine(middlePoint, {x:middlePoint.x,y:point1.y});
+        drawLine(point1, {
+            x: middlePoint.x,
+            y: point1.y
+        });
+
+        drawCurve(point1, control, point2);
+        console.log('point1：' + JSON.stringify(point1));
+        console.log('point2：' + JSON.stringify(point2));
+        console.log('中间点：' + JSON.stringify(middlePoint));
+        console.log('邻边：' + b);
+        console.log('对边：' + a);
+        // console.log('控制点：' + JSON.stringify(control));
+        console.log('sin：' + sin);
+        console.log('radian：' + radian);
+        console.log('angle：' + β);
+
+
+        var Person = function (name, age) {
+            this.name = name;
+            this.age = age;
+            this.sayName = function () {
+                console.log(this.name + ',' + this.age);
+            }
+        }
+
+        function New(fun) {
+            //申明一个中间对象，该对象为最终返回的示例
+            var o = {};
+
+            //将实例的原型指向构造函数的原型
+            if (fun.prototype != null) {
+                o.__proto__ = fun.prototype;
+            }
+
+            //通过apply，将构造函数的this指向修改为实例o
+            var aa = Array.prototype.slice.call(arguments, 1);
+            var ret = fun.apply(o, Array.prototype.slice.call(arguments, 1));
+
+            //当我们在构造函数中明确指定了返回对象时，那么new的执行结果就返回该对象
+            if ((typeof ret == 'object' || typeof ret === 'function') && ret !== null) {
+                return ret;
+            }
+
+            //如果没有明确指定返回对象，则默认返回实例对象o，
+            return o;
+        }
+
+        var person = New(Person, 'JackChen', 26);
+        person.sayName();
+
+        console.log(person instanceof Person);
+    </script>
+</body>
+
+</html>
