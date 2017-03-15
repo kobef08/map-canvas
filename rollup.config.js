@@ -1,5 +1,5 @@
 import babel from 'rollup-plugin-babel';
-import moduleName from 'config';
+import moduleName from './config';
 
 export default {
     entry: 'src/js/' + moduleName, //入口

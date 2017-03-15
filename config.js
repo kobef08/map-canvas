@@ -1,6 +1,6 @@
 var demos = [{
     name: 'baidu-map-flashMarker.js',
-    build: true
+    build: false
 }, {
     name: 'baidu-map-move.js',
     build: false
@@ -9,14 +9,14 @@ var demos = [{
     build: false
 }, {
     name: 'baidu-map-wind.js',
-    build: false
+    build: true
 }];
 
 var moduleName;
 for (var i = 0; i < demos.length; i++) {
-    var demo = demos[i];
-    if (demo.build) {
-        moduleName = demo.name;
+    if (demos[i].build) {
+        moduleName = demos[i].name;
+        break;
     }
 }
 
