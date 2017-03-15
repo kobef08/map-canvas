@@ -9,6 +9,9 @@ var demos = [{
     build: false
 }, {
     name: 'baidu-map-wind.js',
+    build: false
+}, {
+    name: 'test.js',
     build: true
 }];
 

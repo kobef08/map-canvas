@@ -1,1 +1,1 @@
-import CanvasLayer from ''
+import CanvasLayer from 'map/baidu-map/CanvasLayer'
