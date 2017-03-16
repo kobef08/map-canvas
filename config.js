@@ -1,6 +1,6 @@
 var demos = [{
     name: 'baidu-map-flashMarker.js',
-    build: false
+    build: true
 }, {
     name: 'baidu-map-move.js',
     build: false
@@ -10,9 +10,6 @@ var demos = [{
 }, {
     name: 'baidu-map-wind.js',
     build: false
-}, {
-    name: 'test.js',
-    build: true
 }];
 
 var moduleName;
