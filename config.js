@@ -8,14 +8,16 @@ var demos = [{
     build: true
 }, {
     src: 'baidu-map-typhoon.js',
+    name: 'Typhoon',
     build: false
 }, {
     src: 'baidu-map-wind.js',
+    name: 'Wind',
     build: false
 }];
 
 var module;
-for (var i = 0; i < demos.length; i++) {
+for (let i = 0; i < demos.length; i++) {
     if (demos[i].build) {
         module = demos[i];
         break;
