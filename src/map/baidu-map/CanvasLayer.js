@@ -101,3 +101,5 @@ CanvasLayer.prototype.setZIndex = function (zIndex) {
 CanvasLayer.prototype.getZIndex = function () {
     return this.zIndex;
 }
+
+export default CanvasLayer;

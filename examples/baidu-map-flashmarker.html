@@ -7,7 +7,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, user-scalable=no">
     <link rel="stylesheet" href="css/style.css">
     <script type="text/javascript" src="https://api.map.baidu.com/api?v=2.0&ak=nuWah68S1WieW2AEwiT8T3Ro&s=1"></script>
-    <script type="text/javascript" src="../src/map/baidu-map/CanvasLayer.js"></script>
     <script type="text/javascript" src="js/mapstyle/dark.js"></script>
 </head>
 
@@ -17,13 +16,26 @@
         var map = new BMap.Map('map', {
             minZoom: 5
         });
-        map.centerAndZoom(new BMap.Point(112.03956, 26.063677), 6);
+        map.centerAndZoom(new BMap.Point(112.03956, 29.063677), 6);
         map.enableScrollWheelZoom(true);
         map.setMapStyle({
             styleJson: styleJson
         });
 
         var citys = [{
+            name: '北京',
+            lnglat: ['116.3', '39.9'],
+            color: '#5070FF',
+            type: 'circle',
+            speed: 0.1,
+        }, {
+            name: '上海',
+            lnglat: ['121.29', '31.11'],
+            color: '#6EE7FF',
+            type: 'ellipse',
+            speed: 0.2,
+            max: 40,
+        }, {
             name: '福建',
             lnglat: ['117.984943', '26.050118'],
             color: '#90EE90',
@@ -34,7 +46,7 @@
             lnglat: ['113.394818', '23.408004'],
             color: '#f8983a',
             type: 'circle',
-            speed: 0.15,
+            speed: 0.07,
         }, {
             name: '广西',
             lnglat: ['108.924274', '23.552255'],
@@ -44,5 +56,5 @@
             max: 50,
         }];
     </script>
-    <script type="text/javascript" src="js/baidu-map-flashMarker.js"></script>
+    <script type="text/javascript" src="../build/baidu-map-flashMarker.js"></script>
 </body>
