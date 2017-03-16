@@ -1,17 +1,11 @@
 var styleJson = [{
-    "featureType": "label",
+    "featureType": "highway",
     "elementType": "all",
     "stylers": {
         "visibility": "off"
     }
 }, {
-    "featureType": "boundary",
-    "elementType": "all",
-    "stylers": {
-        "color": "#465a6b"
-    }
-}, {
-    "featureType": "road",
+    "featureType": "railway",
     "elementType": "all",
     "stylers": {
         "visibility": "off"
@@ -20,12 +14,12 @@ var styleJson = [{
     "featureType": "water",
     "elementType": "all",
     "stylers": {
-        "color": "#031528"
+        "color": "#a3cdff"
     }
 }, {
     "featureType": "land",
     "elementType": "all",
     "stylers": {
-        "color": "#000002"
+        "color": "#f3f1ed"
     }
 }];

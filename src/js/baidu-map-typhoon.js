@@ -1,53 +1,7 @@
-/**
- * @author https://github.com/chengquan223
- * @Date 2016-11-26
- */
-(function (global, factory) {
-    typeof exports === 'object' && typeof module !== 'undefined' ? factory() :
-    typeof define === 'function' && define.amd ? define(factory) :
-    (factory());
-}(this, (function () { 'use strict';
-
-var mapStyle = {
-    styleJson: [{
-        "featureType": "highway",
-        "elementType": "all",
-        "stylers": {
-            "visibility": "off"
-        }
-    }, {
-        "featureType": "railway",
-        "elementType": "all",
-        "stylers": {
-            "visibility": "off"
-        }
-    }, {
-        "featureType": "water",
-        "elementType": "all",
-        "stylers": {
-            "color": "#a3cdff"
-        }
-    }, {
-        "featureType": "land",
-        "elementType": "all",
-        "stylers": {
-            "color": "#f3f1ed"
-        }
-    }]
-};
-
-var map = new BMap.Map("map", {
-    minZoom: 5
-});
-map.centerAndZoom(new BMap.Point(123.932575, 20.165757), 6);
-map.enableScrollWheelZoom();
-map.setDraggingCursor('default');
-map.setDefaultCursor("default");
-map.addEventListener('resize', function () {
-    var center = map.getCenter();
-    map.setCenter(center);
-});
-map.setMapStyle(mapStyle);
+import {
+    requestAnimationFrame,
+    cancelAnimationFrame
+} from '../utils/requestAnimationFrame';
 
 function Typhoon(obj) {
     this.id = obj.id; //台风编号
@@ -129,33 +83,6 @@ Typhoon.prototype.drawImage = function (context, img, x, y) {
     }
 };
 
-if (!Date.now) Date.now = function () {
-    return new Date().getTime();
-};
-
-(function () {
-    'use strict';
-
-    var vendors = ['webkit', 'moz'];
-    for (var i = 0; i < vendors.length && !window.requestAnimationFrame; ++i) {
-        var vp = vendors[i];
-        window.requestAnimationFrame = window[vp + 'RequestAnimationFrame'];
-        window.cancelAnimationFrame = window[vp + 'CancelAnimationFrame'] || window[vp + 'CancelRequestAnimationFrame'];
-    }
-    if (/iP(ad|hone|od).*OS 6/.test(window.navigator.userAgent) // iOS6 is buggy
-    || !window.requestAnimationFrame || !window.cancelAnimationFrame) {
-        var lastTime = 0;
-        window.requestAnimationFrame = function (callback) {
-            var now = Date.now();
-            var nextTime = Math.max(lastTime + 16, now);
-            return setTimeout(function () {
-                callback(lastTime = nextTime);
-            }, nextTime - now);
-        };
-        window.cancelAnimationFrame = clearTimeout;
-    }
-})();
-
 var baseInfo = {
     splitList: [{
         name: 'TD',
@@ -225,18 +152,12 @@ TyphoonOverLayer.prototype.draw = function () {
     ctx.canvas.style.top = py.y + 'px';
     ctx.clearRect(0, 0, paint.width, paint.height);
     paint.zoom = map.getZoom();
-    paint.dataSet.each(function (i, data) {
+    paint.dataSet.forEach(function (data) {
         var px = map.pointToOverlayPixel(new BMap.Point(data.lon, data.lat));
         data.x = px.x - py.x;
         data.y = px.y - py.y;
     });
     paint.render();
-};
-
-Array.prototype.each = function (callback) {
-    for (var i = 0, n = this.length; i < n; i++) {
-        callback(i, this[i]);
-    }
 };
 
 var ctx;
@@ -250,7 +171,7 @@ var paint = {
         var self = this;
         var dataSet = oldDataSet || self.dataSet;
         //绘制点、线、图片
-        dataSet.each(function (i, data) {
+        dataSet.forEach(function (data, i) {
             ctx.save();
             if (i < dataSet.length - 1) {
                 var nextData = dataSet[i + 1];
@@ -272,7 +193,7 @@ var paint = {
             typhoon.drawImage(ctx, self.img, typhoon.x, typhoon.y);
         }
         ctx.globalCompositeOperation = "destination-over";
-        radiusList.each(function (i, radius) {
+        radiusList.forEach(function (radius, i) {
             typhoon.drawCircle(ctx, typhoon.x, typhoon.y, radius, i);
         });
         ctx.restore();
@@ -322,7 +243,7 @@ var paint = {
         var img = this.img = new Image();
         img.src = 'images/typhoon.png';
         var dataSet = this.dataSet = [];
-        typhoonPath.each(function (i, v) {
+        typhoonPath.forEach(function (v, i) {
             var info = baseInfo.get(v.tlev);
             dataSet.push(new Typhoon({
                 id: i,
@@ -346,7 +267,7 @@ var paint = {
         var self = this;
         map.addEventListener('mousemove', function (e) {
             var cursor = 'default';
-            self.dataSet.each(function (i, data) {
+            self.dataSet.forEach(function (data, i) {
                 var result = Math.sqrt(Math.pow(e.clientX - data.x, 2) + Math.pow(e.clientY - data.y, 2)) <= 5;
                 if (result) {
                     cursor = 'pointer';
@@ -356,7 +277,7 @@ var paint = {
             map.setDefaultCursor(cursor);
         });
         map.addEventListener('mousedown', function (e) {
-            paint.dataSet.each(function (i, data) {
+            paint.dataSet.forEach(function (data, i) {
                 var result = Math.sqrt(Math.pow(e.clientX - data.x, 2) + Math.pow(e.clientY - data.y, 2)) <= 5;
                 if (result) {
                     paint.currentIndex = i; //动画设置为当前点
@@ -372,5 +293,3 @@ var paint = {
 };
 paint.init();
 map.addOverlay(new TyphoonOverLayer());
-
-})));
