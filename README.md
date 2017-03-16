@@ -10,6 +10,8 @@
 <img src="./asset/canvas-typhoon.png" width = "300" height = "200" alt="百度地图-台风" align=center />
 * [百度地图-风](https://chengquan223.github.io/map-canvas/examples/baidu-map-wind.html)<br>
 <img src="./asset/canvas-movewind.png" width = "300" height = "200" alt="百度地图-风" align=center />
+* [canvas-日历图](https://chengquan223.github.io/dazv/examples/canvas-calendar-year.html)<br>
+<img src="./asset/canvas-calendar-year.png" width = "300" height = "200" alt="canvas-日历图" align=center />
 * [canvas-数据眼](https://chengquan223.github.io/map-canvas/examples/canvas-dataEye.html)<br>
 <img src="./asset/canvas-dataEye.png" width = "300" height = "200" alt="canvas-数据眼" align=center />
 * [canvas-气泡](https://chengquan223.github.io/map-canvas/examples/canvas-bubble.html)<br>
