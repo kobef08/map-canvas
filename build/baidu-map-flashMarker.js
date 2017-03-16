@@ -1,6 +1,13 @@
-(function () {
-'use strict';
+(function (global, factory) {
+	typeof exports === 'object' && typeof module !== 'undefined' ? module.exports = factory() :
+	typeof define === 'function' && define.amd ? define(factory) :
+	(global.FlashMarker = factory());
+}(this, (function () { 'use strict';
 
+/**
+ * @author https://github.com/chengquan223
+ * @Date 2017-02-27
+ * */
 function CanvasLayer(options) {
     this.options = options || {};
     this.paneName = this.options.paneName || 'labelPane';
@@ -103,12 +110,6 @@ var requestAnimationFrame = global.requestAnimationFrame || global.mozRequestAni
     return global.setTimeout(callback, 1000 / 60);
 };
 
-var animationLayer = null;
-var width = map.getSize().width;
-var height = map.getSize().height;
-var animationFlag = true;
-var markers = [];
-
 function Marker(opts) {
     this.city = opts.name;
     this.location = new BMap.Point(opts.lnglat[0], opts.lnglat[1]);
@@ -120,27 +121,25 @@ function Marker(opts) {
 }
 
 Marker.prototype.draw = function (context) {
-    markers.forEach(function (marker) {
-        context.save();
-        context.beginPath();
-        switch (marker.type) {
-            case 'circle':
-                marker._drawCircle(context);
-                break;
-            case 'ellipse':
-                marker._drawEllipse(context);
-                break;
-            default:
-                break;
-        }
-        context.closePath();
-        context.restore();
+    context.save();
+    context.beginPath();
+    switch (this.type) {
+        case 'circle':
+            this._drawCircle(context);
+            break;
+        case 'ellipse':
+            this._drawEllipse(context);
+            break;
+        default:
+            break;
+    }
+    context.closePath();
+    context.restore();
 
-        marker.size += marker.speed;
-        if (marker.size > marker.max) {
-            marker.size = 0;
-        }
-    });
+    this.size += this.speed;
+    if (this.size > this.max) {
+        this.size = 0;
+    }
 };
 
 Marker.prototype._drawCircle = function (context) {
@@ -186,76 +185,86 @@ Marker.prototype._drawEllipse = function (context) {
     context.stroke();
 };
 
-var addMarker = function addMarker() {
-    if (markers.length > 0) return;
-    markers = [];
-    for (var i = 0; i < citys.length; i++) {
-        markers.push(new Marker(citys[i]));
-    }
-};
-
-//上层canvas渲染，动画效果
-var render = function render() {
-    var animationCtx = animationLayer.canvas.getContext('2d');
-    if (!animationCtx) {
-        return;
-    }
-
-    if (!animationFlag) {
-        animationCtx.clearRect(0, 0, width, height);
-        return;
-    }
-
-    addMarker();
-
-    animationCtx.fillStyle = 'rgba(0,0,0,.95)';
-    var prev = animationCtx.globalCompositeOperation;
-    animationCtx.globalCompositeOperation = 'destination-in';
-    animationCtx.fillRect(0, 0, width, height);
-    animationCtx.globalCompositeOperation = prev;
-
-    for (var i = 0; i < markers.length; i++) {
-        var marker = markers[i];
-        marker.draw(animationCtx);
-    }
-};
-
-//鼠标事件
-var mouseInteract = function mouseInteract() {
-    map.addEventListener('movestart', function () {
-        animationFlag = false;
-    });
-
-    map.addEventListener('moveend', function () {
-        animationFlag = true;
-        markers = []; //解决拖动后多余的小圆点bug，没想明白，暂时这样
-    });
-
-    map.addEventListener('zoomstart', function () {
-        animationFlag = false;
-    });
-
-    map.addEventListener('zoomend', function () {
-        animationFlag = true;
+function FlashMarker(map, dataSet) {
+    var animationLayer = null,
+        width = map.getSize().width,
+        height = map.getSize().height,
+        animationFlag = true,
         markers = [];
-    });
-};
 
-//初始化
-var init = function init(map) {
-    animationLayer = new CanvasLayer({
-        map: map,
-        update: render
-    });
+    var addMarker = function addMarker() {
+        if (markers.length > 0) return;
+        markers = [];
+        for (var i = 0; i < dataSet.length; i++) {
+            markers.push(new Marker(dataSet[i]));
+        }
+    };
 
-    mouseInteract();
+    //上层canvas渲染，动画效果
+    var render = function render() {
+        var animationCtx = animationLayer.canvas.getContext('2d');
+        if (!animationCtx) {
+            return;
+        }
 
-    (function drawFrame() {
-        requestAnimationFrame(drawFrame);
-        render();
-    })();
-};
+        if (!animationFlag) {
+            animationCtx.clearRect(0, 0, width, height);
+            return;
+        }
 
-init(map);
+        addMarker();
 
-}());
+        animationCtx.fillStyle = 'rgba(0,0,0,.95)';
+        var prev = animationCtx.globalCompositeOperation;
+        animationCtx.globalCompositeOperation = 'destination-in';
+        animationCtx.fillRect(0, 0, width, height);
+        animationCtx.globalCompositeOperation = prev;
+
+        for (var i = 0; i < markers.length; i++) {
+            var marker = markers[i];
+            marker.draw(animationCtx);
+        }
+    };
+
+    //鼠标事件
+    var mouseInteract = function mouseInteract() {
+        map.addEventListener('movestart', function () {
+            animationFlag = false;
+        });
+
+        map.addEventListener('moveend', function () {
+            animationFlag = true;
+            markers = []; //解决拖动后多余的小圆点bug，没想明白，暂时这样
+        });
+
+        map.addEventListener('zoomstart', function () {
+            animationFlag = false;
+        });
+
+        map.addEventListener('zoomend', function () {
+            animationFlag = true;
+            markers = [];
+        });
+    };
+
+    //初始化
+    var init = function init() {
+        animationLayer = new CanvasLayer({
+            map: map,
+            update: render
+        });
+
+        mouseInteract();
+
+        (function drawFrame() {
+            requestAnimationFrame(drawFrame);
+            render();
+        })();
+    };
+
+    init();
+}
+
+return FlashMarker;
+
+})));
