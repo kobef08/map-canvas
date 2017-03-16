@@ -5,11 +5,11 @@ var demos = [{
 }, {
     src: 'baidu-map-moveLine.js',
     name: 'MoveLine',
-    build: true
+    build: false
 }, {
     src: 'baidu-map-typhoon.js',
     name: 'Typhoon',
-    build: false
+    build: true
 }, {
     src: 'baidu-map-wind.js',
     name: 'Wind',
