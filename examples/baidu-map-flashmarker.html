@@ -12,6 +12,7 @@
 
 <body>
     <div id="map"></div>
+    <script type="text/javascript" src="../build/baidu-map-flashMarker.js"></script>
     <script type="text/javascript">
         var map = new BMap.Map('map', {
             minZoom: 5
@@ -27,34 +28,35 @@
             lnglat: ['116.3', '39.9'],
             color: '#5070FF',
             type: 'circle',
-            speed: 0.1,
+            speed: 0.5,
         }, {
             name: '上海',
             lnglat: ['121.29', '31.11'],
             color: '#6EE7FF',
             type: 'ellipse',
-            speed: 0.2,
+            speed: 1,
             max: 40,
         }, {
             name: '福建',
             lnglat: ['117.984943', '26.050118'],
             color: '#90EE90',
             type: 'circle',
-            speed: 0.1,
+            speed: 0.45,
         }, {
             name: '广东',
             lnglat: ['113.394818', '23.408004'],
             color: '#f8983a',
             type: 'circle',
-            speed: 0.07,
+            speed: 0.9,
         }, {
             name: '广西',
             lnglat: ['108.924274', '23.552255'],
             color: '#FAFA32',
             type: 'ellipse',
-            speed: 0.2,
+            speed: 0.8,
             max: 50,
         }];
+
+        var flashMarkerLayer = new FlashMarker(map, citys);
     </script>
-    <script type="text/javascript" src="../build/baidu-map-flashMarker.js"></script>
 </body>

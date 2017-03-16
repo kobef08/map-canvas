@@ -1,23 +1,25 @@
 var demos = [{
-    name: 'baidu-map-flashMarker.js',
+    src: 'baidu-map-flashMarker.js',
+    name: 'FlashMarker',
+    build: false
+}, {
+    src: 'baidu-map-moveLine.js',
+    name: 'MoveLine',
     build: true
 }, {
-    name: 'baidu-map-move.js',
+    src: 'baidu-map-typhoon.js',
     build: false
 }, {
-    name: 'baidu-map-typhoon.js',
-    build: false
-}, {
-    name: 'baidu-map-wind.js',
+    src: 'baidu-map-wind.js',
     build: false
 }];
 
-var moduleName;
+var module;
 for (var i = 0; i < demos.length; i++) {
     if (demos[i].build) {
-        moduleName = demos[i].name;
+        module = demos[i];
         break;
     }
 }
 
-export default moduleName;
+export default module;
