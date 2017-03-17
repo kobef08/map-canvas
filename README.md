@@ -1,7 +1,7 @@
 # map-canvas
 基于baidu地图、canvas数据可视化
 
-# demos
+## demos
 * [百度地图-闪烁](https://chengquan223.github.io/map-canvas/examples/baidu-map-flashmarker.html)<br>
 <img src="./asset/canvas-flashmarker.png" width = "300" height = "200" alt="百度地图-闪烁" align=center />
 
