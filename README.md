@@ -1,5 +1,5 @@
 # map-canvas
-基于baidu地图、canvas数据可视化
+基于baidu、google、arcgis、高德地图、canvas数据可视化
 
 ## demos
 * [百度地图-闪烁](https://chengquan223.github.io/map-canvas/examples/baidu-map-flashmarker.html)<br>
