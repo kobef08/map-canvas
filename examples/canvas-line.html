@@ -1,0 +1,59 @@
+﻿<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=Edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1" user-scalable="no">
+    <title>canvas-line</title>
+    <link rel="stylesheet" href="css/style.css">
+    <style type="text/css">
+        html,
+        body {
+            background: #000;
+        }
+    </style>
+</head>
+
+<body>
+    <canvas id="myCanvas"></canvas>
+    <script type="text/javascript" src="../build/canvas-line.js"></script>
+    <script>
+        var lines = [],
+            colors = ['#F9815C', '#F8AB60', '#EDCC72', '#E2F194', '#94E08A', '#4ECDA5'];
+        for (var i = 0; i < 6; i++) {
+            var randomNumber = Math.floor(Math.random() * (6 - 3) + 3); //线条拐角点,[3,10]
+            var points = [];
+            for (var j = 0; j < randomNumber; j++) {
+                points.push([Math.random() * window.innerWidth / 2, Math.random() * window.innerHeight / 2]);
+            }
+            lines.push(points);
+        }
+        var options = {
+            lineWidth: 0.06,
+            data: [{
+                points: lines[0],
+                color: colors[0]
+            }, {
+                points: lines[1],
+                color: colors[1]
+            }, {
+                points: lines[2],
+                color: colors[2]
+            }, {
+                points: lines[3],
+                color: colors[3]
+            }, {
+                points: lines[4],
+                color: colors[4]
+            }, {
+                points: lines[5],
+                color: colors[5]
+            }],
+            fillColor: '#fff'
+        };
+        var trackLine = new TrackLine(options);
+    </script>
+</body>
+
+</html>

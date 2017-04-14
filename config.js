@@ -14,6 +14,10 @@ var demos = [{
     src: 'baidu-map-wind.js',
     name: 'Wind',
     build: false
+}, {
+    src: 'canvas-line.js',
+    name: 'TrackLine',
+    build: true
 }];
 
 var module;

@@ -4,7 +4,7 @@
   "description": "基于baidu地图、canvas数据可视化",
   "main": "rollup.config.js",
   "scripts": {
-    "mini": "npm run build && uglifyjs build/typhoon.js -c -m -o build/typhoon.min.js",
+    "mini": "npm run build && uglifyjs build/release/baidu-map-typhoon.js -c -m -o build/release/baidu-map-typhoon.min.js",
     "build": "rollup -c",
     "watch": "npm-watch",
     "test": "npm run build"
