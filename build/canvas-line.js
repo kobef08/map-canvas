@@ -58,7 +58,7 @@ var TrackLine = function TrackLine(userOptions) {
                 var vx = (end[0] - start[0]) / distance;
                 var vy = (end[1] - start[1]) / distance;
                 for (var j = 0; j < distance; j++) {
-                    self.pointList.push([start[0] + vx * j, start[1] + vx * j]);
+                    self.pointList.push([start[0] + vx * j, start[1] + vy * j]);
                 }
             }
         }

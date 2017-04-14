@@ -55,7 +55,7 @@ var TrackLine = function (userOptions) {
                 var vx = ((end[0] - start[0]) / distance);
                 var vy = ((end[1] - start[1]) / distance);
                 for (var j = 0; j < distance; j++) {
-                    self.pointList.push([start[0] + vx * j, start[1] + vx * j]);
+                    self.pointList.push([start[0] + vx * j, start[1] + vy * j]);
                 }
             }
         }
@@ -85,7 +85,7 @@ var TrackLine = function (userOptions) {
         // context.shadowColor = options.shadowColor;
         // context.shadowBlur = options.shadowBlur;
         context.beginPath();
-        context.arc(pointList[this.step][0], pointList[this.step][1], 2, 0, Math.PI * 2, true);
+        context.arc(pointList[this.step][0], pointList[this.step][1], 3, 0, Math.PI * 2, true);
         context.fill();
         context.closePath();
         context.restore();
