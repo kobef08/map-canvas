@@ -9,11 +9,15 @@ var demos = [{
 }, {
     src: 'baidu-map-typhoon.js',
     name: 'Typhoon',
-    build: true
+    build: false
 }, {
     src: 'baidu-map-wind.js',
     name: 'Wind',
     build: false
+}, {
+    src: 'canvas-line.js',
+    name: 'TrackLine',
+    build: true
 }];
 
 var module;
