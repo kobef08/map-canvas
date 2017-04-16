@@ -38,7 +38,7 @@ var TrackLine = function (userOptions) {
         this.color = options.color;
         this.turnPoints = options.points; //[[50,50],[150,250],[400,650]]
         this.step = 0;
-
+        this.temp = 0;
         this.getPointList();
     }
 
@@ -86,10 +86,16 @@ var TrackLine = function (userOptions) {
         // context.shadowBlur = options.shadowBlur;
         context.beginPath();
         context.arc(pointList[this.step][0], pointList[this.step][1], 3, 0, Math.PI * 2, true);
+        if (this.temp > 0) {
+            context.arc(pointList[this.temp][0], pointList[this.temp][1], 3, 0, Math.PI * 2, true);
+        }
         context.fill();
         context.closePath();
         context.restore();
         this.step += 1;
+        if (this.step > 150) {
+            this.temp += 1;
+        }
         if (this.step >= pointList.length) {
             this.step = 0;
         }
