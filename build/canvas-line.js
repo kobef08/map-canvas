@@ -41,7 +41,7 @@ var TrackLine = function TrackLine(userOptions) {
         this.color = options.color;
         this.turnPoints = options.points; //[[50,50],[150,250],[400,650]]
         this.step = 0;
-
+        this.temp = 0;
         this.getPointList();
     }
 
@@ -70,7 +70,7 @@ var TrackLine = function TrackLine(userOptions) {
             context.save();
             context.beginPath();
             context.lineWidth = options.lineWidth;
-            context.strokeStyle = self.color;
+            context.strokeStyle = '#fff';
             context.moveTo(this.turnPoints[0][0], this.turnPoints[0][1]);
             for (var i = 0; i < this.turnPoints.length; i++) {
                 context.lineTo(this.turnPoints[i][0], this.turnPoints[i][1]);
@@ -84,17 +84,26 @@ var TrackLine = function TrackLine(userOptions) {
         var pointList = this.pointList || this.getPointList();
 
         context.save();
-        context.fillStyle = options.fillColor;
+        context.fillStyle = this.color;
         // context.shadowColor = options.shadowColor;
         // context.shadowBlur = options.shadowBlur;
         context.beginPath();
         context.arc(pointList[this.step][0], pointList[this.step][1], 2, 0, Math.PI * 2, true);
+        if (this.temp > 0) {
+            context.arc(pointList[this.temp][0], pointList[this.temp][1], 2, 0, Math.PI * 2, true);
+        }
         context.fill();
         context.closePath();
         context.restore();
         this.step += 1;
+        if (this.step > 150 || this.temp > 0) {
+            this.temp += 1;
+        }
         if (this.step >= pointList.length) {
             this.step = 0;
+        }
+        if (this.temp >= pointList.length) {
+            this.temp = 0;
         }
     };
 
