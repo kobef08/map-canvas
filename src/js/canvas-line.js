@@ -1,3 +1,4 @@
+import tool from '../utils/tool';
 import {
     requestAnimationFrame,
     cancelAnimationFrame
@@ -51,7 +52,7 @@ var TrackLine = function (userOptions) {
             var start = turnPoints[i];
             var end = turnPoints[i + 1];
             if (start && end) {
-                var distance = Math.floor(getDistance(start, end));
+                var distance = Math.floor(tool.getDistance(start, end));
                 var vx = ((end[0] - start[0]) / distance);
                 var vy = ((end[1] - start[1]) / distance);
                 for (var j = 0; j < distance; j++) {
@@ -67,7 +68,7 @@ var TrackLine = function (userOptions) {
             context.save();
             context.beginPath();
             context.lineWidth = options.lineWidth;
-            context.strokeStyle = '#fff';
+            context.strokeStyle = options.fillColor;
             context.moveTo(this.turnPoints[0][0], this.turnPoints[0][1]);
             for (var i = 0; i < this.turnPoints.length; i++) {
                 context.lineTo(this.turnPoints[i][0], this.turnPoints[i][1]);
@@ -85,9 +86,9 @@ var TrackLine = function (userOptions) {
         // context.shadowColor = options.shadowColor;
         // context.shadowBlur = options.shadowBlur;
         context.beginPath();
-        context.arc(pointList[this.step][0], pointList[this.step][1], 2, 0, Math.PI * 2, true);
+        context.arc(pointList[this.step][0], pointList[this.step][1], 3, 0, Math.PI * 2, true);
         if (this.temp > 0) {
-            context.arc(pointList[this.temp][0], pointList[this.temp][1], 2, 0, Math.PI * 2, true);
+            context.arc(pointList[this.temp][0], pointList[this.temp][1], 3, 0, Math.PI * 2, true);
         }
         context.fill();
         context.closePath();
@@ -102,14 +103,6 @@ var TrackLine = function (userOptions) {
         if (this.temp >= pointList.length) {
             this.temp = 0;
         }
-    }
-
-    //两点间距离
-    var getDistance = function (p1, p2) {
-        return Math.sqrt(
-            (p1[0] - p2[0]) * (p1[0] - p2[0]) +
-            (p1[1] - p2[1]) * (p1[1] - p2[1])
-        );
     }
 
     //初始化线条
