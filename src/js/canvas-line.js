@@ -1,3 +1,4 @@
+import tool from '../utils/tool';
 import {
     requestAnimationFrame,
     cancelAnimationFrame
@@ -51,7 +52,7 @@ var TrackLine = function (userOptions) {
             var start = turnPoints[i];
             var end = turnPoints[i + 1];
             if (start && end) {
-                var distance = Math.floor(getDistance(start, end));
+                var distance = Math.floor(tool.getDistance(start, end));
                 var vx = ((end[0] - start[0]) / distance);
                 var vy = ((end[1] - start[1]) / distance);
                 for (var j = 0; j < distance; j++) {
@@ -102,14 +103,6 @@ var TrackLine = function (userOptions) {
         if (this.temp >= pointList.length) {
             this.temp = 0;
         }
-    }
-
-    //两点间距离
-    var getDistance = function (p1, p2) {
-        return Math.sqrt(
-            (p1[0] - p2[0]) * (p1[0] - p2[0]) +
-            (p1[1] - p2[1]) * (p1[1] - p2[1])
-        );
     }
 
     //初始化线条
