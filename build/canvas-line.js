@@ -77,7 +77,7 @@ var TrackLine = function TrackLine(userOptions) {
             context.save();
             context.beginPath();
             context.lineWidth = options.lineWidth;
-            context.strokeStyle = '#fff';
+            context.strokeStyle = options.fillColor;
             context.moveTo(this.turnPoints[0][0], this.turnPoints[0][1]);
             for (var i = 0; i < this.turnPoints.length; i++) {
                 context.lineTo(this.turnPoints[i][0], this.turnPoints[i][1]);
@@ -95,9 +95,9 @@ var TrackLine = function TrackLine(userOptions) {
         // context.shadowColor = options.shadowColor;
         // context.shadowBlur = options.shadowBlur;
         context.beginPath();
-        context.arc(pointList[this.step][0], pointList[this.step][1], 2, 0, Math.PI * 2, true);
+        context.arc(pointList[this.step][0], pointList[this.step][1], 3, 0, Math.PI * 2, true);
         if (this.temp > 0) {
-            context.arc(pointList[this.temp][0], pointList[this.temp][1], 2, 0, Math.PI * 2, true);
+            context.arc(pointList[this.temp][0], pointList[this.temp][1], 3, 0, Math.PI * 2, true);
         }
         context.fill();
         context.closePath();

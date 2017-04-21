@@ -10,46 +10,94 @@
     <style type="text/css">
         html,
         body {
-            background: #282c34;
+            background: #0B1723;
         }
     </style>
 </head>
 
 <body>
+    <!--<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+    <!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+    <svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" preserveAspectRatio="xMidYMid" width="1885"
+        height="1034" viewBox="0 0 1885 1034" id="svg">
+        <defs>
+            <style>
+                .cls-1 {
+                    stroke: #ff5b16;
+                    stroke-width: 1px;
+                    filter: url(#outer-glow-1);
+                    fill: none;
+                    opacity: 0.3;
+                    fill-rule: evenodd;
+                }
+            </style>
+
+            <filter id="outer-glow-1" filterUnits="userSpaceOnUse">
+                <feGaussianBlur stdDeviation="1.667" in="SourceAlpha" />
+                <feComposite/>
+                <feComposite/>
+                <feComposite result="outerGlowBlur" />
+                <feFlood flood-color="#ff4700" />
+                <feComposite operator="in" in2="outerGlowBlur" />
+                <feBlend in2="SourceGraphic" result="outerGlow" />
+                <feComposite in="SourceGraphic" result="shadowed" />
+            </filter>
+        </defs>
+        <path d="M796.000,181.000 L796.000,242.000 L1212.000,242.000 L1212.000,20.000 L1227.000,5.000 L1624.000,5.000 L1637.000,11.000 L1880.000,11.000 L1880.000,746.000 L1466.000,746.000 L1443.000,767.000 L1443.000,1004.000 L1401.000,1029.000 L986.000,1029.000 L962.000,1009.000 L922.000,1009.000 L922.000,758.000 L907.000,742.000 L482.000,742.000 L482.000,1004.000 L443.000,1028.000 L5.000,1028.000 L5.000,665.000 L42.000,629.000 L254.000,629.000 L284.000,593.000 "
+            class="cls-1" />
+    </svg>-->
+
     <canvas id="myCanvas"></canvas>
     <script type="text/javascript" src="../build/canvas-line.js"></script>
     <script>
+        // var svg = document.getElementById('svg');
+        // var svgd = svg.lastElementChild.getAttribute('d').replace(/M|L/ig, '');
+        var svgd =
+            'M796.000,181.000 L796.000,242.000 L1212.000,242.000 L1212.000,20.000 L1227.000,5.000 L1624.000,5.000 L1637.000,11.000 L1880.000,11.000 L1880.000,746.000 L1466.000,746.000 L1443.000,767.000 L1443.000,1004.000 L1401.000,1029.000 L986.000,1029.000 L962.000,1009.000 L922.000,1009.000 L922.000,758.000 L907.000,742.000 L482.000,742.000 L482.000,1004.000 L443.000,1028.000 L5.000,1028.000 L5.000,665.000 L42.000,629.000 L254.000,629.000 L284.000,593.000'
+            .replace(/M|L/ig, '');
+        var path = svgd.split(' ');
+
         var lines = [],
-            colors = ['#F9815C', '#F8AB60', '#EDCC72', '#E2F194', '#94E08A', '#4ECDA5'];
-        for (var i = 0; i < 6; i++) {
-            var randomNumber = Math.floor(Math.random() * (6 - 3) + 3); //线条拐角点,[3,10]
-            var points = [];
-            for (var j = 0; j < randomNumber; j++) {
-                points.push([Math.random() * window.innerWidth / 2, Math.random() * window.innerHeight / 2]);
-            }
-            lines.push(points);
+            colors = ['#F8B551', '#F8AB60', '#EDCC72', '#E2F194', '#94E08A', '#4ECDA5'];
+        // for (var i = 0; i < 6; i++) {
+        //     var randomNumber = Math.floor(Math.random() * (6 - 3) + 3); //线条拐角点,[3,10]
+        //     var points = [];
+        //     for (var j = 0; j < randomNumber; j++) {
+        //         points.push([Math.random() * window.innerWidth / 2, Math.random() * window.innerHeight / 2]);
+        //     }
+        //     lines.push(points);
+        // }
+        var tempPoint = [];
+        for (var p = 0; p < path.length; p++) {
+            var pointxy = path[p].split(',');
+            tempPoint.push([Math.floor(pointxy[0]), Math.floor(pointxy[1])]);
         }
+        lines.push(tempPoint);
         var options = {
-            lineWidth: 0.01,
+            lineWidth: 0.05,
             data: [{
                 points: lines[0],
                 color: colors[0]
-            }, {
-                points: lines[1],
-                color: colors[1]
-            }, {
-                points: lines[2],
-                color: colors[2]
-            }, {
-                points: lines[3],
-                color: colors[3]
-            }, {
-                points: lines[4],
-                color: colors[4]
-            }, {
-                points: lines[5],
-                color: colors[5]
             }],
+            // data: [{
+            //     points: lines[0],
+            //     color: colors[0]
+            // }, {
+            //     points: lines[1],
+            //     color: colors[1]
+            // }, {
+            //     points: lines[2],
+            //     color: colors[2]
+            // }, {
+            //     points: lines[3],
+            //     color: colors[3]
+            // }, {
+            //     points: lines[4],
+            //     color: colors[4]
+            // }, {
+            //     points: lines[5],
+            //     color: colors[5]
+            // }],
             fillColor: '#fff'
         };
         var trackLine = new TrackLine(options);
