@@ -111,7 +111,7 @@ var TrackLine = function (userOptions) {
 
     //渲染
     var render = function () {
-        context.fillStyle = 'rgba(0,0,0,.88)';
+        context.fillStyle = 'rgba(0,0,0,.9)';
         var prev = context.globalCompositeOperation;
         context.globalCompositeOperation = 'destination-in';
         context.fillRect(0, 0, width, height);
