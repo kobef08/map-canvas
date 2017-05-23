@@ -24,7 +24,7 @@ var TrackLine = function (userOptions) {
         speed: 1
     };
 
-    //参数合并
+    //参数合并,浅复制
     var merge = function (userOptions, options) {
         Object.keys(userOptions).forEach(function (key) {
             options[key] = userOptions[key];
