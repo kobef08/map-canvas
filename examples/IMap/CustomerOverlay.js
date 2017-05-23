@@ -98,12 +98,6 @@
                 b.style.top = f + "px";
                 this.resize(!0);
                 this.update();
-
-                //动画渲染
-                (function drawFrame() {
-                    requestAnimationFrame(drawFrame);
-                    self._render();
-                })();
             }
 
         },
@@ -119,6 +113,13 @@
                 this._element.appendChild(this._createCanvas('backCanvas'));
                 this._element.appendChild(this._createCanvas('animationCanvas'));
                 this._redraw();
+
+                //动画渲染
+                var self = this;
+                (function drawFrame() {
+                    requestAnimationFrame(drawFrame);
+                    self._render();
+                })();
             }
         },
         _createCanvas: function (id) {
@@ -149,6 +150,7 @@
                 var b = a.getSize();
                 this._width = b.width;
                 this._height = b.height;
+                this._mEvtzs = a.addEventListener(IMAP.Constants.ZOOM_START, this._clear, this);
                 this._mEvtz = a.addEventListener(IMAP.Constants.ZOOM_END, this._redraw, this);
                 this._mEvtd = a.addEventListener(IMAP.Constants.DRAG_END, this._redraw, this);
                 this._mEvtm = a.addEventListener(IMAP.Constants.MOVE_END, this._redraw, this);
@@ -165,6 +167,13 @@
         },
         getId: function () {
             return this._id
+        },
+        _clear: function () {
+            animationFlag = false;
+            var backCtx = this.backCanvas.getContext('2d');
+            backCtx.clearRect(0, 0, this.backCanvas.width, this.backCanvas.height);
+            var animationCtx = this.animationCanvas.getContext('2d');
+            animationCtx.clearRect(0, 0, this.animationCanvas.width, this.animationCanvas.height);
         }
     });
     IMAP.CustomerOverlayOptions = IMAP.Class({
@@ -219,7 +228,6 @@
         context.fillText(this.city, pixel.x, pixel.y - 10);
         context.restore();
     };
-
 
     Marker.prototype.convertPixel = function (lnglat) {
         var bounds = map.getBounds(),
@@ -340,7 +348,7 @@
     MarkLine.prototype.drawLinePath = function (context) {
         // var pointList = this.path = this.getPointList(map.lnglatToPixel(this.from.location), map.lnglatToPixel(this.to.location));
         var pointList = this.path = this.getPointList(this.from.convertPixel(this.from.location), this.to.convertPixel(this.to.location));
-        
+
         var len = pointList.length;
         context.save();
         context.beginPath();
@@ -390,13 +398,5 @@
         global.msRequestAnimationFrame ||
         function (callback) {
             return global.setTimeout(callback, 1000 / 60);
-        };
-
-    var cancelAnimationFrame = global.cancelAnimationFrame ||
-        global.mozCancelAnimationFrame ||
-        global.webkitCancelAnimationFrame ||
-        global.msCancelAnimationFrame ||
-        function (id) {
-            clearTimeout(id);
         };
 })();
