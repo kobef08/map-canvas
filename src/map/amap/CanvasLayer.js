@@ -1,11 +1,19 @@
+(function () {
+    AMap.CanvasLayer = AMap.Class.extend({
+        initialize: function () {},
+        setMap: function () {}
+    });
+})();
+
 function CanvasLayer(options) {
     this.options = options || {};
+
     this.zIndex = this.options.zIndex || 0;
     this._map = options.map;
     this.show();
 }
 
-CanvasLayer.prototype = new AMap.TileLayer();
+CanvasLayer.prototype = new AMap.IndoorMap();
 
 CanvasLayer.prototype.setMap = function (map) {
     this._map = map;
