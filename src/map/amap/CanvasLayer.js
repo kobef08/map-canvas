@@ -1,23 +1,28 @@
-(function () {
-    AMap.CanvasLayer = AMap.Class.extend({
-        initialize: function () {},
-        setMap: function () {}
-    });
-})();
+// (function () {
+
+//     map.plugin(['AMap.CustomLayer'], function () {
+//         var canvasLayer123 = new AMap.CustomLayer({});
+//     });
+//     AMap.CanvasLayer = AMap.Class.extend({
+//         initialize: function () {},
+//         setMap: function () {}
+//     });
+// })();
 
 function CanvasLayer(options) {
     this.options = options || {};
-
     this.zIndex = this.options.zIndex || 0;
     this._map = options.map;
     this.show();
 }
 
-CanvasLayer.prototype = new AMap.IndoorMap();
-
 CanvasLayer.prototype.setMap = function (map) {
-    this._map = map;
+
+}
+
+CanvasLayer.prototype.initialize = function () {
     var canvas = this.canvas = document.createElement('canvas');
+    canvas.id = 'myCanvas';
     var ctx = this.ctx = this.canvas.getContext('2d');
     canvas.style.cssText = "position:absolute;" +
         "left:0;" +
@@ -25,7 +30,12 @@ CanvasLayer.prototype.setMap = function (map) {
         "z-index:" + this.zIndex + ";";
     this.adjustSize();
     this.adjustRatio(ctx);
-    map.getContainer().appendChild(canvas); //有问题
+    map.plugin(['AMap.CustomLayer'], function () {
+        var canvasLayer123 = new AMap.CustomLayer(canvas);
+        canvasLayer123.setMap(map);
+    });
+    // this._map.indoorMap.Ae.appendChild(canvas);
+
     return this.canvas;
 }
 
@@ -57,8 +67,9 @@ CanvasLayer.prototype.adjustSize = function () {
 }
 
 CanvasLayer.prototype.show = function () {
+    this.initialize();
     if (!this.canvas) {
-        this._map.add(this);
+        this.initialize();
     }
     this.canvas.style.display = 'block';
 }
