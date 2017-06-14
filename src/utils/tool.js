@@ -1,4 +1,9 @@
 export default {
+    merge: function (userOptions, options) {
+        Object.keys(userOptions).forEach(function (key) {
+            options[key] = userOptions[key];
+        });
+    },
     //计算两点间距离
     getDistance: function (p1, p2) {
         return Math.sqrt(
