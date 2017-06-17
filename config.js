@@ -17,6 +17,10 @@ var demos = [{
 }, {
     src: 'canvas-line.js',
     name: 'TrackLine',
+    build: false
+}, {
+    src: 'baidu-map-windNew.js',
+    name: 'Windy',
     build: true
 }];
 
