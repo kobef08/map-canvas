@@ -104,6 +104,18 @@ CanvasLayer.prototype.getZIndex = function () {
     return this.zIndex;
 };
 
+var tool = {
+    merge: function merge(userOptions, options) {
+        Object.keys(userOptions).forEach(function (key) {
+            options[key] = userOptions[key];
+        });
+    },
+    //计算两点间距离
+    getDistance: function getDistance(p1, p2) {
+        return Math.sqrt((p1[0] - p2[0]) * (p1[0] - p2[0]) + (p1[1] - p2[1]) * (p1[1] - p2[1]));
+    }
+};
+
 var Windy = function Windy(map, userOptions) {
     var self = this;
 
@@ -121,7 +133,12 @@ var Windy = function Windy(map, userOptions) {
         width = map.getSize().width,
         height = map.getSize().height;
 
-    //参数合并
+    //初始化
+    this._init(userOptions, options);
+};
+
+Windy.prototype._init = function (opt1, opt2) {
+    tool.merge(opt1, opt2);
 };
 
 Windy.prototype.start = function () {};

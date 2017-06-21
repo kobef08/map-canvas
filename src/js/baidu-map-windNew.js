@@ -22,7 +22,14 @@ var Windy = function (map, userOptions) {
         width = map.getSize().width,
         height = map.getSize().height;
 
-    //参数合并
+    //初始化
+    this._init(userOptions, options);
+}
+
+Windy.prototype._init = function (opt1, opt2) {
+    //合并参数
+    tool.merge(opt1, opt2);
+    
 }
 
 Windy.prototype.start = function () {
