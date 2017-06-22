@@ -1,7 +1,7 @@
 export default {
-    merge: function (userOptions, options) {
-        Object.keys(userOptions).forEach(function (key) {
-            options[key] = userOptions[key];
+    merge: function (settings, defaults) {
+        Object.keys(settings).forEach(function (key) {
+            defaults[key] = settings[key];
         });
     },
     //计算两点间距离

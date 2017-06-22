@@ -197,7 +197,6 @@ var Windy = function (options) {
         ctx.strokeStyle = options.color;
     }
 
-
     var windy = {
         options: options,
         start: start,

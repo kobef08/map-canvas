@@ -105,9 +105,9 @@ CanvasLayer.prototype.getZIndex = function () {
 };
 
 var tool = {
-    merge: function merge(userOptions, options) {
-        Object.keys(userOptions).forEach(function (key) {
-            options[key] = userOptions[key];
+    merge: function merge(settings, defaults) {
+        Object.keys(settings).forEach(function (key) {
+            defaults[key] = settings[key];
         });
     },
     //计算两点间距离
@@ -117,7 +117,7 @@ var tool = {
 };
 
 var Windy = function Windy(map, userOptions) {
-    var self = this;
+    this.map = map;
 
     //默认参数
     var options = {
@@ -129,7 +129,7 @@ var Windy = function Windy(map, userOptions) {
     };
 
     //全局变量
-    var windLayer = null,
+    var animationLayer = null,
         width = map.getSize().width,
         height = map.getSize().height;
 
@@ -137,8 +137,22 @@ var Windy = function Windy(map, userOptions) {
     this._init(userOptions, options);
 };
 
-Windy.prototype._init = function (opt1, opt2) {
-    tool.merge(opt1, opt2);
+Windy.prototype._init = function (settings, defaults) {
+    var self = this;
+
+    //合并参数
+    tool.merge(settings, defaults);
+
+    var animationLayer = self.animationLayer = new CanvasLayer({
+        map: self.map,
+        update: self._render
+    });
+
+    self.animationLayer = animationLayer.canvas.getContext('2d');
+};
+
+Windy.prototype._render = function () {
+    console.log('_render');
 };
 
 Windy.prototype.start = function () {};
