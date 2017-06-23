@@ -6,6 +6,8 @@ import {
 } from '../utils/requestAnimationFrame';
 
 var Windy = function (map, userOptions) {
+    var self = this;
+
     this.map = map;
 
     //默认参数
@@ -22,8 +24,19 @@ var Windy = function (map, userOptions) {
         width = map.getSize().width,
         height = map.getSize().height;
 
+    self.map = map;
     //初始化
-    this._init(userOptions, options);
+    self._init(userOptions, options);
+
+    var canvasLayer = self.canvasLayer = new CanvasLayer({
+        map: map,
+        context: this.context,
+        update: function () {
+            self._render();
+        }
+    });
+
+    this.bindEvent();
 }
 
 Windy.prototype._init = function (settings, defaults) {
@@ -31,6 +44,8 @@ Windy.prototype._init = function (settings, defaults) {
 
     //合并参数
     tool.merge(settings, defaults);
+
+    self.options = options;
 
     var animationLayer = self.animationLayer = new CanvasLayer({
         map: self.map,
@@ -55,6 +70,31 @@ Windy.prototype.stop = function () {
 Windy.prototype.update = function (resetOpts) {
     for (var key in resetOpts) {
         this.options[key] = resetOpts[key];
+    }
+}
+
+Windy.prototype.bindEvent = function (e) {
+    var map = this.map;
+    if (this.options.methods) {
+        if (this.options.methods.click) {
+            map.setDefaultCursor("default");
+            map.addEventListener('click', this.clickEvent);
+        }
+        if (this.options.methods.mousemove) {
+            map.addEventListener('mousemove', this.mousemoveEvent);
+        }
+    }
+}
+
+Windy.prototype.unbindEvent = function (e) {
+    var map = this.map;
+    if (this.options.methods) {
+        if (this.options.methods.click) {
+            map.removeEventListener('click', this.clickEvent);
+        }
+        if (this.options.methods.mousemove) {
+            map.removeEventListener('mousemove', this.mousemoveEvent);
+        }
     }
 }
 

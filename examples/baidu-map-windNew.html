@@ -31,6 +31,11 @@
         var options = {
             size: .78,
             color: 'rgba(71,160,233,0.8)',
+            methods: {
+                click: function (e) {
+                    console.log('点击了');
+                }
+            }
         };
 
         var windy = new Windy(map, options);
