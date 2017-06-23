@@ -46,13 +46,6 @@ Windy.prototype._init = function (settings, defaults) {
     tool.merge(settings, defaults);
 
     self.options = options;
-
-    var animationLayer = self.animationLayer = new CanvasLayer({
-        map: self.map,
-        update: self._render
-    });
-
-    self.animationLayer = animationLayer.canvas.getContext('2d');
 }
 
 Windy.prototype._render = function () {
@@ -71,6 +64,16 @@ Windy.prototype.update = function (resetOpts) {
     for (var key in resetOpts) {
         this.options[key] = resetOpts[key];
     }
+}
+
+Windy.prototype.clickEvent = function (e) {
+    var pixel = e.pixel;
+    this.options.methods.click(null, e); //this是map？bug
+}
+
+Windy.prototype.mousemoveEvent = function (e) {
+    var pixel = e.pixel;
+    this.options.methods.mousemove(null, e);
 }
 
 Windy.prototype.bindEvent = function (e) {
