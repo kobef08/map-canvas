@@ -35,6 +35,8 @@ var Windy = function (map, userOptions) {
             self._render();
         }
     });
+    this.clickEvent = this.clickEvent.bind(this);
+    this.mousemoveEvent = this.mousemoveEvent.bind(this);
 
     this.bindEvent();
 }
@@ -68,15 +70,16 @@ Windy.prototype.update = function (resetOpts) {
 
 Windy.prototype.clickEvent = function (e) {
     var pixel = e.pixel;
-    this.options.methods.click(null, e); //this是map？bug
+    this.options.methods.click(pixel, e);
 }
 
 Windy.prototype.mousemoveEvent = function (e) {
     var pixel = e.pixel;
-    this.options.methods.mousemove(null, e);
+    this.options.methods.mousemove(pixel, e);
 }
 
 Windy.prototype.bindEvent = function (e) {
+    var self = this;
     var map = this.map;
     if (this.options.methods) {
         if (this.options.methods.click) {
