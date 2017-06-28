@@ -1,6 +1,5 @@
 /**
  * 颜色工具类
- * 
  * @date 2017-06-28
  */
 function ColorUtil() {
@@ -10,8 +9,7 @@ function ColorUtil() {
 }
 
 /**
- * 将rgb表示方式转换为hex表示方式("rgb(21,12,150)")或者（[21,12,150])
- * 
+ * @description 将rgb表示方式转换为hex表示方式("rgb(21,12,150)")或者（[21,12,150])
  * @param {string} 返回rgb颜色值 
  * @returns 返回hex颜色值
  */
@@ -64,8 +62,7 @@ ColorUtil.prototype.rgb2hex = function (rgb) {
 }
 
 /**
- * 将hex表示方式转换为rgb表示方式(这里返回rgb数组模式)
- * 
+ * @description 将hex表示方式转换为rgb表示方式(这里返回rgb数组模式)
  * @param {string} hex 颜色值
  * @returns 返回rgb数组模式
  */
@@ -92,8 +89,7 @@ ColorUtil.prototype.hex2rgb = function (hex) {
 };
 
 /**
- * 获取一组渐变色('#1abc9c','#333fff',5)
- * 
+ * @description 获取一组渐变色('#1abc9c','#333fff',5)
  * @param {string} startColor 起始颜色
  * @param {string} endColor   结束颜色
  * @param {number} step       分段数
