@@ -1,5 +1,6 @@
 import Canvas from '../canvas/Canvas';
 import ColorUtil from '../utils/ColorUtil';
+import TWEEN from '../animation/Tween';
 
 var Legend = function (id, options) {
     var width = window.innerWidth,
@@ -8,6 +9,28 @@ var Legend = function (id, options) {
         context = canvas.getContext('2d');
 
     document.getElementById(id).appendChild(canvas);
+    var p = document.getElementById('process');
+    var coords = {
+        x: 0,
+        y: 0
+    };
+    var tween = new TWEEN.Tween(coords)
+        .to({
+            x: width,
+            y: height
+        }, 1000)
+        .onUpdate(function () {
+            p.style.width = this.y + 'px';
+            console.log(this.x, this.y);
+        })
+        .start();
+
+    requestAnimationFrame(animate);
+
+    function animate(time) {
+        requestAnimationFrame(animate);
+        TWEEN.update(time);
+    }
 
     function Rect(x, y, color, width, height) {
         this.x = x;
