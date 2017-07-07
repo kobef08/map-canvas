@@ -1,4 +1,4 @@
-import Canvas from '../Canvas';
+import Canvas from '../../canvas/Canvas';
 /**
  * 调色板
  * 
