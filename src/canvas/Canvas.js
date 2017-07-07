@@ -12,10 +12,10 @@ function Canvas(width, height) {
     } else {
         var canvas = document.createElement('canvas');
         if (width) {
-            canvas.width = width;
+            canvas.width = canvas.style.width = width;
         }
         if (height) {
-            canvas.height = height;
+            canvas.height = canvas.style.height = height;
         }
     }
     return canvas;

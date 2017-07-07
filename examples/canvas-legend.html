@@ -16,7 +16,15 @@
 <body>
     <div id="container">
     </div>
-    <script type="text/javascript" src="js/canvas-legend.js"></script>
+    <script type="text/javascript" src="../build/canvas-legend.js"></script>
+    <script>
+        var legend = new Legend('container', {
+            startColor: '#A6E32D',
+            endColor: '#E3DF0D',
+            step: 10
+        });
+        console.log(legend);
+    </script>
 </body>
 
 </html>

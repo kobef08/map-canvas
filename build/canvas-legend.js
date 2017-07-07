@@ -1,10 +1,39 @@
+(function (global, factory) {
+	typeof exports === 'object' && typeof module !== 'undefined' ? module.exports = factory() :
+	typeof define === 'function' && define.amd ? define(factory) :
+	(global.Legend = factory());
+}(this, (function () { 'use strict';
+
+/**
+ * 新建canvas
+ * 
+ * @param {number} width 宽
+ * @param {number} height 高
+ */
+function Canvas(width, height) {
+    var canvas;
+    if (typeof document === 'undefined') {
+        // var Canvas = require('canvas');
+        // canvas = new Canvas(width, height);
+    } else {
+        var canvas = document.createElement('canvas');
+        if (width) {
+            canvas.width = canvas.style.width = width;
+        }
+        if (height) {
+            canvas.height = canvas.style.height = height;
+        }
+    }
+    return canvas;
+}
+
 /**
  * 颜色工具类
  * @date 2017-06-28
  */
 function ColorUtil() {
     this.startColor = '#ffffff';
-    this.endColor = '#4CE35B'
+    this.endColor = '#4CE35B';
     this.step = 5;
 }
 
@@ -52,14 +81,14 @@ ColorUtil.prototype.rgb2hex = function (rgb) {
         } else if (aNum.length === 3) {
             strHex = "#";
             for (var i = 0; i < aNum.length; i += 1) {
-                numHex += (aNum[i] + aNum[i]);
+                numHex += aNum[i] + aNum[i];
             }
             return numHex;
         }
     } else {
         return _this;
     }
-}
+};
 
 /**
  * @description 将hex表示方式转换为rgb表示方式(这里返回rgb数组模式)
@@ -117,10 +146,62 @@ ColorUtil.prototype.getGradientColor = function (startColor, endColor, step) {
     var colorArr = [];
     for (var i = 0; i < step; i++) {
         //计算每一步的hex值
-        var hex = this.rgb2hex([parseInt((sR * i + startR)), parseInt((sG * i + startG)), parseInt((sB * i + startB))]);
+        var hex = this.rgb2hex([parseInt(sR * i + startR), parseInt(sG * i + startG), parseInt(sB * i + startB)]);
         colorArr.push(hex);
     }
     return colorArr;
-}
+};
 
-export default ColorUtil;
+var Legend = function Legend(id, options) {
+    var width = window.innerWidth,
+        height = window.innerHeight,
+        canvas = new Canvas(width, height),
+        context = canvas.getContext('2d');
+
+    document.getElementById(id).appendChild(canvas);
+
+    function Rect(x, y, color) {
+        this.x = x;
+        this.y = y;
+        this.width = 20;
+        this.height = 10;
+        this.color = color;
+
+        this.clickEvent = this.clickEvent.bind(this);
+        this.bindEvent();
+    }
+
+    Rect.prototype.clickEvent = function (e) {
+        if (e.x >= this.x && e.x <= this.x + this.width && e.y >= this.y && e.y <= this.y + this.height) {
+            alert('你点中了');
+        }
+    };
+
+    Rect.prototype.bindEvent = function (e) {
+        canvas.addEventListener('click', this.clickEvent);
+    };
+
+    var colorUtil = new ColorUtil();
+
+    var colorArr = colorUtil.getGradientColor(options.startColor, options.endColor, options.step);
+
+    for (var i = 0, len = colorArr.length; i < len; i++) {
+        var color = colorArr[i];
+        var gap = 15;
+        var rect = new Rect(width / 2, height / 2 + 15 * i, color);
+        drawRect(rect);
+    }
+
+    function drawRect(rect) {
+        context.save();
+        context.beginPath();
+        context.fillStyle = rect.color;
+        context.fillRect(rect.x, rect.y, 20, 10);
+        context.closePath();
+        context.restore();
+    }
+};
+
+return Legend;
+
+})));

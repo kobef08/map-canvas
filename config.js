@@ -19,9 +19,13 @@ var demos = [{
     name: 'TrackLine',
     build: false
 }, {
+    src: 'canvas-legend.js',
+    name: 'Legend',
+    build: true
+}, {
     src: 'baidu-map-windNew.js',
     name: 'Windy',
-    build: true
+    build: false
 }];
 
 var module;
