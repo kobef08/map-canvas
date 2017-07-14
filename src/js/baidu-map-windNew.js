@@ -1,9 +1,6 @@
 import CanvasLayer from '../map/baidu-map/CanvasLayer';
 import tool from '../utils/tool';
-import {
-    requestAnimationFrame,
-    cancelAnimationFrame
-} from '../utils/requestAnimationFrame';
+import {requestAnimationFrame,cancelAnimationFrame} from '../animation/requestAnimationFrame';
 
 var Windy = function (map, userOptions) {
     var self = this;

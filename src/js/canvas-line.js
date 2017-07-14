@@ -1,8 +1,5 @@
 import tool from '../utils/tool';
-import {
-    requestAnimationFrame,
-    cancelAnimationFrame
-} from '../utils/requestAnimationFrame';
+import {requestAnimationFrame,cancelAnimationFrame} from '../animation/requestAnimationFrame';
 
 var TrackLine = function (userOptions) {
     //全局参数
