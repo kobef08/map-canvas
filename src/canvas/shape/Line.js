@@ -1,3 +1,6 @@
+/**
+ * 直线
+ */
 function Line() {
     this.type = 'line';
     this.shape = {

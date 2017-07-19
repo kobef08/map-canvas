@@ -1,3 +1,6 @@
+/**
+ * 圆
+ */
 function Circle() {
     this.type = 'circle';
     this.shape = {

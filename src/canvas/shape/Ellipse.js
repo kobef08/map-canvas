@@ -1,3 +1,6 @@
+/**
+ * 椭圆
+ */
 function Ellipse() {
     this.type = 'ellipse';
     this.shape = {

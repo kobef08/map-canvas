@@ -1,3 +1,6 @@
+/**
+ * 圆弧
+ */
 function Arc() {
     this.type = 'arc';
     this.shape = {
