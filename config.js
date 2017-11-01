@@ -17,7 +17,15 @@ var demos = [{
 }, {
     src: 'canvas-line.js',
     name: 'TrackLine',
+    build: false
+}, {
+    src: 'canvas-legend.js',
+    name: 'Legend',
     build: true
+}, {
+    src: 'baidu-map-windNew.js',
+    name: 'Windy',
+    build: false
 }];
 
 var module;
