@@ -95,8 +95,12 @@
                 rasterLayer._element.height = map.height;
                 var ctx = rasterLayer._element.getContext('2d');
                 ctx.fillStyle = 'red';
+                ctx.strokeStyle = '#000';
                 ctx.arc(map.width / 2, map.height / 2, 30, 0, Math.PI * 2, true);
                 ctx.fill();
+                ctx.textAlign="center";
+                ctx.textAlign="center";
+                ctx.strokeText('canvas上画圆',map.width / 2, map.height / 2);
             }
         });
     </script>
