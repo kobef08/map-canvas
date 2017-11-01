@@ -68,9 +68,18 @@
                     map.on("zoom-start", redraw);
                     map.on("pan-start", redraw);
 
-                    rasterLayer._element.width = map.width;
-                    rasterLayer._element.height = map.height;
-                    redraw();
+                    var layersRequest = esriRequest({
+                        url: './gfs.json',
+                        content: {},
+                        handleAs: "json"
+                    });
+
+                    layersRequest.then(
+                        function (response) {
+                            redraw();
+                        },function (error) {
+                            console.log("Error: ", error.message);
+                        });
                 } else {
                     dom.byId("mapCanvas").innerHTML =
                         "This browser doesn't support canvas. Visit <a target='_blank' href='http://www.caniuse.com/#search=canvas'>caniuse.com</a> for supported browsers";
@@ -82,6 +91,8 @@
             }
 
             function redraw() {
+                rasterLayer._element.width = map.width;
+                rasterLayer._element.height = map.height;
                 var ctx = document.getElementById(rasterLayer._element).getContext('2d');
                 ctx.fillStyle = 'red';
                 ctx.arc(map.width / 2, map.height / 2, 30, 0, Math.PI * 2, true);
