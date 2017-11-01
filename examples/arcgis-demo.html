@@ -93,7 +93,7 @@
             function redraw() {
                 rasterLayer._element.width = map.width;
                 rasterLayer._element.height = map.height;
-                var ctx = document.getElementById(rasterLayer._element).getContext('2d');
+                var ctx = rasterLayer._element.getContext('2d');
                 ctx.fillStyle = 'red';
                 ctx.arc(map.width / 2, map.height / 2, 30, 0, Math.PI * 2, true);
                 ctx.fill();
