@@ -67,22 +67,10 @@
                     map.on("resize", function () {});
                     map.on("zoom-start", redraw);
                     map.on("pan-start", redraw);
-                    var layersRequest = esriRequest({
-                        url: './gfs.json',
-                        content: {},
-                        handleAs: "json"
-                    });
-                    layersRequest.then(
-                        function (response) {
-                            windy = new Windy({
-                                canvas: rasterLayer._element,
-                                data: response
-                            });
-                            redraw();
-                        },
-                        function (error) {
-                            console.log("Error: ", error.message);
-                        });
+
+                    rasterLayer._element.width = map.width;
+                    rasterLayer._element.height = map.height;
+                    redraw();
                 } else {
                     dom.byId("mapCanvas").innerHTML =
                         "This browser doesn't support canvas. Visit <a target='_blank' href='http://www.caniuse.com/#search=canvas'>caniuse.com</a> for supported browsers";
@@ -94,23 +82,10 @@
             }
 
             function redraw() {
-                rasterLayer._element.width = map.width;
-                rasterLayer._element.height = map.height;
-                windy.stop();
-                var extent = map.geographicExtent;
-                setTimeout(function () {
-                    windy.start(
-                        [
-                            [0, 0],
-                            [map.width, map.height]
-                        ],
-                        map.width,
-                        map.height, [
-                            [extent.xmin, extent.ymin],
-                            [extent.xmax, extent.ymax]
-                        ]
-                    );
-                }, 500);
+                var ctx = document.getElementById(rasterLayer._element).getContext('2d');
+                ctx.fillStyle = 'red';
+                ctx.arc(map.width / 2, map.height / 2, 30, 0, Math.PI * 2, true);
+                ctx.fill();
             }
         });
     </script>
