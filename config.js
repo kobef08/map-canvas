@@ -21,11 +21,15 @@ var demos = [{
 }, {
     src: 'canvas-legend.js',
     name: 'Legend',
-    build: true
+    build: false
 }, {
     src: 'baidu-map-windNew.js',
     name: 'Windy',
     build: false
+}, {
+    src: 'google-map-flashMarker.js',
+    name: 'FlashMarker',
+    build: true
 }];
 
 var module;

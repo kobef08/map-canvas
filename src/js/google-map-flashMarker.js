@@ -1,4 +1,4 @@
-import CanvasLayer from '../map/baidu-map/CanvasLayer';
+import CanvasLayer from '../map/google-map/CanvasLayer';
 
 function Marker(opts) {
     this.city = opts.name;
@@ -119,7 +119,7 @@ function FlashMarker(map, dataSet) {
             updateHandler: render
         });
 
-        mouseInteract();
+        // mouseInteract();
 
         (function drawFrame() {
             requestAnimationFrame(drawFrame);
