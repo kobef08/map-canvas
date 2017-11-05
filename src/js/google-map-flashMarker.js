@@ -73,8 +73,6 @@ Marker.prototype._drawEllipse = function (context) {
 
 function FlashMarker(map, dataSet) {
     var animationLayer = null,
-        width = map.getSize().width,
-        height = map.getSize().height,
         animationFlag = true,
         markers = [];
 
@@ -94,7 +92,7 @@ function FlashMarker(map, dataSet) {
         }
 
         if (!animationFlag) {
-            animationCtx.clearRect(0, 0, width, height);
+            animationCtx.clearRect(0, 0, animationCtx.canvas.width, animationCtx.canvas.height);
             return;
         }
 
@@ -103,7 +101,7 @@ function FlashMarker(map, dataSet) {
         animationCtx.fillStyle = 'rgba(0,0,0,.95)';
         var prev = animationCtx.globalCompositeOperation;
         animationCtx.globalCompositeOperation = 'destination-in';
-        animationCtx.fillRect(0, 0, width, height);
+        animationCtx.fillRect(0, 0, animationCtx.canvas.width, animationCtx.canvas.height);
         animationCtx.globalCompositeOperation = prev;
 
         for (var i = 0; i < markers.length; i++) {
@@ -129,3 +127,5 @@ function FlashMarker(map, dataSet) {
 
     init();
 }
+
+export default FlashMarker;
