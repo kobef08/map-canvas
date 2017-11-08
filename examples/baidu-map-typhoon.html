@@ -23,6 +23,40 @@
         map.setMapStyle({
             styleJson: styleJson
         });
+
+        var data = {
+            levelList: [{
+                name: 'TD',
+                level: '热带低压',
+                power: '6~7级',
+                color: '#02ff02'
+            }, {
+                name: 'TS',
+                level: '热带风暴',
+                power: '8~9级',
+                color: '#0264ff'
+            }, {
+                name: 'STS',
+                level: '强热带风暴',
+                power: '10~11级',
+                color: '#fffb05'
+            }, {
+                name: 'TY',
+                level: '台风',
+                power: '12~13级',
+                color: '#ffac05'
+            }, {
+                name: 'STY',
+                level: '强台风',
+                power: '14~15级',
+                color: '#f171f9'
+            }, {
+                name: 'SUPER TY',
+                level: '超强台风',
+                power: '>=16级',
+                color: '#fe0202'
+            }]
+        }
     </script>
     <script type="text/javascript" src="../build/baidu-map-typhoon.js"></script>
 </body>
