@@ -7,9 +7,9 @@ var demos = [{
     name: 'MoveLine',
     build: false
 }, {
-    src: 'baidu-map-typhoon.js',
+    src: 'baidu-map-typhoonNew.js',
     name: 'Typhoon',
-    build: false
+    build: true
 }, {
     src: 'baidu-map-wind.js',
     name: 'Wind',
@@ -29,7 +29,7 @@ var demos = [{
 }, {
     src: 'google-map-flashMarker.js',
     name: 'FlashMarker',
-    build: true
+    build: false
 }];
 
 var module;
