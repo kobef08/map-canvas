@@ -10,6 +10,7 @@
     <script type="text/javascript" src="https://api.map.baidu.com/api?v=2.0&ak=nuWah68S1WieW2AEwiT8T3Ro&s=1"></script>
     <script type="text/javascript" src="data/typhoon-data.js"></script>
     <script type="text/javascript" src="mapstyle/googlelite.js"></script>
+    <script type="text/javascript" src="js/jquery.min.js"></script>
 </head>
 
 <body>
@@ -24,7 +25,7 @@
             styleJson: styleJson
         });
 
-        var data = {
+        var result = {
             levelList: [{
                 name: 'TD',
                 level: '热带低压',
@@ -57,6 +58,14 @@
                 color: '#fe0202'
             }]
         }
+
+        $(function () {
+            $.getJSON('data/typhoon.json', function (data) {
+                $.each(data, function (key, value) {
+                    var info = value;
+                });
+            });
+        });
     </script>
     <script type="text/javascript" src="../build/baidu-map-typhoon.js"></script>
 </body>
