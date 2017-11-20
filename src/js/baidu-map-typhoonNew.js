@@ -36,6 +36,8 @@ var Typhoon = function (map, userOptions) {
     self.options = options;
     //初始化
     self.init = function () {
+        self.setDataSet();
+
         baseLayer = new CanvasLayer({
             map: map,
             update: self.brush
@@ -47,7 +49,6 @@ var Typhoon = function (map, userOptions) {
         if (!baseCtx) {
             return;
         }
-        self.setDataSet();
         baseCtx.clearRect(0, 0, width, height);
 
     }
