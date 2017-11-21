@@ -706,17 +706,19 @@ var Typhoon = function Typhoon(map, userOptions) {
 
         baseLayer = new CanvasLayer({
             map: map,
-            update: self.brush
+            update: self.render
         });
     };
     //底层canvas渲染
-    self.brush = function () {
+    self.render = function () {
         var baseCtx = baseLayer.canvas.getContext('2d');
         if (!baseCtx) {
             return;
         }
         baseCtx.clearRect(0, 0, width, height);
+        var dataSet = self.options.data;
     };
+    self.draw = function () {};
     //数据源转换
     self.setDataSet = function () {
         var img = this.img = new Image();
@@ -753,6 +755,68 @@ var Typhoon = function Typhoon(map, userOptions) {
                 this.color = split.color;
                 return;
             }
+        }
+    };
+    //各级风力半径
+    TyphoonEye.prototype.getRadiusList = function (zoom) {
+        var radiusList = [];
+        var pixel = Math.pow(2, 18 - zoom); //该级别1px代表的距离
+        if (this.radius6 != '') {
+            radiusList.push(Number(this.radius6) * 1000 / pixel);
+        }
+        if (this.radius7 != '') {
+            radiusList.push(Number(this.radius7) * 1000 / pixel);
+        }
+        if (this.radius8 != '') {
+            radiusList.push(Number(this.radius8) * 1000 / pixel);
+        }
+        if (this.radius10 != '') {
+            radiusList.push(Number(this.radius10) * 1000 / pixel);
+        }
+        if (this.radius12 != '') {
+            radiusList.push(Number(this.radius12) * 1000 / pixel);
+        }
+        return radiusList;
+    };
+    //台风经过的点
+    TyphoonEye.prototype.drawSymbol = function (ctx, x, y) {
+        ctx.beginPath();
+        ctx.fillStyle = this.color;
+        ctx.strokeStyle = options.markerColor;
+        ctx.lineWidth = .3;
+        ctx.arc(x, y, options.markerRadius, 0, Math.PI * 2);
+        ctx.fil();
+        ctx.stroke();
+        ctx.closePath();
+    };
+    //台风轨迹线
+    TyphoonEye.prototype.drawTrackLine = function (ctx, x1, y1, x2, y2) {
+        context.lineWidth = options.lineWidth;
+        context.strokeStyle = options.lineStyle;
+        context.beginPath();
+        context.moveTo(x1, y1);
+        context.lineTo(x2, y2);
+        context.stroke();
+        context.closePath();
+    };
+    //台风影响区域圆
+    TyphoonEye.prototype.drawCircle = function (ctx, x, y, r, i) {
+        context.beginPath();
+        context.fillStyle = 'rgba(255,172,5,' + 0.3 + 0.15 * i + ')';
+        context.strokeStyle = 'rgba(255,172,5,.8)';
+        context.lineWidth = 1;
+        context.arc(x, y, r, 0, Math.PI * 2);
+        context.fill();
+        context.stroke();
+        context.closePath();
+    };
+    //台风图标
+    Typhoon.prototype.drawImage = function (ctx, img, x, y) {
+        img.addEventListener("load", function () {
+            ctx.drawImage(img, x - 15, y - 15, 30, 30);
+        });
+        if (img.complete) {
+            ctx.drawImage(img, x - 15, y - 15, 30, 30);
         }
     };
 
