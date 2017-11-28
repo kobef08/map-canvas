@@ -1,103 +1,47 @@
-import Canvas from '../../canvas/Canvas';
 /**
  * 调色板
- * 
- * @param {any} options 
  */
 function Palette(options) {
     options = options || {};
     this.gradient = options.gradient || {
-        0.25: 'rgba(0, 0, 255, 1)',
-        0.55: 'rgba(0, 255, 0, 1)',
-        0.85: 'rgba(255, 255, 0, 1)',
-        1.0: 'rgba(255, 0, 0, 1)'
+        0.1: '#fe0000',
+        0.4: '#ffaa01',
+        0.7: '#b0e000',
+        1.0: '#38a702'
     };
-    this.maxSize = options.maxSize;
-    this.minSize = options.minSize;
-    this.max = options.max || 100;
-    this.min = otpions.min || 0;
-    this.initPalette();
+    this.width = options.width || 1;
+    this.height = options.height || 256;
+    this.min = options.min || 0;
+    this.max = options.max || 300;
+    this.init();
 }
 
-Palette.prototype.initPalette = function () {
-    var gradient = this.gradient,
-        canvas = new Canvas(256, 1),
-        ctx = this.ctx = canvas.getContext('2d'),
-        lineGradient = ctx.createLinearGradient(0, 0, 256, 1);
+Palette.prototype.init = function () {
+    var gradient = this.gradient;
+    var canvas = document.createElement('canvas');
+    canvas.width = this.width;
+    canvas.height = this.height;
+    var context = this.context = canvas.getContext('2d');
+    var lineGradient = context.createLinearGradient(0, 0, canvas.width, canvas.height);
     for (var key in gradient) {
         lineGradient.addColorStop(parseFloat(key), gradient[key]);
     }
-    ctx.fillStyle = lineGradient;
-    ctx.fillRect(0, 0, 256, 1);
+    context.fillStyle = lineGradient;
+    context.fillRect(0, 0, canvas.width, canvas.height);
 }
 
-Palette.prototype.getImageData = function (value) {
-    var imageData = this.ctx.getImageData(0, 0, 256, 1).data;
-    if (value === undefined) {
-        return imageData;
-    }
-    var max = this.max,
-        min = this.min;
-    if (value > max) {
-        value = max;
-    }
-    if (value < min) {
-        value = min;
-    }
-    var index = Math.floor((value - min) / (max - min) * (256 - 1)) * 4;
-    return [imageData[index], imageData[index + 1], imageData[index + 2], , imageData[index + 3]];
+Palette.prototype.getImageData = function () {
+    return this.context.getImageData(0, 0, this.width, this.height);
 }
 
 Palette.prototype.getColor = function (value) {
-    var imageData = this.getImageData(value);
-    return 'rgba(' + imageData[0] + ',' + imageData[1] + ',' + imageData[2] + ',' + imageData[3] / 256 + ')';
-}
-
-Palette.prototype.getSize = function (value) {
-    var size = 0,
-        max = this.max,
-        min = this.min,
-        maxSize = this.maxSize,
-        minSize = this.minSize;
+    var max = this.max;
     if (value > max) {
-        value = max;
+        max = value;
     }
-    if (value < min) {
-        value = min;
-    }
-    size = minSize + (value - min) / (max - min) * (maxSize - minSize);
-    return size;
-}
-
-Palette.prototype.getLegend = function (options) {
-    var gradient = this.gradient,
-        width = options.width || 20,
-        height = options.height || 180,
-        canvas = new Canvas(width, height),
-        ctx = canvas.getContext('2d'),
-        lineGradient = ctx.createLinearGradient(0, height, 0, 0);
-    for (var key in gradient) {
-        lineGradient.addColorStop(parseFloat(key), gradient[key]);
-    }
-    ctx.fillStyle = lineGradient;
-    ctx.fillRect(0, 0, width, height);
-    return canvas;
-}
-
-Palette.prototype.setMax = function (value) {
-    this.max = value || 100;
-}
-
-Palette.prototype.setMin = function (value) {
-    this.min = value || 0;
-}
-
-Palette.prototype.setMaxSize = function (maxSize) {
-    this.maxSize = maxSize || 35;
-}
-
-Palette.prototype.setMinSize = function (minSize) {
-    this.minSize = minSize || 0;
+    var index = Math.floor((max - value) / max * (this.height - 1)) * 4;
+    var imageData = this.context.getImageData(0, 0, 1, this.height).data; //this.width会获取整个调色板data
+    return "rgba(" + imageData[index] + ", " + imageData[index + 1] + ", " + imageData[index + 2] + ", 1)";
 }
 
 export default Palette;
