@@ -9,7 +9,7 @@ var demos = [{
 }, {
     src: 'baidu-map-typhoonNew.js',
     name: 'Typhoon',
-    build: true
+    build: false
 }, {
     src: 'baidu-map-wind.js',
     name: 'Wind',
@@ -21,7 +21,7 @@ var demos = [{
 }, {
     src: 'canvas-legend.js',
     name: 'Legend',
-    build: false
+    build: true
 }, {
     src: 'baidu-map-windNew.js',
     name: 'Windy',
