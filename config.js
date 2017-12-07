@@ -32,7 +32,7 @@ var demos = [{
     build: false
 }, {
     src: 'openlayers-line.js',
-    name: 'OpenLayers.Layer.CanvasLayer',
+    name: 'MoveLine',
     build: true
 }];
 

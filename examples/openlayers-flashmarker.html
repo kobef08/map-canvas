@@ -47,19 +47,50 @@
                         transitionEffect: "resize",
                         attribution: "&copy; <a href='http://www.openstreetmap.org/copyright'>OpenStreetMap</a> contributors"
                     }),
-                    new OpenLayers.Layer.CanvasLayer("mycanvas", {
-                        render: function () {
-                            var slef = this;
-                            console.log('canvas update');
-                        }
-                    })
+                    // new OpenLayers.Layer.CanvasLayer("mycanvas", {
+                    //     render: function () {
+                    //         var slef = this;
+                    //         console.log('canvas update');
+                    //     }
+                    // })
                 ]
             });
 
-            map.setCenter(new OpenLayers.LonLat(116.397128, 39.916527).transform(
+            map.setCenter(new OpenLayers.LonLat(113.270793, 23.135308).transform(
                 new OpenLayers.Projection("EPSG:4326"),
                 map.getProjectionObject()
             ), 5);
+
+            var data = [{
+                name: '广州-衡山',
+                from: ['113.270793', '23.135308', '广州'],
+                to: ['112.612787', '27.317599', '衡山'],
+            }, {
+                name: '广州-北京',
+                from: ['113.270793', '23.135308', '广州'],
+                to: ['116.413554', '39.911013', '北京']
+            }, {
+                name: '广州-三亚',
+                from: ['113.270793', '23.135308', '广州'],
+                to: ['109.518646', '18.258217', '三亚']
+            }, {
+                name: '广州-上海',
+                from: ['113.270793', '23.135308', '广州'],
+                to: ['121.480237', '31.236305', '上海']
+            }, {
+                name: '广州-韶关',
+                from: ['113.270793', '23.135308', '广州'],
+                to: ['113.603757', '24.816174', '上海']
+            }];
+
+            var moveline = new MoveLine(map, {
+                //线条宽度
+                lineWidth: 2,
+                //线条颜色
+                strokeStyle: '#F8AB60',
+                //数据源
+                data: data
+            });
         }
 
         if (document.all) {
