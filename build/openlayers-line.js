@@ -13,7 +13,7 @@ OpenLayers.Layer.CanvasLayer = OpenLayers.Class(OpenLayers.Layer, {
 
         var canvas = this.canvas = document.createElement('canvas');
         var ctx = this.ctx = this.canvas.getContext('2d');
-        canvas.style.cssText = 'position:absolute;' + 'left:0;' + 'top:0;' + 'z-index:0;border:1px solid red';
+        canvas.style.cssText = 'position:absolute;' + 'left:0;' + 'top:0;' + 'z-index:0;';
         this.adjustRadio();
         this.div.appendChild(canvas);
     },

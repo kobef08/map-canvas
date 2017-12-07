@@ -46,13 +46,7 @@
                     new OpenLayers.Layer.OSM("OpenStreetMap", null, {
                         transitionEffect: "resize",
                         attribution: "&copy; <a href='http://www.openstreetmap.org/copyright'>OpenStreetMap</a> contributors"
-                    }),
-                    // new OpenLayers.Layer.CanvasLayer("mycanvas", {
-                    //     render: function () {
-                    //         var slef = this;
-                    //         console.log('canvas update');
-                    //     }
-                    // })
+                    })
                 ]
             });
 
@@ -85,7 +79,7 @@
 
             var moveline = new MoveLine(map, {
                 //线条宽度
-                lineWidth: 2,
+                lineWidth: 1,
                 //线条颜色
                 strokeStyle: '#F8AB60',
                 //数据源

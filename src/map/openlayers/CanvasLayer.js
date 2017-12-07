@@ -10,7 +10,7 @@ OpenLayers.Layer.CanvasLayer = OpenLayers.Class(OpenLayers.Layer, {
         canvas.style.cssText = 'position:absolute;' +
             'left:0;' +
             'top:0;' +
-            'z-index:0;border:1px solid red';
+            'z-index:0;';
         this.adjustRadio();
         this.div.appendChild(canvas);
     },
