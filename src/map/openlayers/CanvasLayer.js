@@ -10,13 +10,13 @@ OpenLayers.Layer.CanvasLayer = OpenLayers.Class(OpenLayers.Layer, {
         canvas.style.cssText = 'position:absolute;' +
             'left:0;' +
             'top:0;' +
-            'z-index:0;';
+            'z-index:0;border:1px solid red';
 
         // For some reason OpenLayers.Layer.setOpacity assumes there is
         // an additional div between the layer's div and its contents.
-        var sub = document.createElement('div');
-        sub.appendChild(this.canvas);
-        this.div.appendChild(sub);
+        // var sub = document.createElement('div');
+        // sub.appendChild(this.canvas);
+        this.div.appendChild(canvas);
     },
     moveTo: function (bounds, zoomChanged, dragging) {
         console.log(this);
