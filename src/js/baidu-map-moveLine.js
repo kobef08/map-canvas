@@ -1,8 +1,5 @@
 import CanvasLayer from '../map/baidu-map/CanvasLayer';
-import {
-    requestAnimationFrame,
-    cancelAnimationFrame
-} from '../utils/requestAnimationFrame';
+import {requestAnimationFrame,cancelAnimationFrame} from '../animation/requestAnimationFrame';
 
 var MoveLine = function (map, userOptions) {
     var self = this;

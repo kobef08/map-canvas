@@ -1,7 +1,4 @@
-import {
-    requestAnimationFrame,
-    cancelAnimationFrame
-} from '../utils/requestAnimationFrame';
+import {requestAnimationFrame,cancelAnimationFrame} from '../animation/requestAnimationFrame';
 
 function Typhoon(obj) {
     this.id = obj.id; //台风编号

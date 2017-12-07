@@ -57,7 +57,7 @@ CanvasLayer.prototype.adjustRatio = function (ctx) {
     ctx.canvas.style.height = canvasHeight + 'px';
     // console.log(ctx.canvas.height, canvasHeight);
     ctx.scale(pixelRatio, pixelRatio);
-};
+}
 
 CanvasLayer.prototype.draw = function () {
     var self = this;

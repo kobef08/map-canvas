@@ -2,25 +2,31 @@
 <html>
 
 <head>
-    <title>地图API－范例</title>
-    <meta charset="UTF-8" />
-    <meta name="renderer" content="webkit">
-    <meta http-equiv="X-UA-Compatible" content="IE=Edge,chrome=1">
-    <meta tabindex="">
-    <link rel="stylesheet" type="text/css" href="http://114.215.146.210:25002/jsmap/1.0/demo/apidemos/sourceLinks/style.css"/>
-    <script type="text/javascript" src="../examples/IMap/auth.js?v=1.0&t=jsmap&ak=ec85d3648154874552835438ac6a02b2"></script>
-    <script type="text/javascript" src="../examples/IMap/CustomerOverlay.js"></script>
+    <title>高德地图－运动迁徙</title>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="chrome=1">
+    <meta name="viewport" content="initial-scale=1.0, user-scalable=no, width=device-width">
+    <script type="text/javascript" src="https://webapi.amap.com/maps?v=1.3&key=c75741b6f2144f1c55dddbb864d76b4b"></script>
+    <style type="text/css">
+        body,
+        html,
+        #map {
+            height: 100%;
+            margin: 0px;
+            font: 12px Helvetica, 'Hiragino Sans GB', 'Microsoft Yahei', '微软雅黑', Arial;
+        }
+    </style>
 </head>
 
 <body>
-    <div id="map" class="map_contaner"></div>
+    <div id="map" tabindex="0"></div>
+    <script type="text/javascript" src="../src/map/amap/CanvasLayer.js"></script>
     <script>
-        var map = new IMAP.Map('map', {
-            minZoom: 4,
-            zoom: 6, //设置地图初始化级别
-            center: new IMAP.LngLat(112.03956, 26.063677), //设置地图中心点坐标
-            animation: true //设置地图缩放动画效果
+        var map = new AMap.Map('map', {
+            zoom: 6,
+            center: [112.03956, 26.063677]
         });
+        map.setMapStyle('amap://styles/blue');
 
         var data = [{
             from: {
@@ -68,8 +74,10 @@
                 lnglat: [113.603757, 24.816174]
             }
         }];
-        var canvasOverlay = new IMAP.CustomerOverlay(data);
-        map.getOverlayLayer().addOverlay(canvasOverlay);
+
+        var canvasOverlay = new CanvasLayer({
+            map: map
+        });
         console.log(canvasOverlay._element);
     </script>
 </body>

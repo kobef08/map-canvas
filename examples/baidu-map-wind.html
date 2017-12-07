@@ -26,28 +26,6 @@
             styleJson: styleJson
         });
 
-        function getBoundary() {
-            var bdary = new BMap.Boundary();
-            bdary.get("广东省", function (rs) { //获取行政区域
-                // map.clearOverlays(); //清除地图覆盖物    
-                var count = rs.boundaries.length; //行政区域的点有多少个
-                if (count === 0) {
-                    alert('未能获取当前输入行政区域');
-                    return;
-                }
-                var pointArray = [];
-                for (var i = 0; i < count; i++) {
-                    var ply = new BMap.Polygon(rs.boundaries[i], {
-                        strokeWeight: 2,
-                        strokeColor: "#ff0000",
-                        fillColor: ''
-                    }); //建立多边形覆盖物
-                    map.addOverlay(ply); //添加覆盖物
-                    pointArray = pointArray.concat(ply.getPath());
-                }
-            });
-        }
-
         /************定义canvas图层************/
         function WindOverLayer() { }
 
@@ -109,7 +87,6 @@
             return points;
         }
 
-        getBoundary();
         var windLayer = new WindOverLayer()
         map.addOverlay(windLayer);
 

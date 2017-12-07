@@ -1,9 +1,8 @@
-import CanvasLayer from '../map/baidu-map/CanvasLayer';
-import {requestAnimationFrame,cancelAnimationFrame} from '../animation/requestAnimationFrame';
+import CanvasLayer from '../map/google-map/CanvasLayer';
 
 function Marker(opts) {
     this.city = opts.name;
-    this.location = new BMap.Point(opts.lnglat[0], opts.lnglat[1]);
+    this.location = new google.maps.LatLng(opts.lnglat[1], opts.lnglat[0]);
     this.color = opts.color;
     this.type = opts.type || 'circle';
     this.speed = opts.speed || 0.15;
@@ -34,16 +33,17 @@ Marker.prototype.draw = function (context) {
 }
 
 Marker.prototype._drawCircle = function (context) {
-    var pixel = this.pixel || map.pointToPixel(this.location);
+    var mapProjection = map.getProjection();
+    var pixel = this.pixel || mapProjection.fromLatLngToPoint(this.location);
     context.strokeStyle = this.color;
     context.moveTo(pixel.x + pixel.size, pixel.y);
     context.arc(pixel.x, pixel.y, this.size, 0, Math.PI * 2);
     context.stroke();
-
 }
 
 Marker.prototype._drawEllipse = function (context) {
-    var pixel = this.pixel || map.pointToPixel(this.location);
+    var mapProjection = map.getProjection();
+    var pixel = this.pixel || mapProjection.fromLatLngToPoint(this.location);
     var x = pixel.x,
         y = pixel.y,
         w = this.size,
@@ -73,8 +73,6 @@ Marker.prototype._drawEllipse = function (context) {
 
 function FlashMarker(map, dataSet) {
     var animationLayer = null,
-        width = map.getSize().width,
-        height = map.getSize().height,
         animationFlag = true,
         markers = [];
 
@@ -94,7 +92,7 @@ function FlashMarker(map, dataSet) {
         }
 
         if (!animationFlag) {
-            animationCtx.clearRect(0, 0, width, height);
+            animationCtx.clearRect(0, 0, animationCtx.canvas.width, animationCtx.canvas.height);
             return;
         }
 
@@ -103,7 +101,7 @@ function FlashMarker(map, dataSet) {
         animationCtx.fillStyle = 'rgba(0,0,0,.95)';
         var prev = animationCtx.globalCompositeOperation;
         animationCtx.globalCompositeOperation = 'destination-in';
-        animationCtx.fillRect(0, 0, width, height);
+        animationCtx.fillRect(0, 0, animationCtx.canvas.width, animationCtx.canvas.height);
         animationCtx.globalCompositeOperation = prev;
 
         for (var i = 0; i < markers.length; i++) {
@@ -112,35 +110,14 @@ function FlashMarker(map, dataSet) {
         }
     }
 
-    //鼠标事件
-    var mouseInteract = function () {
-        map.addEventListener('movestart', function () {
-            animationFlag = false;
-        });
-
-        map.addEventListener('moveend', function () {
-            animationFlag = true;
-            markers = []; //解决拖动后多余的小圆点bug，没想明白，暂时这样
-        });
-
-        map.addEventListener('zoomstart', function () {
-            animationFlag = false;
-        });
-
-        map.addEventListener('zoomend', function () {
-            animationFlag = true;
-            markers = [];
-        });
-    };
-
     //初始化
     var init = function () {
         animationLayer = new CanvasLayer({
             map: map,
-            update: render
+            updateHandler: render
         });
 
-        mouseInteract();
+        // mouseInteract();
 
         (function drawFrame() {
             requestAnimationFrame(drawFrame);

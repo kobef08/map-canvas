@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=Edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1" user-scalable="no">
+    <title>动态风流场</title>
+    <link rel="stylesheet" href="css/style.css">
+    <script type="text/javascript" src="https://api.map.baidu.com/api?v=2.0&ak=nuWah68S1WieW2AEwiT8T3Ro&s=1"></script>
+    <script type="text/javascript" src="mapstyle/gray.js"></script>
+    <script type="text/javascript" src="data/wind-data.js"></script>
+</head>
+
+<body>
+    <div id="map"></div>
+    <script type="text/javascript" src="../build/baidu-map-windNew.js"></script>
+    <script type="text/javascript" src="js/dat.gui.js"></script>
+    <script type="text/javascript">
+        var map = new BMap.Map('map', {
+            minZoom: 5
+        });
+        map.centerAndZoom(new BMap.Point(113.275995, 23.117055), 11);
+        map.enableScrollWheelZoom(true);
+        map.setMapStyle({
+            styleJson: styleJson
+        });
+
+        var rectPoints = [109.600899, 25.593504, 117.401353, 20.175226]; //左上、右下经纬度
+
+        var options = {
+            size: .78,
+            color: 'rgba(71,160,233,0.8)',
+            methods: {
+                click: function (pixel, e) {
+                    console.log(pixel);
+                }
+            }
+        };
+
+        var windy = new Windy(map, options);
+        // function finished() {
+        //     windLayer._windy.change(options);
+        // };
+
+        // var gui = new dat.GUI({
+        //     nameMap: {
+        //         size: '线条大小',
+        //         color: '线条颜色'
+        //     }
+        // });
+
+        // finished();
+        // gui.add(options, 'size', 0.1, 10).onFinishChange(finished);
+        // gui.addColor(options, 'color').onChange(finished);
+    </script>
+</body>
+
+</html>
