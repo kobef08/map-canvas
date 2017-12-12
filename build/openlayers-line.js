@@ -137,7 +137,7 @@ var MoveLine = function MoveLine(map, userOptions) {
             });
 
             var animateLayer = this.animateLayer = new CanvasLayer("animateCanvas", {
-                render: this._render
+                render: this.animation
             });
 
             map.addLayer(baseCanvasLayer);
@@ -145,7 +145,7 @@ var MoveLine = function MoveLine(map, userOptions) {
 
             (function drawFrame() {
                 requestAnimationFrame(drawFrame);
-                lineTool._render();
+                lineTool.animation();
             })();
         },
         brush: function brush() {
@@ -171,7 +171,7 @@ var MoveLine = function MoveLine(map, userOptions) {
                 }));
             });
         },
-        _render: function _render() {
+        animation: function animation() {
             var context = lineTool.animateLayer.ctx;
             if (!context) {
                 return;

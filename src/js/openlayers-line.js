@@ -70,7 +70,7 @@ var MoveLine = function (map, userOptions) {
             });
 
             var animateLayer = this.animateLayer = new CanvasLayer("animateCanvas", {
-                render: this._render
+                render: this.animation
             });
 
             map.addLayer(baseCanvasLayer);
@@ -78,7 +78,7 @@ var MoveLine = function (map, userOptions) {
 
             (function drawFrame() {
                 requestAnimationFrame(drawFrame);
-                lineTool._render();
+                lineTool.animation();
             }());
         },
         brush: function () {
@@ -110,7 +110,7 @@ var MoveLine = function (map, userOptions) {
                 }));
             });
         },
-        _render: function () {
+        animation: function () {
             var context = lineTool.animateLayer.ctx;
             if (!context) {
                 return;
