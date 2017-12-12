@@ -1,20 +1,37 @@
-function Choropleth(splitList) {
-    this.splitList = splitList || [{
-        start: 0,
-        value: 'red'
-    }];
+/**
+ * 值域
+ */
+import Palette from './Palette';
+
+function Choropleth(options) {
+    this.options = options;
+    this.splitList = options.splitList || {};
+    this.type = options.type || 'continuous';
+    this.calculable = options.calculable;
+    this.init();
+}
+
+Choropleth.prototype.init = function () {
+    if (this.type == 'piecewise' && this.calculable) {
+        var palette = new Palette(this.options);
+        var splitList = this.splitList;
+        for (var i = 0; i < splitList.length; i++) {
+            splitList[i].color = palette.getColor(splitList[i].start);
+        }
+    }
 }
 
 Choropleth.prototype.get = function (count) {
-    var splitList = this.splitList,
-        value = false;
+    var splitList = this.splitList;
+    var split = false;
     for (var i = 0; i < splitList.length; i++) {
-        var split = splitList[i];
-        if ((split.start === undefined || split.start !== undefined && count >= split.start) &&
-            (split.end === undefined || split.end !== undefined && count < split.end)) {
-            value = split.value;
+        if ((splitList[i].start === undefined || splitList[i].start !== undefined && count > splitList[i].start) &&
+            (splitList[i].end === undefined || splitList[i].end !== undefined && count <= splitList[i].end)) {
+            split = splitList[i];
             break;
         }
     }
-    return value;
+    return split;
 }
+
+export default Choropleth;

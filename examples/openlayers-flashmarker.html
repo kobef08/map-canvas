@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>openlayers flashmarker</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, user-scalable=no">
+    <link rel="stylesheet" href="css/openlayers/style.css" type="text/css">
+    <script type="text/javascript" src="js/OpenLayers.js"></script>
+    <script type="text/javascript" src="../build/openlayers-line.js"></script>
+    <style>
+        html,
+        body {
+            width: 100%;
+            height: 100%;
+            margin: 0;
+            padding: 0;
+            overflow: hidden;
+        }
+
+        #map {
+            width: 100%;
+            height: 100%;
+        }
+    </style>
+</head>
+
+<body>
+    <div id="map"></div>
+    <script type="text/javascript">
+        function init() {
+            var map = new OpenLayers.Map({
+                div: "map",
+                theme: null,
+                controls: [
+                    new OpenLayers.Control.Navigation(),
+                    new OpenLayers.Control.Attribution(),
+                    new OpenLayers.Control.TouchNavigation({
+                        dragPanOptions: {
+                            enableKinetic: true
+                        }
+                    }),
+                    new OpenLayers.Control.Zoom()
+                ],
+                layers: [
+                    new OpenLayers.Layer.OSM("OpenStreetMap", null, {
+                        transitionEffect: "resize",
+                        attribution: "&copy; <a href='http://www.openstreetmap.org/copyright'>OpenStreetMap</a> contributors"
+                    })
+                ]
+            });
+
+            map.setCenter(new OpenLayers.LonLat(113.270793, 23.135308).transform(
+                new OpenLayers.Projection("EPSG:4326"),
+                map.getProjectionObject()
+            ), 5);
+
+            var data = [{
+                name: '广州-衡山',
+                from: ['113.270793', '23.135308', '广州'],
+                to: ['112.612787', '27.317599', '衡山'],
+            }, {
+                name: '广州-北京',
+                from: ['113.270793', '23.135308', '广州'],
+                to: ['116.413554', '39.911013', '北京']
+            }, {
+                name: '广州-三亚',
+                from: ['113.270793', '23.135308', '广州'],
+                to: ['109.518646', '18.258217', '三亚']
+            }, {
+                name: '广州-上海',
+                from: ['113.270793', '23.135308', '广州'],
+                to: ['121.480237', '31.236305', '上海']
+            }, {
+                name: '广州-韶关',
+                from: ['113.270793', '23.135308', '广州'],
+                to: ['113.603757', '24.816174', '上海']
+            }];
+
+            var moveline = new MoveLine(map, {
+                //线条宽度
+                lineWidth: 1,
+                //线条颜色
+                strokeStyle: '#F8AB60',
+                //数据源
+                data: data
+            });
+        }
+
+        if (document.all) {
+            window.attachEvent('onload', init);
+        } else {
+            window.addEventListener('load', init, false);
+        }
+    </script>
+</body>
+</html

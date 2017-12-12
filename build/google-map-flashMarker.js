@@ -1,3 +1,9 @@
+(function (global, factory) {
+	typeof exports === 'object' && typeof module !== 'undefined' ? module.exports = factory() :
+	typeof define === 'function' && define.amd ? define(factory) :
+	(global.FlashMarker = factory());
+}(this, (function () { 'use strict';
+
 function CanvasLayer(opt_options) {
     this.isAdded_ = false;
     this.isAnimated_ = false;
@@ -39,15 +45,9 @@ var global = typeof window === 'undefined' ? {} : window;
 if (global.google && global.google.maps) {
     CanvasLayer.prototype = new google.maps.OverlayView();
     CanvasLayer.DEFAULT_PANE_NAME_ = 'overlayLayer';
-    CanvasLayer.CSS_TRANSFORM_ = (function () {
+    CanvasLayer.CSS_TRANSFORM_ = function () {
         var div = document.createElement('div');
-        var transformProps = [
-            'transform',
-            'WebkitTransform',
-            'MozTransform',
-            'OTransform',
-            'msTransform'
-        ];
+        var transformProps = ['transform', 'WebkitTransform', 'MozTransform', 'OTransform', 'msTransform'];
         for (var i = 0; i < transformProps.length; i++) {
             var prop = transformProps[i];
             if (div.style[prop] !== undefined) {
@@ -55,23 +55,11 @@ if (global.google && global.google.maps) {
             }
         }
         return transformProps[0];
-    })();
-    CanvasLayer.prototype.requestAnimFrame_ =
-        global.requestAnimationFrame ||
-        global.webkitRequestAnimationFrame ||
-        global.mozRequestAnimationFrame ||
-        global.oRequestAnimationFrame ||
-        global.msRequestAnimationFrame ||
-        function (callback) {
-            return global.setTimeout(callback, 1000 / 60);
-        };
-    CanvasLayer.prototype.cancelAnimFrame_ =
-        global.cancelAnimationFrame ||
-        global.webkitCancelAnimationFrame ||
-        global.mozCancelAnimationFrame ||
-        global.oCancelAnimationFrame ||
-        global.msCancelAnimationFrame ||
-        function (requestId) {};
+    }();
+    CanvasLayer.prototype.requestAnimFrame_ = global.requestAnimationFrame || global.webkitRequestAnimationFrame || global.mozRequestAnimationFrame || global.oRequestAnimationFrame || global.msRequestAnimationFrame || function (callback) {
+        return global.setTimeout(callback, 1000 / 60);
+    };
+    CanvasLayer.prototype.cancelAnimFrame_ = global.cancelAnimationFrame || global.webkitCancelAnimationFrame || global.mozCancelAnimationFrame || global.oCancelAnimationFrame || global.msCancelAnimationFrame || function (requestId) {};
 
     CanvasLayer.prototype.setOptions = function (options) {
         if (options.animate !== undefined) {
@@ -149,10 +137,8 @@ if (global.google && global.google.maps) {
         this.isAdded_ = true;
         this.setPane_();
 
-        this.resizeListener_ = google.maps.event.addListener(this.getMap(),
-            'resize', this.resizeFunction_);
-        this.centerListener_ = google.maps.event.addListener(this.getMap(),
-            'center_changed', this.repositionFunction_);
+        this.resizeListener_ = google.maps.event.addListener(this.getMap(), 'resize', this.resizeFunction_);
+        this.centerListener_ = google.maps.event.addListener(this.getMap(), 'center_changed', this.repositionFunction_);
 
         this.resize_();
         this.repositionCanvas_();
@@ -206,8 +192,7 @@ if (global.google && global.google.maps) {
         }
 
         // reset styling if new sizes don't match; resize of data not needed
-        if (this.canvasCssWidth_ !== mapWidth ||
-            this.canvasCssHeight_ !== mapHeight) {
+        if (this.canvasCssWidth_ !== mapWidth || this.canvasCssHeight_ !== mapHeight) {
             this.canvasCssWidth_ = mapWidth;
             this.canvasCssHeight_ = mapHeight;
             this.canvas.style.width = mapWidth + 'px';
@@ -226,7 +211,7 @@ if (global.google && global.google.maps) {
         var top = map.getBounds().getNorthEast().lat();
         var center = map.getCenter();
         var scale = Math.pow(2, map.getZoom());
-        var left = center.lng() - (this.canvasCssWidth_ * 180) / (256 * scale);
+        var left = center.lng() - this.canvasCssWidth_ * 180 / (256 * scale);
         this.topLeft_ = new google.maps.LatLng(top, left);
 
         // Canvas position relative to draggable map's container depends on
@@ -236,8 +221,7 @@ if (global.google && global.google.maps) {
         var divCenter = projection.fromLatLngToDivPixel(center);
         var offsetX = -Math.round(this.canvasCssWidth_ / 2 - divCenter.x);
         var offsetY = -Math.round(this.canvasCssHeight_ / 2 - divCenter.y);
-        this.canvas.style[CanvasLayer.CSS_TRANSFORM_] = 'translate(' +
-            offsetX + 'px,' + offsetY + 'px)';
+        this.canvas.style[CanvasLayer.CSS_TRANSFORM_] = 'translate(' + offsetX + 'px,' + offsetY + 'px)';
 
         this.scheduleUpdate();
     };
@@ -266,10 +250,145 @@ if (global.google && global.google.maps) {
     };
     CanvasLayer.prototype.scheduleUpdate = function () {
         if (this.isAdded_ && !this.requestAnimationFrameId_) {
-            this.requestAnimationFrameId_ =
-                this.requestAnimFrame_.call(global, this.requestUpdateFunction_);
+            this.requestAnimationFrameId_ = this.requestAnimFrame_.call(global, this.requestUpdateFunction_);
         }
     };
 }
 
-export default CanvasLayer;
+function Marker(opts) {
+    this.city = opts.name;
+    this.location = new google.maps.LatLng(opts.lnglat[1], opts.lnglat[0]);
+    this.color = opts.color;
+    this.type = opts.type || 'circle';
+    this.speed = opts.speed || 0.15;
+    this.size = 0;
+    this.max = opts.max || 20;
+}
+
+Marker.prototype.draw = function (context) {
+    context.save();
+    context.beginPath();
+    switch (this.type) {
+        case 'circle':
+            this._drawCircle(context);
+            break;
+        case 'ellipse':
+            this._drawEllipse(context);
+            break;
+        default:
+            break;
+    }
+    context.closePath();
+    context.restore();
+
+    this.size += this.speed;
+    if (this.size > this.max) {
+        this.size = 0;
+    }
+};
+
+Marker.prototype._drawCircle = function (context) {
+    var mapProjection = map.getProjection();
+    var pixel = this.pixel || mapProjection.fromLatLngToPoint(this.location);
+    context.strokeStyle = this.color;
+    context.moveTo(pixel.x + pixel.size, pixel.y);
+    context.arc(pixel.x, pixel.y, this.size, 0, Math.PI * 2);
+    context.stroke();
+};
+
+Marker.prototype._drawEllipse = function (context) {
+    var mapProjection = map.getProjection();
+    var pixel = this.pixel || mapProjection.fromLatLngToPoint(this.location);
+    var x = pixel.x,
+        y = pixel.y,
+        w = this.size,
+        h = this.size / 2,
+        kappa = 0.5522848,
+
+    // control point offset horizontal
+    ox = w / 2 * kappa,
+
+    // control point offset vertical
+    oy = h / 2 * kappa,
+
+    // x-start
+    xs = x - w / 2,
+
+    // y-start
+    ys = y - h / 2,
+
+    // x-end
+    xe = x + w / 2,
+
+    // y-end
+    ye = y + h / 2;
+
+    context.strokeStyle = this.color;
+    context.moveTo(xs, y);
+    context.bezierCurveTo(xs, y - oy, x - ox, ys, x, ys);
+    context.bezierCurveTo(x + ox, ys, xe, y - oy, xe, y);
+    context.bezierCurveTo(xe, y + oy, x + ox, ye, x, ye);
+    context.bezierCurveTo(x - ox, ye, xs, y + oy, xs, y);
+    context.stroke();
+};
+
+function FlashMarker(map, dataSet) {
+    var animationLayer = null,
+        animationFlag = true,
+        markers = [];
+
+    var addMarker = function addMarker() {
+        if (markers.length > 0) return;
+        markers = [];
+        for (var i = 0; i < dataSet.length; i++) {
+            markers.push(new Marker(dataSet[i]));
+        }
+    };
+
+    //上层canvas渲染，动画效果
+    var render = function render() {
+        var animationCtx = animationLayer.canvas.getContext('2d');
+        if (!animationCtx) {
+            return;
+        }
+
+        if (!animationFlag) {
+            animationCtx.clearRect(0, 0, animationCtx.canvas.width, animationCtx.canvas.height);
+            return;
+        }
+
+        addMarker();
+
+        animationCtx.fillStyle = 'rgba(0,0,0,.95)';
+        var prev = animationCtx.globalCompositeOperation;
+        animationCtx.globalCompositeOperation = 'destination-in';
+        animationCtx.fillRect(0, 0, animationCtx.canvas.width, animationCtx.canvas.height);
+        animationCtx.globalCompositeOperation = prev;
+
+        for (var i = 0; i < markers.length; i++) {
+            var marker = markers[i];
+            marker.draw(animationCtx);
+        }
+    };
+
+    //初始化
+    var init = function init() {
+        animationLayer = new CanvasLayer({
+            map: map,
+            updateHandler: render
+        });
+
+        // mouseInteract();
+
+        (function drawFrame() {
+            requestAnimationFrame(drawFrame);
+            render();
+        })();
+    };
+
+    init();
+}
+
+return FlashMarker;
+
+})));

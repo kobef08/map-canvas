@@ -7,7 +7,7 @@ var demos = [{
     name: 'MoveLine',
     build: false
 }, {
-    src: 'baidu-map-typhoon.js',
+    src: 'baidu-map-typhoonNew.js',
     name: 'Typhoon',
     build: true
 }, {
@@ -21,11 +21,19 @@ var demos = [{
 }, {
     src: 'canvas-legend.js',
     name: 'Legend',
-    build: true
+    build: false
 }, {
     src: 'baidu-map-windNew.js',
     name: 'Windy',
     build: false
+}, {
+    src: 'google-map-flashMarker.js',
+    name: 'FlashMarker',
+    build: false
+}, {
+    src: 'openlayers-line.js',
+    name: 'MoveLine',
+    build: true
 }];
 
 var module;
