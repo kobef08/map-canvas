@@ -22,6 +22,26 @@ var MoveLine = function (map, userOptions) {
         });
     }
 
+    function Marker(opts) {
+        this.city = opts.name;
+        this.lonlat = opts.lonlat;
+        this.speed = opts.speed || 0.15;
+        this.radius = 0;
+        this.max = opts.max || 20;
+    }
+
+    Marker.prototype.draw = function (context) {
+        context.save();
+        context.beginPath();
+        var pixel = map.getPixelFromLonLat(this.lonlat);
+        context.strokeStyle = defaultOpts.strokeStyle;
+        context.moveTo(pixel.x + this.radius, pixel.y);
+        context.arc(pixel.x, pixel.y, this.radius, 0, Math.PI * 2);
+        context.stroke();
+        context.closePath();
+        context.restore();
+    }
+
     function MarkLine(opts) {
         this.name = opts.name;
         this.from = opts.from;
@@ -49,21 +69,32 @@ var MoveLine = function (map, userOptions) {
                 render: this.brush
             });
 
+            var animateLayer = this.animateLayer = new CanvasLayer("animateCanvas", {
+                render: this._render
+            });
+
             map.addLayer(baseCanvasLayer);
+            map.addLayer(animateLayer);
+
+            (function drawFrame() {
+                requestAnimationFrame(drawFrame);
+                lineTool._render();
+            }());
         },
         brush: function () {
-            var baseCtx = this.ctx;
-            if (!baseCtx) {
+            var context = this.ctx;
+            if (!context) {
                 return;
             }
             lineTool.addMarkLine();
-            baseCtx.clearRect(0, 0, baseCtx.canvas.width, baseCtx.canvas.height);
+            context.clearRect(0, 0, context.canvas.width, context.canvas.height);
             lineTool.markLines.forEach(function (line) {
-                line.draw(baseCtx);
+                line.draw(context);
             });
         },
         addMarkLine: function () {
             var self = this;
+            if (self.markLines && self.markLines.length > 0) return;
             self.markLines = [];
             var dataset = defaultOpts.data;
             dataset.forEach(function (line, i) {
@@ -76,6 +107,45 @@ var MoveLine = function (map, userOptions) {
                         new OpenLayers.Projection("EPSG:4326"),
                         map.getProjectionObject()
                     )
+                }));
+            });
+        },
+        _render: function () {
+            var context = lineTool.animateLayer.ctx;
+            if (!context) {
+                return;
+            }
+
+            lineTool.addMarker();
+
+            context.fillStyle = 'rgba(0,0,0,.97)';
+            var prev = context.globalCompositeOperation;
+            context.globalCompositeOperation = 'destination-in';
+            context.fillRect(0, 0, context.canvas.width, context.canvas.height);
+            context.globalCompositeOperation = prev;
+
+            lineTool.markers.forEach(function (marker) {
+                marker.draw(context);
+                marker.radius += marker.speed;
+                if (marker.radius > marker.max) {
+                    marker.radius = 0;
+                }
+            });
+        },
+        addMarker: function () {
+            var self = this;
+            if (self.markers && self.markers.length > 0) return;
+            self.markers = [];
+            var dataset = defaultOpts.data;
+            dataset.forEach(function (line, i) {
+                var marker = line.to;
+                self.markers.push(new Marker({
+                    lonlat: new OpenLayers.LonLat(marker[0], marker[1]).transform(
+                        new OpenLayers.Projection("EPSG:4326"),
+                        map.getProjectionObject()
+                    ),
+                    city: marker[2],
+                    max: Math.floor(Math.random() * 20 + 10)
                 }));
             });
         }
