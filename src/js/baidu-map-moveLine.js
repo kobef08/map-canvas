@@ -279,7 +279,7 @@ var MoveLine = function (map, userOptions) {
     var addMarkLine = function () {
         markLines = [];
         var dataset = options.data;
-        data.forEach(function (line, i) {
+        dataset.forEach(function (line, i) {
             markLines.push(new MarkLine({
                 id: i,
                 from: new Marker({

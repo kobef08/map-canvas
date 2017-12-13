@@ -15,6 +15,10 @@ var demos = [{
     name: 'Wind',
     build: false
 }, {
+    src: 'baidu-map-pointLine.js',
+    name: 'PointLine',
+    build: true
+}, {
     src: 'canvas-line.js',
     name: 'TrackLine',
     build: false
@@ -33,7 +37,7 @@ var demos = [{
 }, {
     src: 'openlayers-line.js',
     name: 'MoveLine',
-    build: true
+    build: false
 }];
 
 var module;
