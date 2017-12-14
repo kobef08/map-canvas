@@ -13,7 +13,8 @@
 
 <body>
     <div id="map"></div>
-    <script type="text/javascript" src="../build/release/baidu-map-pointLine.min.js"></script>
+    <script type="text/javascript" src="../build/baidu-map-pointLine.js"></script>
+    <!-- <script type="text/javascript" src="../build/release/baidu-map-pointLine.min.js"></script> -->
     <script type="text/javascript">
         var map = new BMap.Map('map', {
             minZoom: 5
@@ -31,7 +32,13 @@
                 //线条颜色
                 lineStyle: '#F9815C',
                 //数据源
-                data: result
+                data: result,
+                //事件
+                methods: {
+                    click: function (e, name) {
+                        console.log('当前点击的线条是' + name);
+                    }
+                }
             });
         })
     </script>
