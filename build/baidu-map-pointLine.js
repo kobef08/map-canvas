@@ -104,60 +104,6 @@ CanvasLayer.prototype.getZIndex = function () {
     return this.zIndex;
 };
 
-var GeoUtils = {
-    /**
-     * 判断点是否在矩形内
-     * @param {Point} point 点对象
-     * @param {Bounds} bounds 矩形边界对象
-     * @returns {Boolean} 点在矩形内返回true,否则返回false
-     */
-    isPointInRect: function isPointInRect(point, bounds) {
-        //检查类型是否正确
-        if (!(point instanceof BMap.Point) || !(bounds instanceof BMap.Bounds)) {
-            return false;
-        }
-        var sw = bounds.getSouthWest(); //西南脚点
-        var ne = bounds.getNorthEast(); //东北脚点
-        return point.lng >= sw.lng && point.lng <= ne.lng && point.lat >= sw.lat && point.lat <= ne.lat;
-    },
-    /**
-     * 判断点是否在折线上
-     * @param {Point} point 点对象
-     * @param {Polyline} polyline 折线对象
-     * @returns {Boolean} 点在折线上返回true,否则返回false
-     */
-    isPointOnPolyline: function isPointOnPolyline(point, polyline) {
-        //检查类型
-        if (!(point instanceof BMap.Point) || !(polyline instanceof BMap.Polyline)) {
-            return false;
-        }
-
-        //首先判断点是否在线的外包矩形内，如果在，则进一步判断，否则返回false
-        var lineBounds = polyline.getBounds();
-        if (!this.isPointInRect(point, lineBounds)) {
-            return false;
-        }
-
-        //判断点是否在线段上，设点为Q，线段为P1P2 ，
-        //判断点Q在该线段上的依据是：( Q - P1 ) × ( P2 - P1 ) = 0，且 Q 在以 P1，P2为对角顶点的矩形内
-        var pts = polyline.getPath();
-        for (var i = 0; i < pts.length - 1; i++) {
-            var curPt = pts[i];
-            var nextPt = pts[i + 1];
-            //首先判断point是否在curPt和nextPt之间，即：此判断该点是否在该线段的外包矩形内
-            if (point.lng >= Math.min(curPt.lng, nextPt.lng) && point.lng <= Math.max(curPt.lng, nextPt.lng) && point.lat >= Math.min(curPt.lat, nextPt.lat) && point.lat <= Math.max(curPt.lat, nextPt.lat)) {
-                //判断点是否在直线上公式
-                var precision = (curPt.lng - point.lng) * (nextPt.lat - point.lat) - (nextPt.lng - point.lng) * (curPt.lat - point.lat);
-                if (precision < 2e-10 && precision > -2e-10) {
-                    //实质判断是否接近0
-                    return true;
-                }
-            }
-        }
-        return false;
-    }
-};
-
 var tool = {
     merge: function merge(settings, defaults) {
         Object.keys(settings).forEach(function (key) {
@@ -167,6 +113,29 @@ var tool = {
     //计算两点间距离
     getDistance: function getDistance(p1, p2) {
         return Math.sqrt((p1[0] - p2[0]) * (p1[0] - p2[0]) + (p1[1] - p2[1]) * (p1[1] - p2[1]));
+    },
+    //判断点是否在线段上
+    containStroke: function containStroke(x0, y0, x1, y1, lineWidth, x, y) {
+        if (lineWidth === 0) {
+            return false;
+        }
+        var _l = lineWidth;
+        var _a = 0;
+        var _b = x0;
+        // Quick reject
+        if (y > y0 + _l && y > y1 + _l || y < y0 - _l && y < y1 - _l || x > x0 + _l && x > x1 + _l || x < x0 - _l && x < x1 - _l) {
+            return false;
+        }
+
+        if (x0 !== x1) {
+            _a = (y0 - y1) / (x0 - x1);
+            _b = (x0 * y1 - x1 * y0) / (x0 - x1);
+        } else {
+            return Math.abs(x - x0) <= _l / 2;
+        }
+        var tmp = _a * x - y + _b;
+        var _s = tmp * tmp / (_a * _a + 1);
+        return _s <= _l / 2 * _l / 2;
     }
 };
 
@@ -175,6 +144,7 @@ var PointLine = function PointLine(map, userOptions) {
 
     self.map = map;
     self.lines = [];
+    self.pixelList = [];
 
     //默认参数
     var options = {
@@ -209,7 +179,7 @@ var PointLine = function PointLine(map, userOptions) {
     };
 
     Line.prototype.draw = function (context) {
-        var pointList = this.getPointList();
+        var pointList = this.pixelList || this.getPointList();
         context.save();
         context.beginPath();
         context.lineWidth = options.lineWidth;
@@ -234,7 +204,12 @@ var PointLine = function PointLine(map, userOptions) {
 
         baseCtx.clearRect(0, 0, width, height);
 
+        self.pixelList = [];
         self.lines.forEach(function (line) {
+            self.pixelList.push({
+                name: line.name,
+                data: line.getPointList()
+            });
             line.draw(baseCtx);
         });
     };
@@ -283,23 +258,30 @@ PointLine.prototype.bindEvent = function (e) {
             map.setDefaultCursor("default");
             map.addEventListener('click', this.clickEvent);
         }
+        if (this.options.methods.mousemove) {
+            map.setDefaultCursor("default");
+            map.addEventListener('mousemove', this.clickEvent);
+        }
     }
 };
 
 PointLine.prototype.clickEvent = function (e) {
     var self = this,
-        lines = self.lines;
+        lines = self.pixelList;
     if (lines.length > 0) {
         lines.forEach(function (line, i) {
-            var pts = [];
-            line.path.forEach(function (point, j) {
-                pts.push(point.location);
-            });
-            var polyline = new BMap.Polyline(pts);
-            var isOnLine = GeoUtils.isPointOnPolyline(e.point, polyline);
-            if (isOnLine) {
-                self.options.methods.click(e, line.name);
-                return;
+            for (var j = 0; j < line.data.length; j++) {
+                var beginPt = line.data[j].pixel;
+                if (line.data[j + 1] == undefined) {
+                    return;
+                }
+                var endPt = line.data[j + 1].pixel;
+                var curPt = e.pixel;
+                var isOnLine = tool.containStroke(beginPt.x, beginPt.y, endPt.x, endPt.y, self.options.lineWidth, curPt.x, curPt.y);
+                if (isOnLine) {
+                    self.options.methods.click(e, line.name);
+                    return;
+                }
             }
         });
     }
