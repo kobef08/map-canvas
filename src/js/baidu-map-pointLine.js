@@ -7,6 +7,7 @@ var PointLine = function (map, userOptions) {
 
     self.map = map;
     self.lines = [];
+    self.pixelList = [];
 
     //默认参数
     var options = {
@@ -47,7 +48,7 @@ var PointLine = function (map, userOptions) {
     }
 
     Line.prototype.draw = function (context) {
-        var pointList = this.getPointList();
+        var pointList = this.pixelList || this.getPointList();
         context.save();
         context.beginPath();
         context.lineWidth = options.lineWidth;
@@ -72,7 +73,12 @@ var PointLine = function (map, userOptions) {
 
         baseCtx.clearRect(0, 0, width, height);
 
+        self.pixelList = [];
         self.lines.forEach(function (line) {
+            self.pixelList.push({
+                name: line.name,
+                data: line.getPointList()
+            })
             line.draw(baseCtx);
         });
     }
@@ -121,27 +127,34 @@ PointLine.prototype.bindEvent = function (e) {
             map.setDefaultCursor("default");
             map.addEventListener('click', this.clickEvent);
         }
+        if (this.options.methods.mousemove) {
+            map.setDefaultCursor("default");
+            map.addEventListener('mousemove', this.clickEvent);
+        }
     }
 }
 
 PointLine.prototype.clickEvent = function (e) {
     var self = this,
-        lines = self.lines;
+        lines = self.pixelList;
     if (lines.length > 0) {
         lines.forEach(function (line, i) {
-            var pts = [];
-            line.path.forEach(function (point, j) {
-                pts.push(point.location);
-            });
-            var polyline = new BMap.Polyline(pts);
-            var isOnLine = GeoUtils.isPointOnPolyline(e.point, polyline);
-            if (isOnLine) {
-                self.options.methods.click(e, line.name);
-                return;
+            for (var j = 0; j < line.data.length; j++) {
+                var beginPt = line.data[j].pixel;
+                if (line.data[j + 1] == undefined) {
+                    return;
+                }
+                var endPt = line.data[j + 1].pixel;
+                var curPt = e.pixel;
+                var isOnLine = tool.containStroke(beginPt.x, beginPt.y, endPt.x, endPt.y, self.options.lineWidth, curPt.x, curPt.y);
+                if (isOnLine) {
+                    self.options.methods.click(e, line.name);
+                    return;
+                }
             }
+
         });
     }
-
 }
 
 export default PointLine;
