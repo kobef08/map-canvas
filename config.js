@@ -17,7 +17,7 @@ var demos = [{
 }, {
     src: 'baidu-map-pointLine.js',
     name: 'PointLine',
-    build: true
+    build: false
 }, {
     src: 'canvas-line.js',
     name: 'TrackLine',
@@ -38,6 +38,10 @@ var demos = [{
     src: 'openlayers-line.js',
     name: 'MoveLine',
     build: false
+}, {
+    src: 'arcgis-map-moveLine.js',
+    name: 'MoveLine',
+    build: true
 }];
 
 var module;

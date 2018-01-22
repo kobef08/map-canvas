@@ -9,25 +9,16 @@
     <link rel="stylesheet" href="https://js.arcgis.com/3.23/esri/css/esri.css">
     <style>
         html,
-        body,
-        #map {
+        body {
+            width: 100%;
             height: 100%;
             margin: 0;
-            padding: 0;
-            overflow: hidden;
+            padding: 0px 0 0 0;
         }
 
-        .base-map {
-            position: absolute;
-            right: 15pt;
-            top: 15pt;
-            background: #f0f0f0;
-            border: #96aed1 1px solid;
-            width: auto;
-            height: auto;
-            z-index: 99;
-            font: normal 11px "宋体", Arial;
-            color: #868686;
+        #mapCanvas {
+            padding: 0;
+            height: 100%;
         }
     </style>
     <script type="text/javascript">
@@ -39,11 +30,14 @@
             }]
         };
     </script>
+    <script type="text/javascript" src="../build/arcgis-map-moveLine.js"></script>
     <script src="https://js.arcgis.com/3.23/"></script>
     <script>
-        var map;
+        var map, rasterLayer;
         require(["esri/map",
                 "extend/TDTTilesLayer",
+                "extend/RasterLayer",
+                "esri/request",
                 "esri/layers/GraphicsLayer",
                 "esri/graphic",
                 "esri/symbols/SimpleMarkerSymbol",
@@ -57,6 +51,8 @@
             ],
             function (Map,
                 TDTTilesLayer,
+                RasterLayer,
+                esriRequest,
                 GraphicsLayer,
                 Graphic,
                 SimpleMarkerSymbol,
@@ -67,22 +63,72 @@
                 Point,
                 Polyline
             ) {
-                map = new Map("map", {
+                map = new Map("mapCanvas", {
                     logo: false,
-                    zoom: 11,
-                    center: new Point(116.39858671429442, 39.88212896011353)
+                    zoom: 13,
+                    basemap: "dark-gray",
+                    center: new Point(104.091, 30.639)
                 });
-                var vec_c = new TDTTilesLayer("vec");
-                var cva_c = new TDTTilesLayer("cva"); //英文路网
-                var gLayer = new GraphicsLayer();
-                map.addLayers([vec_c, cva_c, gLayer]);
+
+                // map.on("load", mapLoaded);
+                mapLoaded();
+
+                function mapLoaded() {
+                    var vec_c = new TDTTilesLayer("vec");
+                    var cva_c = new TDTTilesLayer("cva"); //英文路网
+                    var gLayer = new GraphicsLayer();
+                    rasterLayer = new RasterLayer(null, {
+                        opacity: 0.8
+                    });
+                    map.addLayer(rasterLayer);
+                    // map.addLayers([vec_c, cva_c, rasterLayer, gLayer]);
+                    map.on("extent-change", redraw);
+                    map.on("resize", function () {});
+                    map.on("zoom-start", redraw);
+                    map.on("pan-start", redraw);
+
+                    var layersRequest = esriRequest({
+                        url: 'data/road-line.json',
+                        content: {},
+                        handleAs: "json"
+                    });
+                    layersRequest.then(
+                        function (response) {
+                            var lines = [];
+                            if (response != null && response.length > 0) {
+                                for (var i = 0; i < response.length; i++) {
+                                    var line = response[i];
+                                    var pointArr = line.ROAD_LINE.split(';');
+                                    var lnglats = [];
+                                    for (var j in pointArr) {
+                                        var p = pointArr[j].split(',');
+                                        lnglats.push(new Point(p[0], p[1]));
+                                    }
+                                    lines.push(lnglats);
+                                }
+                            }
+                            moveline = new MoveLine(map, {
+                                canvas: rasterLayer._element,
+                                data: lines
+                            });
+                            redraw();
+                        },
+                        function (error) {
+                            console.log("Error: ", error.message);
+                        }
+                    )
+                }
+
+                function redraw() {
+                    rasterLayer._element.width = map.width;
+                    rasterLayer._element.height = map.height;
+                }
             });
     </script>
 </head>
 
 <body>
-    <div id="map">
-        <div class="base-map"></div>
+    <div id="mapCanvas">
     </div>
 </body>
 </html
