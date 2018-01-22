@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>baidu map flashmarker</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, user-scalable=no">
+    <title>TianDi Map</title>
+    <link rel="stylesheet" href="https://js.arcgis.com/3.23/esri/css/esri.css">
+    <style>
+        html,
+        body,
+        #map {
+            height: 100%;
+            margin: 0;
+            padding: 0;
+            overflow: hidden;
+        }
+
+        .base-map {
+            position: absolute;
+            right: 15pt;
+            top: 15pt;
+            background: #f0f0f0;
+            border: #96aed1 1px solid;
+            width: auto;
+            height: auto;
+            z-index: 99;
+            font: normal 11px "宋体", Arial;
+            color: #868686;
+        }
+    </style>
+    <script type="text/javascript">
+        dojoConfig = {
+            parseOnLoad: true,
+            packages: [{
+                name: 'extend',
+                location: this.location.pathname.replace(/\/[^/]+$/, "") + "/js/tdlib"
+            }]
+        };
+    </script>
+    <script src="https://js.arcgis.com/3.23/"></script>
+    <script>
+        var map;
+        require(["esri/map",
+                "extend/TDTTilesLayer",
+                "esri/layers/GraphicsLayer",
+                "esri/graphic",
+                "esri/symbols/SimpleMarkerSymbol",
+                "esri/symbols/SimpleLineSymbol",
+                "esri/symbols/SimpleFillSymbol",
+                "esri/renderers/UniqueValueRenderer",
+                "dojo/_base/Color",
+                "esri/geometry/Point",
+                "esri/geometry/Polyline",
+                "dojo/domReady!"
+            ],
+            function (Map,
+                TDTTilesLayer,
+                GraphicsLayer,
+                Graphic,
+                SimpleMarkerSymbol,
+                SimpleLineSymbol,
+                SimpleFillSymbol,
+                UniqueValueRenderer,
+                Color,
+                Point,
+                Polyline
+            ) {
+                map = new Map("map", {
+                    logo: false,
+                    zoom: 11,
+                    center: new Point(116.39858671429442, 39.88212896011353)
+                });
+                var vec_c = new TDTTilesLayer("vec");
+                var cva_c = new TDTTilesLayer("cva"); //英文路网
+                var gLayer = new GraphicsLayer();
+                map.addLayers([vec_c, cva_c, gLayer]);
+            });
+    </script>
+</head>
+
+<body>
+    <div id="map">
+        <div class="base-map"></div>
+    </div>
+</body>
+</html
