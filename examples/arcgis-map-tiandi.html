@@ -34,68 +34,57 @@
     <script src="https://js.arcgis.com/3.23/"></script>
     <script>
         var map, rasterLayer;
+        var canvasSupport;
         require(["esri/map",
+                "esri/request",
+                "dojo/parser",
+                "dojo/number",
+                "dojo/json",
+                "esri/geometry/Point",
                 "extend/TDTTilesLayer",
                 "extend/RasterLayer",
-                "esri/request",
-                "esri/layers/GraphicsLayer",
-                "esri/graphic",
-                "esri/symbols/SimpleMarkerSymbol",
-                "esri/symbols/SimpleLineSymbol",
-                "esri/symbols/SimpleFillSymbol",
-                "esri/renderers/UniqueValueRenderer",
-                "dojo/_base/Color",
-                "esri/geometry/Point",
-                "esri/geometry/Polyline",
                 "dojo/domReady!"
             ],
             function (Map,
-                TDTTilesLayer,
-                RasterLayer,
                 esriRequest,
-                GraphicsLayer,
-                Graphic,
-                SimpleMarkerSymbol,
-                SimpleLineSymbol,
-                SimpleFillSymbol,
-                UniqueValueRenderer,
-                Color,
+                parser,
+                number,
+                JSON,
                 Point,
-                Polyline
+                TDTTilesLayer,
+                RasterLayer
             ) {
+                parser.parse();
+                canvasSupport = supports_canvas();
                 map = new Map("mapCanvas", {
-                    logo: false,
+                    center: [104.091, 30.639],
                     zoom: 13,
-                    basemap: "dark-gray",
-                    center: new Point(104.091, 30.639)
+                    logo: false
                 });
-
                 // map.on("load", mapLoaded);
                 mapLoaded();
 
                 function mapLoaded() {
-                    var vec_c = new TDTTilesLayer("vec");
-                    var cva_c = new TDTTilesLayer("cva"); //英文路网
-                    var gLayer = new GraphicsLayer();
-                    rasterLayer = new RasterLayer(null, {
-                        opacity: 0.8
-                    });
-                    map.addLayer(rasterLayer);
-                    // map.addLayers([vec_c, cva_c, rasterLayer, gLayer]);
-                    map.on("extent-change", redraw);
-                    map.on("resize", function () {});
-                    map.on("zoom-start", redraw);
-                    map.on("pan-start", redraw);
-
-                    var layersRequest = esriRequest({
-                        url: 'data/road-line.json',
-                        content: {},
-                        handleAs: "json"
-                    });
-                    layersRequest.then(
-                        function (response) {
-                            var lines = [];
-                            if (response != null && response.length > 0) {
+                    // Add raster layer
+                    if (canvasSupport) {
+                        var vec_c = new TDTTilesLayer("vec");
+                        var cva_c = new TDTTilesLayer("cva"); //英文路网
+                        rasterLayer = new RasterLayer(null, {
+                            opacity: 0.8
+                        });
+                        map.addLayers([vec_c, cva_c, rasterLayer]);
+                        map.on("extent-change", redraw);
+                        map.on("resize", function () {});
+                        map.on("zoom-start", redraw);
+                        map.on("pan-start", redraw);
+                        var layersRequest = esriRequest({
+                            url: 'data/road-line.json',
+                            content: {},
+                            handleAs: "json"
+                        });
+                        layersRequest.then(
+                            function (response) {
+                                var lines = [];
                                 for (var i = 0; i < response.length; i++) {
                                     var line = response[i];
                                     var pointArr = line.ROAD_LINE.split(';');
@@ -106,22 +95,36 @@
                                     }
                                     lines.push(lnglats);
                                 }
-                            }
-                            moveline = new MoveLine(map, {
-                                canvas: rasterLayer._element,
-                                data: lines
+                                moveline = new MoveLine(map, {
+                                    canvas: rasterLayer._element,
+                                    data: lines
+                                });
+                                redraw();
+                            },
+                            function (error) {
+                                console.log("Error: ", error.message);
                             });
-                            redraw();
-                        },
-                        function (error) {
-                            console.log("Error: ", error.message);
-                        }
-                    )
+                    } else {
+                        dom.byId("mapCanvas").innerHTML =
+                            "This browser doesn't support canvas. Visit <a target='_blank' href='http://www.caniuse.com/#search=canvas'>caniuse.com</a> for supported browsers";
+                    }
+                    // var vec_c = new TDTTilesLayer("vec");
+                    // var cva_c = new TDTTilesLayer("cva"); //英文路网
+                    // rasterLayer = new RasterLayer(null, {
+                    //     opacity: 0.8
+                    // });
+                }
+
+                // does the browser support canvas?
+                function supports_canvas() {
+                    return !!document.createElement("canvas").getContext;
                 }
 
                 function redraw() {
                     rasterLayer._element.width = map.width;
                     rasterLayer._element.height = map.height;
+                    moveline.pixelList = [];
+                    moveline.render();
                 }
             });
     </script>
