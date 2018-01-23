@@ -39,6 +39,12 @@ var tool = {
     }
 };
 
+var global = typeof window === 'undefined' ? {} : window;
+
+var requestAnimationFrame = global.requestAnimationFrame || global.mozRequestAnimationFrame || global.webkitRequestAnimationFrame || global.msRequestAnimationFrame || function (callback) {
+    return global.setTimeout(callback, 1000 / 60);
+};
+
 var MoveLine = function MoveLine(map, userOptions) {
     var self = this;
     self.map = map;
@@ -48,55 +54,16 @@ var MoveLine = function MoveLine(map, userOptions) {
     //默认参数
     var options = {
         //线条宽度
-        lineWidth: 1,
+        lineWidth: 0.5,
         //线条颜色
         lineStyle: '#c82800'
     };
 
-    //全局变量
-    var baseLayer = null,
-        width = map.width,
-        height = map.height;
-
-    //底层canvas渲染，标注，线条
-    // var brush = function () {
-    //     var baseCtx = options.canvas.getContext('2d');
-    //     if (!baseCtx) {
-    //         return;
-    //     }
-
-    //     addLine();
-
-    //     baseCtx.clearRect(0, 0, width, height);
-
-    //     self.pixelList = [];
-    //     self.lines.forEach(function (line) {
-    //         self.pixelList.push({
-    //             data: line.getPointList()
-    //         })
-    //         line.draw(baseCtx);
-    //     });
-    // }
-
-    // var addLine = function () {
-    //     if (self.lines && self.lines.length > 0) return;
-    //     var dataset = options.data;
-    //     dataset.forEach(function (l, i) {
-    //         var line = new Line({
-    //             path: []
-    //         });
-    //         l.forEach(function (p, j) {
-    //             line.path.push({
-    //                 location: p
-    //             });
-    //         });
-    //         self.lines.push(line);
-    //     });
-    // }
-
     self.init(userOptions, options);
 
-    // brush();
+    //全局变量
+    var baseCtx = self.baseCtx = self.options.canvas.getContext("2d");
+    baseCtx.lineWidth = options.lineWidth;
 };
 
 MoveLine.prototype.init = function (setting, defaults) {
@@ -107,14 +74,19 @@ MoveLine.prototype.init = function (setting, defaults) {
 
 MoveLine.prototype.render = function () {
     var self = this;
-    var baseCtx = self.baseCtx = self.options.canvas.getContext('2d');
+    var baseCtx = self.baseCtx;
     if (!baseCtx) {
         return;
     }
 
     self._addLine();
 
-    baseCtx.clearRect(0, 0, self.map.width, self.map.height);
+    // baseCtx.clearRect(0, 0, self.map.width, self.map.height);
+    baseCtx.fillStyle = "rgba(0, 0, 0, 0.97)";
+    var prev = baseCtx.globalCompositeOperation;
+    baseCtx.globalCompositeOperation = "destination-in";
+    baseCtx.fillRect(0, 0, self.map.width, self.map.height);
+    baseCtx.globalCompositeOperation = prev;
 
     self.pixelList = [];
     self.lines.forEach(function (line) {
@@ -123,6 +95,27 @@ MoveLine.prototype.render = function () {
         });
         line.draw(baseCtx, self.map, self.options);
     });
+};
+
+MoveLine.prototype.start = function () {
+    var self = this;
+    self.stop();
+    (function frame() {
+        try {
+            self.timer = setTimeout(function () {
+                requestAnimationFrame(frame);
+                self.render();
+            }, 1000 / 20);
+        } catch (e) {
+            console.error(e);
+        }
+    })();
+};
+
+MoveLine.prototype.stop = function () {
+    if (this.timer) {
+        clearTimeout(this.timer);
+    }
 };
 
 MoveLine.prototype._addLine = function () {
@@ -147,6 +140,8 @@ MoveLine.prototype._addLine = function () {
 
 function Line(opts) {
     this.path = opts.path;
+    this.age = 0;
+    this.maxAge = 0;
 }
 
 Line.prototype.getPointList = function (map) {
@@ -154,30 +149,34 @@ Line.prototype.getPointList = function (map) {
         path = this.path;
     if (path && path.length > 0) {
         path.forEach(function (p) {
-            if (map.toScreen == undefined) {
-                console.log(p);
-            }
             points.push({
                 pixel: map.toScreen(p.location)
             });
         });
+        this.maxAge = points.length;
     }
     return points;
 };
 
 Line.prototype.draw = function (context, map, options) {
     var pointList = this.pixelList || this.getPointList(map);
-    context.save();
     context.beginPath();
-    context.lineWidth = options.lineWidth;
+    context.shadowColor = 'rgba(200, 40, 0, 0.97)';
+    context.shadowBlur = 5;
     context.strokeStyle = options.lineStyle;
-    context.moveTo(pointList[0].pixel.x, pointList[0].pixel.y);
-    for (var i = 0, len = pointList.length; i < len; i++) {
-        context.lineTo(pointList[i].pixel.x, pointList[i].pixel.y);
+    if (this.age >= this.maxAge - 1) {
+        this.age = 0;
     }
+    context.moveTo(pointList[this.age].pixel.x, pointList[this.age].pixel.y);
+    context.lineTo(pointList[this.age + 1].pixel.x, pointList[this.age + 1].pixel.y);
     context.stroke();
-    context.closePath();
-    context.restore();
+
+    this.age++;
+};
+
+Line.prototype.drawCicle = function (context, map, options) {
+    var pointList = this.pixelList || this.getPointList(map);
+    context.save();
 };
 
 return MoveLine;
