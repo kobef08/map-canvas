@@ -14,9 +14,9 @@ var MoveLine = function (map, userOptions) {
     //默认参数
     var options = {
         //线条宽度
-        lineWidth: 0.5,
+        lineWidth: 2,
         //线条颜色
-        lineStyle: '#c82800'
+        lineStyle: '#ba92f1'
     };
 
     self.init(userOptions, options);
@@ -42,7 +42,7 @@ MoveLine.prototype.render = function () {
     self._addLine();
 
     // baseCtx.clearRect(0, 0, self.map.width, self.map.height);
-    baseCtx.fillStyle = "rgba(0, 0, 0, 0.97)";
+    baseCtx.fillStyle = "rgba(0, 0, 0, 0.88)";
     var prev = baseCtx.globalCompositeOperation;
     baseCtx.globalCompositeOperation = "destination-in";
     baseCtx.fillRect(0, 0, self.map.width, self.map.height);
@@ -60,15 +60,11 @@ MoveLine.prototype.render = function () {
 MoveLine.prototype.start = function () {
     var self = this;
     self.stop();
-    (function frame() {
-        try {
-            self.timer = setTimeout(function () {
-                requestAnimationFrame(frame);
-                self.render();
-            }, 1000 / 20);
-        } catch (e) {
-            console.error(e);
-        }
+    (function drawFrame() {
+        self.timer = setTimeout(function () {
+            requestAnimationFrame(drawFrame);
+            self.render();
+        }, 1000 / 20);
     })();
 }
 
@@ -121,8 +117,9 @@ Line.prototype.getPointList = function (map) {
 Line.prototype.draw = function (context, map, options) {
     var pointList = this.pixelList || this.getPointList(map);
     context.beginPath();
-    context.shadowColor = 'rgba(200, 40, 0, 0.97)';
-    context.shadowBlur = 5;
+    // context.shadowColor = '#eda513';
+    // context.shadowBlur = 2;
+    context.lineWidth = options.lineWidth;
     context.strokeStyle = options.lineStyle;
     if (this.age >= this.maxAge - 1) {
         this.age = 0;

@@ -2,7 +2,7 @@
 <html>
 
 <head>
-    <title>baidu map flashmarker</title>
+    <title>arcgis map moveline</title>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, user-scalable=no">
     <title>TianDi Map</title>
@@ -58,7 +58,7 @@
                 canvasSupport = supports_canvas();
                 map = new Map("mapCanvas", {
                     center: [104.091, 30.639],
-                    zoom: 13,
+                    zoom: 12,
                     logo: false
                 });
                 // map.on("load", mapLoaded);
@@ -70,11 +70,11 @@
                         var vec_c = new TDTTilesLayer("vec");
                         var cva_c = new TDTTilesLayer("cva"); //英文路网
                         rasterLayer = new RasterLayer(null, {
-                            opacity: 0.8
+                            opacity: 1
                         });
                         map.addLayers([vec_c, cva_c, rasterLayer]);
                         map.on("extent-change", redraw);
-                        map.on("resize", function () {});
+                        map.on("resize", redraw);
                         map.on("zoom-start", redraw);
                         map.on("pan-start", redraw);
                         var layersRequest = esriRequest({
@@ -96,6 +96,10 @@
                                     lines.push(lnglats);
                                 }
                                 moveline = new MoveLine(map, {
+                                    //线条宽度
+                                    lineWidth: 2,
+                                    //线条颜色
+                                    lineStyle: '#ff1462',
                                     canvas: rasterLayer._element,
                                     data: lines
                                 });
@@ -106,13 +110,8 @@
                             });
                     } else {
                         dom.byId("mapCanvas").innerHTML =
-                            "This browser doesn't support canvas. Visit <a target='_blank' href='http://www.caniuse.com/#search=canvas'>caniuse.com</a> for supported browsers";
+                            "This browser doesn't support canvas";
                     }
-                    // var vec_c = new TDTTilesLayer("vec");
-                    // var cva_c = new TDTTilesLayer("cva"); //英文路网
-                    // rasterLayer = new RasterLayer(null, {
-                    //     opacity: 0.8
-                    // });
                 }
 
                 // does the browser support canvas?
