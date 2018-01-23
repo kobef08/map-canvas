@@ -59,6 +59,7 @@
                 map = new Map("mapCanvas", {
                     center: [104.091, 30.639],
                     zoom: 12,
+                    // basemap: "dark-gray",
                     logo: false
                 });
                 // map.on("load", mapLoaded);
@@ -72,7 +73,10 @@
                         rasterLayer = new RasterLayer(null, {
                             opacity: 1
                         });
-                        map.addLayers([vec_c, cva_c, rasterLayer]);
+                        animateLayer = new RasterLayer(null, {
+                            opacity: 1
+                        });
+                        map.addLayers([vec_c, cva_c, rasterLayer, animateLayer]);
                         map.on("extent-change", redraw);
                         map.on("resize", redraw);
                         map.on("zoom-start", redraw);
@@ -97,10 +101,11 @@
                                 }
                                 moveline = new MoveLine(map, {
                                     //线条宽度
-                                    lineWidth: 2,
+                                    lineWidth: 1,
                                     //线条颜色
-                                    lineStyle: '#ff1462',
+                                    lineStyle: 'rgb(200, 40, 0)',
                                     canvas: rasterLayer._element,
+                                    animateCanvas: animateLayer._element,
                                     data: lines
                                 });
                                 redraw();
