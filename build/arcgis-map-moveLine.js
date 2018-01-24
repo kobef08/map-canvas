@@ -53,11 +53,10 @@ var MoveLine = function MoveLine(map, userOptions) {
 
     //默认参数
     var options = {
-        //线条宽度
-        lineWidth: 1,
-        //线条颜色
-        lineStyle: '#ba92f1'
-    };
+        lineWidth: 0.5, //线条宽度
+        lineStyle: 'rgb(200, 40, 0)', //线条颜色
+        animateLineWidth: 1, //动画线条宽度
+        animateLineStyle: '#ffff00' };
 
     self.init(userOptions, options);
 
@@ -90,6 +89,7 @@ MoveLine.prototype.render = function () {
         line.drawPath(baseCtx, self.map, self.options);
     });
 };
+
 MoveLine.prototype.animate = function () {
     var self = this;
     var animateCtx = self.animateCtx;
@@ -99,8 +99,7 @@ MoveLine.prototype.animate = function () {
 
     self._addLine();
 
-    // baseCtx.clearRect(0, 0, self.map.width, self.map.height);
-    animateCtx.fillStyle = "rgba(0, 0, 0, 0.6)";
+    animateCtx.fillStyle = "rgba(0, 0, 0, 0.7)";
     var prev = animateCtx.globalCompositeOperation;
     animateCtx.globalCompositeOperation = "destination-in";
     animateCtx.fillRect(0, 0, self.map.width, self.map.height);
@@ -123,8 +122,12 @@ MoveLine.prototype.start = function () {
         self.timer = setTimeout(function () {
             requestAnimationFrame(drawFrame);
             self.animate();
-        }, 1000 / 20);
+        }, 60);
     })();
+    // (function drawFrame() {
+    //     requestAnimationFrame(drawFrame);
+    //     self.animate();
+    // })();
 };
 
 MoveLine.prototype.stop = function () {
@@ -140,14 +143,9 @@ MoveLine.prototype._addLine = function () {
     }
     var opts = self.options;
     var dataset = opts.data;
-    dataset.forEach(function (l, i) {
+    dataset.forEach(function (points, i) {
         var line = new Line({
-            path: []
-        });
-        l.forEach(function (p, j) {
-            line.path.push({
-                location: p
-            });
+            path: points
         });
         self.lines.push(line);
     });
@@ -165,7 +163,7 @@ Line.prototype.getPointList = function (map) {
     if (path && path.length > 0) {
         path.forEach(function (p) {
             points.push({
-                pixel: map.toScreen(p.location)
+                pixel: map.toScreen(p)
             });
         });
         this.maxAge = points.length;
@@ -175,7 +173,6 @@ Line.prototype.getPointList = function (map) {
 
 Line.prototype.drawPath = function (context, map, options) {
     var pointList = this.pixelList || this.getPointList(map);
-    context.save();
     context.beginPath();
     context.lineWidth = options.lineWidth;
     context.strokeStyle = options.lineStyle;
@@ -184,17 +181,13 @@ Line.prototype.drawPath = function (context, map, options) {
         context.lineTo(pointList[i].pixel.x, pointList[i].pixel.y);
     }
     context.stroke();
-    context.closePath();
-    context.restore();
 };
 
 Line.prototype.draw = function (context, map, options) {
     var pointList = this.pixelList || this.getPointList(map);
     context.beginPath();
-    // context.shadowColor = '#eda513';
-    // context.shadowBlur = 2;
-    context.lineWidth = options.lineWidth;
-    context.strokeStyle = 'yellow';
+    context.lineWidth = options.animateLineWidth;
+    context.strokeStyle = options.animateLineStyle;
     if (this.age >= this.maxAge - 1) {
         this.age = 0;
     }
@@ -203,11 +196,6 @@ Line.prototype.draw = function (context, map, options) {
     context.stroke();
 
     this.age++;
-};
-
-Line.prototype.drawCicle = function (context, map, options) {
-    var pointList = this.pixelList || this.getPointList(map);
-    context.save();
 };
 
 return MoveLine;

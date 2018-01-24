@@ -30,10 +30,10 @@
             }]
         };
     </script>
-    <script type="text/javascript" src="../build/arcgis-map-moveLine.js"></script>
+    <script type="text/javascript" src="../build/release/arcgis-map-moveLine.min.js"></script>
     <script src="https://js.arcgis.com/3.23/"></script>
     <script>
-        var map, rasterLayer;
+        var map, rasterLayer, moveline;
         var canvasSupport;
         require(["esri/map",
                 "esri/request",
@@ -58,11 +58,15 @@
                 canvasSupport = supports_canvas();
                 map = new Map("mapCanvas", {
                     center: [104.091, 30.639],
-                    zoom: 12,
-                    // basemap: "dark-gray",
-                    logo: false
+                    zoom: 13,
+                    basemap: "dark-gray-vector",
                 });
-                // map.on("load", mapLoaded);
+                // map = new Map("mapCanvas", {
+                //     center: [104.091, 30.639],
+                //     zoom: 12,
+                //     logo: false
+                // });
+
                 mapLoaded();
 
                 function mapLoaded() {
@@ -70,15 +74,15 @@
                     if (canvasSupport) {
                         var vec_c = new TDTTilesLayer("vec");
                         var cva_c = new TDTTilesLayer("cva"); //英文路网
-                        rasterLayer = new RasterLayer(null, {
-                            opacity: 1
+                        baseLayer = new RasterLayer(null, {
+                            opacity: 0.98
                         });
                         animateLayer = new RasterLayer(null, {
                             opacity: 1
                         });
-                        map.addLayers([vec_c, cva_c, rasterLayer, animateLayer]);
+                        map.addLayers([vec_c, cva_c, baseLayer, animateLayer]);
                         map.on("extent-change", redraw);
-                        map.on("resize", redraw);
+                        map.on("resize", function () {});
                         map.on("zoom-start", redraw);
                         map.on("pan-start", redraw);
                         var layersRequest = esriRequest({
@@ -100,11 +104,11 @@
                                     lines.push(lnglats);
                                 }
                                 moveline = new MoveLine(map, {
-                                    //线条宽度
-                                    lineWidth: 1,
-                                    //线条颜色
-                                    lineStyle: 'rgb(200, 40, 0)',
-                                    canvas: rasterLayer._element,
+                                    lineWidth: .6, //线条宽度
+                                    lineStyle: 'rgb(200, 40, 0)', //线条颜色
+                                    animateLineWidth: 1, //动画线条宽度
+                                    animateLineStyle: '#ffff00', //动画线条颜色
+                                    canvas: baseLayer._element,
                                     animateCanvas: animateLayer._element,
                                     data: lines
                                 });
@@ -125,8 +129,10 @@
                 }
 
                 function redraw() {
-                    rasterLayer._element.width = map.width;
-                    rasterLayer._element.height = map.height;
+                    baseLayer._element.width = map.width;
+                    baseLayer._element.height = map.height;
+                    animateLayer._element.width = map.width;
+                    animateLayer._element.height = map.height;
                     moveline.pixelList = [];
                     moveline.start();
                 }
