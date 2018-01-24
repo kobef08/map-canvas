@@ -104,8 +104,47 @@ CanvasLayer.prototype.getZIndex = function () {
     return this.zIndex;
 };
 
+var tool = {
+    merge: function merge(settings, defaults) {
+        Object.keys(settings).forEach(function (key) {
+            defaults[key] = settings[key];
+        });
+    },
+    //计算两点间距离
+    getDistance: function getDistance(p1, p2) {
+        return Math.sqrt((p1[0] - p2[0]) * (p1[0] - p2[0]) + (p1[1] - p2[1]) * (p1[1] - p2[1]));
+    },
+    //判断点是否在线段上
+    containStroke: function containStroke(x0, y0, x1, y1, lineWidth, x, y) {
+        if (lineWidth === 0) {
+            return false;
+        }
+        var _l = lineWidth;
+        var _a = 0;
+        var _b = x0;
+        // Quick reject
+        if (y > y0 + _l && y > y1 + _l || y < y0 - _l && y < y1 - _l || x > x0 + _l && x > x1 + _l || x < x0 - _l && x < x1 - _l) {
+            return false;
+        }
+
+        if (x0 !== x1) {
+            _a = (y0 - y1) / (x0 - x1);
+            _b = (x0 * y1 - x1 * y0) / (x0 - x1);
+        } else {
+            return Math.abs(x - x0) <= _l / 2;
+        }
+        var tmp = _a * x - y + _b;
+        var _s = tmp * tmp / (_a * _a + 1);
+        return _s <= _l / 2 * _l / 2;
+    }
+};
+
 var PointLine = function PointLine(map, userOptions) {
     var self = this;
+
+    self.map = map;
+    self.lines = [];
+    self.pixelList = [];
 
     //默认参数
     var options = {
@@ -118,15 +157,7 @@ var PointLine = function PointLine(map, userOptions) {
     //全局变量
     var baseLayer = null,
         width = map.getSize().width,
-        height = map.getSize().height,
-        lines = [];
-
-    //参数合并
-    var merge = function merge(userOptions, options) {
-        Object.keys(userOptions).forEach(function (key) {
-            options[key] = userOptions[key];
-        });
-    };
+        height = map.getSize().height;
 
     function Line(opts) {
         this.name = opts.name;
@@ -148,7 +179,7 @@ var PointLine = function PointLine(map, userOptions) {
     };
 
     Line.prototype.draw = function (context) {
-        var pointList = this.getPointList();
+        var pointList = this.pixelList || this.getPointList();
         context.save();
         context.beginPath();
         context.lineWidth = options.lineWidth;
@@ -173,13 +204,18 @@ var PointLine = function PointLine(map, userOptions) {
 
         baseCtx.clearRect(0, 0, width, height);
 
-        lines.forEach(function (line) {
+        self.pixelList = [];
+        self.lines.forEach(function (line) {
+            self.pixelList.push({
+                name: line.name,
+                data: line.getPointList()
+            });
             line.draw(baseCtx);
         });
     };
 
     var addLine = function addLine() {
-        lines = [];
+        if (self.lines && self.lines.length > 0) return;
         var dataset = options.data;
         dataset.forEach(function (l, i) {
             var line = new Line({
@@ -192,22 +228,63 @@ var PointLine = function PointLine(map, userOptions) {
                     location: new BMap.Point(p.Longitude, p.Latitude)
                 });
             });
-            lines.push(line);
+            self.lines.push(line);
         });
     };
 
-    var init = function init(map, options) {
-        merge(userOptions, options);
+    self.init(userOptions, options);
 
-        baseLayer = new CanvasLayer({
-            map: map,
-            update: brush
+    baseLayer = new CanvasLayer({
+        map: map,
+        update: brush
+    });
+
+    this.clickEvent = this.clickEvent.bind(this);
+
+    this.bindEvent();
+};
+
+PointLine.prototype.init = function (settings, defaults) {
+    //合并参数
+    tool.merge(settings, defaults);
+
+    this.options = defaults;
+};
+
+PointLine.prototype.bindEvent = function (e) {
+    var map = this.map;
+    if (this.options.methods) {
+        if (this.options.methods.click) {
+            map.setDefaultCursor("default");
+            map.addEventListener('click', this.clickEvent);
+        }
+        if (this.options.methods.mousemove) {
+            map.setDefaultCursor("default");
+            map.addEventListener('mousemove', this.clickEvent);
+        }
+    }
+};
+
+PointLine.prototype.clickEvent = function (e) {
+    var self = this,
+        lines = self.pixelList;
+    if (lines.length > 0) {
+        lines.forEach(function (line, i) {
+            for (var j = 0; j < line.data.length; j++) {
+                var beginPt = line.data[j].pixel;
+                if (line.data[j + 1] == undefined) {
+                    return;
+                }
+                var endPt = line.data[j + 1].pixel;
+                var curPt = e.pixel;
+                var isOnLine = tool.containStroke(beginPt.x, beginPt.y, endPt.x, endPt.y, self.options.lineWidth, curPt.x, curPt.y);
+                if (isOnLine) {
+                    self.options.methods.click(e, line.name);
+                    return;
+                }
+            }
         });
-    };
-
-    init(map, options);
-
-    self.options = options;
+    }
 };
 
 return PointLine;

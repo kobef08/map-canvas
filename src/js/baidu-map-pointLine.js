@@ -1,7 +1,13 @@
 import CanvasLayer from '../map/baidu-map/CanvasLayer';
+import GeoUtils from '../map/baidu-map/GeoUtils';
+import tool from '../utils/tool';
 
 var PointLine = function (map, userOptions) {
     var self = this;
+
+    self.map = map;
+    self.lines = [];
+    self.pixelList = [];
 
     //默认参数
     var options = {
@@ -14,15 +20,7 @@ var PointLine = function (map, userOptions) {
     //全局变量
     var baseLayer = null,
         width = map.getSize().width,
-        height = map.getSize().height,
-        lines = [];
-
-    //参数合并
-    var merge = function (userOptions, options) {
-        Object.keys(userOptions).forEach(function (key) {
-            options[key] = userOptions[key];
-        });
-    }
+        height = map.getSize().height;
 
     function Point(opts) {
         this.name = opts.name;
@@ -50,7 +48,7 @@ var PointLine = function (map, userOptions) {
     }
 
     Line.prototype.draw = function (context) {
-        var pointList = this.getPointList();
+        var pointList = this.pixelList || this.getPointList();
         context.save();
         context.beginPath();
         context.lineWidth = options.lineWidth;
@@ -75,13 +73,18 @@ var PointLine = function (map, userOptions) {
 
         baseCtx.clearRect(0, 0, width, height);
 
-        lines.forEach(function (line) {
+        self.pixelList = [];
+        self.lines.forEach(function (line) {
+            self.pixelList.push({
+                name: line.name,
+                data: line.getPointList()
+            })
             line.draw(baseCtx);
         });
     }
 
     var addLine = function () {
-        lines = [];
+        if (self.lines && self.lines.length > 0) return;
         var dataset = options.data;
         dataset.forEach(function (l, i) {
             var line = new Line({
@@ -94,22 +97,64 @@ var PointLine = function (map, userOptions) {
                     location: new BMap.Point(p.Longitude, p.Latitude)
                 });
             });
-            lines.push(line);
+            self.lines.push(line);
         });
     }
 
-    var init = function (map, options) {
-        merge(userOptions, options);
+    self.init(userOptions, options)
 
-        baseLayer = new CanvasLayer({
-            map: map,
-            update: brush
-        });
-    }
+    baseLayer = new CanvasLayer({
+        map: map,
+        update: brush
+    });
 
-    init(map, options);
+    this.clickEvent = this.clickEvent.bind(this);
 
-    self.options = options;
+    this.bindEvent();
 };
+
+PointLine.prototype.init = function (settings, defaults) {
+    //合并参数
+    tool.merge(settings, defaults);
+
+    this.options = defaults;
+}
+
+PointLine.prototype.bindEvent = function (e) {
+    var map = this.map;
+    if (this.options.methods) {
+        if (this.options.methods.click) {
+            map.setDefaultCursor("default");
+            map.addEventListener('click', this.clickEvent);
+        }
+        if (this.options.methods.mousemove) {
+            map.setDefaultCursor("default");
+            map.addEventListener('mousemove', this.clickEvent);
+        }
+    }
+}
+
+PointLine.prototype.clickEvent = function (e) {
+    var self = this,
+        lines = self.pixelList;
+    if (lines.length > 0) {
+        lines.forEach(function (line, i) {
+            for (var j = 0; j < line.data.length; j++) {
+                var beginPt = line.data[j].pixel;
+                if (line.data[j + 1] == undefined) {
+                    return;
+                }
+                var endPt = line.data[j + 1].pixel;
+                var curPt = e.pixel;
+                var isOnLine = tool.containStroke(beginPt.x, beginPt.y, endPt.x, endPt.y, self.options.lineWidth, curPt.x, curPt.y);
+                if (isOnLine) {
+                    self.options.methods.click(e, line.name);
+                    return;
+                }
+            }
+
+        });
+    }
+}
 
 export default PointLine;

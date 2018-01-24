@@ -4,7 +4,7 @@
   "description": "基于baidu、google、openlayers、arcgis、高德地图、canvas数据可视化",
   "main": "rollup.config.js",
   "scripts": {
-    "mini": "npm run build && uglifyjs build/baidu-map-pointLine.js -c -m -o build/release/baidu-map-pointLine.min.js",
+    "mini": "npm run build && uglifyjs build/arcgis-map-moveLine.js -c -m -o build/release/arcgis-map-moveLine.min.js",
     "build": "rollup -c",
     "watch": "npm-watch",
     "test": "npm run build"
@@ -40,9 +40,9 @@
   "homepage": "https://github.com/chengquan223/map-canvas#readme",
   "devDependencies": {
     "babel-preset-es2015-rollup": "^3.0.0",
-    "npm-watch": "^0.1.8",
+    "npm-watch": "^0.3.0",
     "rollup": "^0.41.5",
     "rollup-plugin-babel": "^2.7.1",
-    "uglify-js": "^2.8.12"
+    "uglify-js": "^3.3.8"
   }
 }
