@@ -29,7 +29,7 @@
             }]
         };
     </script>
-    <!-- <script type="text/javascript" src="../build/release/arcgis-map-moveLine.min.js"></script> -->
+    <script type="text/javascript" src="../build/release/arcgis-map-moveLine.min.js"></script>
     <script src="https://js.arcgis.com/3.23/"></script>
 </head>
 
@@ -62,7 +62,7 @@
                 canvasSupport = supports_canvas();
                 map = new Map("mapCanvas", {
                     center: [104.091, 30.639],
-                    zoom: 13,
+                    zoom: 8,
                     basemap: "dark-gray-vector",
                 });
 
@@ -93,21 +93,27 @@
                         layersRequest.then(
                             function (response) {
                                 var lines = [];
-                                for (var i = 0; i < response.length; i++) {
-                                    var line = response[i];
-                                    var pointArr = line.ROAD_LINE.split(';');
+                                for (var i = 0; i < response.features.length; i++) {
+                                    var feature = response.features[i];
+                                    var attribute = feature.attributes;
+                                    var geometry = feature.geometry;
                                     var lnglats = [];
-                                    for (var j in pointArr) {
-                                        var p = pointArr[j].split(',');
+                                    for (var j = 0; j < geometry.paths[0].length; j++) {
+                                        var point = geometry.paths[0][j];
                                         lnglats.push(new Point({
-                                            "x": p[0],
-                                            "y": p[1],
+                                            "x": point[0],
+                                            "y": point[1],
                                             "spatialReference": {
                                                 "wkid": 4326
                                             }
                                         }));
                                     }
                                     lines.push(lnglats);
+                                    // lines.push({
+                                    //     "name": attribute.NAME,
+                                    //     "solid": attribute.DJ == 0 ? 1 : attribute.DJ,
+                                    //     "points": lnglats
+                                    // });
                                 }
                                 moveline = new MoveLine(map, {
                                     lineWidth: 1, //线条宽度
