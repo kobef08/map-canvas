@@ -30,8 +30,13 @@
             }]
         };
     </script>
-    <script type="text/javascript" src="../build/release/arcgis-map-moveLine.min.js"></script>
+    <script type="text/javascript" src="../build/arcgis-map-moveLine.js"></script>
     <script src="https://js.arcgis.com/3.23/"></script>
+</head>
+
+<body>
+    <div id="mapCanvas">
+    </div>
     <script>
         var map, rasterLayer, moveline;
         var canvasSupport;
@@ -41,7 +46,7 @@
                 "dojo/number",
                 "dojo/json",
                 "esri/geometry/Point",
-                "extend/TDTTilesLayer",
+                // "extend/TDTTilesLayer",
                 "extend/RasterLayer",
                 "dojo/domReady!"
             ],
@@ -51,7 +56,7 @@
                 number,
                 JSON,
                 Point,
-                TDTTilesLayer,
+                // TDTTilesLayer,
                 RasterLayer
             ) {
                 parser.parse();
@@ -66,21 +71,22 @@
                 //     zoom: 12,
                 //     logo: false
                 // });
+                map.on("load", mapLoaded);
 
-                mapLoaded();
 
                 function mapLoaded() {
                     // Add raster layer
                     if (canvasSupport) {
-                        var vec_c = new TDTTilesLayer("vec");
-                        var cva_c = new TDTTilesLayer("cva"); //英文路网
+                        // var vec_c = new TDTTilesLayer("vec");
+                        // var cva_c = new TDTTilesLayer("cva"); //英文路网
                         baseLayer = new RasterLayer(null, {
                             opacity: 0.98
                         });
                         animateLayer = new RasterLayer(null, {
                             opacity: 1
                         });
-                        map.addLayers([vec_c, cva_c, baseLayer, animateLayer]);
+                        // map.addLayers([vec_c, cva_c, baseLayer, animateLayer]);
+                        map.addLayers([baseLayer, animateLayer]);
                         map.on("extent-change", redraw);
                         map.on("resize", function () {});
                         map.on("zoom-start", redraw);
@@ -99,7 +105,13 @@
                                     var lnglats = [];
                                     for (var j in pointArr) {
                                         var p = pointArr[j].split(',');
-                                        lnglats.push(new Point(p[0], p[1]));
+                                        lnglats.push(new Point({
+                                            "x": p[0],
+                                            "y": p[1],
+                                            "spatialReference": {
+                                                "wkid": 4326
+                                            }
+                                        }));
                                     }
                                     lines.push(lnglats);
                                 }
@@ -133,15 +145,9 @@
                     baseLayer._element.height = map.height;
                     animateLayer._element.width = map.width;
                     animateLayer._element.height = map.height;
-                    moveline.pixelList = [];
                     moveline.start();
                 }
             });
     </script>
-</head>
-
-<body>
-    <div id="mapCanvas">
-    </div>
 </body>
 </html

@@ -48,15 +48,14 @@ var requestAnimationFrame = global.requestAnimationFrame || global.mozRequestAni
 var MoveLine = function MoveLine(map, userOptions) {
     var self = this;
     self.map = map;
-    self.lines = [];
-    self.pixelList = [];
 
     //默认参数
     var options = {
         lineWidth: 0.5, //线条宽度
         lineStyle: 'rgb(200, 40, 0)', //线条颜色
         animateLineWidth: 1, //动画线条宽度
-        animateLineStyle: '#ffff00' };
+        animateLineStyle: '#ffff00' //动画线条颜色
+    };
 
     self.init(userOptions, options);
 
@@ -78,14 +77,8 @@ MoveLine.prototype.render = function () {
     if (!baseCtx) {
         return;
     }
-
-    self._addLine();
-
-    self.pixelList = [];
-    self.lines.forEach(function (line) {
-        self.pixelList.push({
-            data: line.getPointList(self.map)
-        });
+    var roadLines = self.roadLines;
+    roadLines.forEach(function (line) {
         line.drawPath(baseCtx, self.map, self.options);
     });
 };
@@ -97,19 +90,14 @@ MoveLine.prototype.animate = function () {
         return;
     }
 
-    self._addLine();
-
-    animateCtx.fillStyle = "rgba(0, 0, 0, 0.7)";
+    animateCtx.fillStyle = "rgba(0,0,0,0.7)";
     var prev = animateCtx.globalCompositeOperation;
     animateCtx.globalCompositeOperation = "destination-in";
     animateCtx.fillRect(0, 0, self.map.width, self.map.height);
     animateCtx.globalCompositeOperation = prev;
 
-    self.pixelList = [];
-    self.lines.forEach(function (line) {
-        self.pixelList.push({
-            data: line.getPointList(self.map)
-        });
+    var roadLines = self.roadLines;
+    roadLines.forEach(function (line) {
         line.draw(animateCtx, self.map, self.options);
     });
 };
@@ -117,12 +105,13 @@ MoveLine.prototype.animate = function () {
 MoveLine.prototype.start = function () {
     var self = this;
     self.stop();
+    self.addLine();
     self.render();
     (function drawFrame() {
         self.timer = setTimeout(function () {
             requestAnimationFrame(drawFrame);
             self.animate();
-        }, 60);
+        }, 1000 / 20);
     })();
     // (function drawFrame() {
     //     requestAnimationFrame(drawFrame);
@@ -131,48 +120,44 @@ MoveLine.prototype.start = function () {
 };
 
 MoveLine.prototype.stop = function () {
-    if (this.timer) {
-        clearTimeout(this.timer);
+    var self = this;
+    if (self.timer) {
+        clearTimeout(self.timer);
     }
 };
 
-MoveLine.prototype._addLine = function () {
-    var self = this;
-    if (self.lines && self.lines.length > 0) {
-        return;
-    }
-    var opts = self.options;
-    var dataset = opts.data;
-    dataset.forEach(function (points, i) {
-        var line = new Line({
-            path: points
-        });
-        self.lines.push(line);
+MoveLine.prototype.addLine = function () {
+    var roadLines = this.roadLines = [],
+        dataset = this.options.data;
+    dataset.forEach(function (line, i) {
+        roadLines.push(new Line({
+            points: line
+        }));
     });
 };
 
-function Line(opts) {
-    this.path = opts.path;
-    this.age = 0;
-    this.maxAge = 0;
+function Line(options) {
+    this.points = options.points || [];
+    this.age = options.age || 0;
+    this.maxAge = options.maxAge || 0;
 }
 
 Line.prototype.getPointList = function (map) {
-    var points = [],
-        path = this.path;
-    if (path && path.length > 0) {
-        path.forEach(function (p) {
-            points.push({
+    var path = this.path = [],
+        points = this.points;
+    if (points && points.length > 0) {
+        points.forEach(function (p) {
+            path.push({
                 pixel: map.toScreen(p)
             });
         });
-        this.maxAge = points.length;
+        this.maxAge = path.length;
     }
-    return points;
+    return path;
 };
 
 Line.prototype.drawPath = function (context, map, options) {
-    var pointList = this.pixelList || this.getPointList(map);
+    var pointList = this.path || this.getPointList(map);
     context.beginPath();
     context.lineWidth = options.lineWidth;
     context.strokeStyle = options.lineStyle;
@@ -184,7 +169,7 @@ Line.prototype.drawPath = function (context, map, options) {
 };
 
 Line.prototype.draw = function (context, map, options) {
-    var pointList = this.pixelList || this.getPointList(map);
+    var pointList = this.path || this.getPointList(map);
     context.beginPath();
     context.lineWidth = options.animateLineWidth;
     context.strokeStyle = options.animateLineStyle;
