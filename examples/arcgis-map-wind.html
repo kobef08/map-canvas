@@ -29,6 +29,7 @@
             }
         };
     </script>
+    <script src="js/windy.js"></script>
     <script src="https://js.arcgis.com/3.20compact/"></script>
     <script>
         var map, rasterLayer;
@@ -69,7 +70,7 @@
                     map.on("pan-start", redraw);
 
                     var layersRequest = esriRequest({
-                        url: './gfs.json',
+                        url: 'data/gfs.json',
                         content: {},
                         handleAs: "json"
                     });
