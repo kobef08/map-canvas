@@ -2,7 +2,7 @@
 <html>
 
 <head>
-    <title>arcgis map moveline</title>
+    <title>arcgis map road</title>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, user-scalable=no">
     <link rel="stylesheet" href="https://js.arcgis.com/3.23/esri/css/esri.css">
@@ -62,16 +62,11 @@
                 canvasSupport = supports_canvas();
                 map = new Map("mapCanvas", {
                     center: [104.091, 30.639],
-                    zoom: 13,
+                    zoom: 8,
                     basemap: "dark-gray-vector",
                 });
-                // map = new Map("mapCanvas", {
-                //     center: [104.091, 30.639],
-                //     zoom: 12,
-                //     logo: false
-                // });
-                map.on("load", mapLoaded);
 
+                map.on("load", mapLoaded);
 
                 function mapLoaded() {
                     // Add raster layer
@@ -91,28 +86,34 @@
                         map.on("zoom-start", redraw);
                         map.on("pan-start", redraw);
                         var layersRequest = esriRequest({
-                            url: 'data/road-line.json',
+                            url: 'data/road.json',
                             content: {},
                             handleAs: "json"
                         });
                         layersRequest.then(
                             function (response) {
                                 var lines = [];
-                                for (var i = 0; i < response.length; i++) {
-                                    var line = response[i];
-                                    var pointArr = line.ROAD_LINE.split(';');
+                                for (var i = 0; i < response.features.length; i++) {
+                                    var feature = response.features[i];
+                                    var attribute = feature.attributes;
+                                    var geometry = feature.geometry;
                                     var lnglats = [];
-                                    for (var j in pointArr) {
-                                        var p = pointArr[j].split(',');
+                                    for (var j = 0; j < geometry.paths[0].length; j++) {
+                                        var point = geometry.paths[0][j];
                                         lnglats.push(new Point({
-                                            "x": p[0],
-                                            "y": p[1],
+                                            "x": point[0],
+                                            "y": point[1],
                                             "spatialReference": {
                                                 "wkid": 4326
                                             }
                                         }));
                                     }
                                     lines.push(lnglats);
+                                    // lines.push({
+                                    //     "name": attribute.NAME,
+                                    //     "solid": attribute.DJ == 0 ? 1 : attribute.DJ,
+                                    //     "points": lnglats
+                                    // });
                                 }
                                 moveline = new MoveLine(map, {
                                     lineWidth: 1, //线条宽度
