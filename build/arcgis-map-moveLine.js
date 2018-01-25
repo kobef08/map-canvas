@@ -45,6 +45,10 @@ var requestAnimationFrame = global.requestAnimationFrame || global.mozRequestAni
     return global.setTimeout(callback, 1000 / 60);
 };
 
+var cancelAnimationFrame = global.cancelAnimationFrame || global.mozCancelAnimationFrame || global.webkitCancelAnimationFrame || global.msCancelAnimationFrame || function (id) {
+    clearTimeout(id);
+};
+
 var MoveLine = function MoveLine(map, userOptions) {
     var self = this;
     self.map = map;
@@ -109,7 +113,7 @@ MoveLine.prototype.start = function () {
     self.render();
     (function drawFrame() {
         self.timer = setTimeout(function () {
-            requestAnimationFrame(drawFrame);
+            self.animationId = requestAnimationFrame(drawFrame);
             self.animate();
         }, 1000 / 20);
     })();
@@ -121,6 +125,7 @@ MoveLine.prototype.start = function () {
 
 MoveLine.prototype.stop = function () {
     var self = this;
+    cancelAnimationFrame(self.animationId);
     if (self.timer) {
         clearTimeout(self.timer);
     }

@@ -69,7 +69,7 @@ MoveLine.prototype.start = function () {
     self.render();
     (function drawFrame() {
         self.timer = setTimeout(function () {
-            requestAnimationFrame(drawFrame);
+            self.animationId = requestAnimationFrame(drawFrame);
             self.animate();
         }, 1000 / 20);
     })();
@@ -81,6 +81,7 @@ MoveLine.prototype.start = function () {
 
 MoveLine.prototype.stop = function () {
     var self = this;
+    cancelAnimationFrame(self.animationId);
     if (self.timer) {
         clearTimeout(self.timer);
     }
