@@ -42,6 +42,10 @@ var demos = [{
     src: 'arcgis-map-moveLine.js',
     name: 'MoveLine',
     build: true
+}, {
+    src: 'arcgis-map-river.js',
+    name: 'MoveLine',
+    build: false
 }];
 
 var module;
