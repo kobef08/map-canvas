@@ -29,7 +29,7 @@
             }]
         };
     </script>
-    <script type="text/javascript" src="../build/release/arcgis-map-moveLine.min.js"></script>
+    <script type="text/javascript" src="../build/arcgis-map-river.js"></script>
     <script src="https://js.arcgis.com/3.23/"></script>
 </head>
 
@@ -67,7 +67,7 @@
                 });
 
                 map.on("load", mapLoaded);
-
+                
                 function mapLoaded() {
                     // Add raster layer
                     if (canvasSupport) {
@@ -86,7 +86,7 @@
                         map.on("zoom-start", redraw);
                         map.on("pan-start", redraw);
                         var layersRequest = esriRequest({
-                            url: 'data/road.json',
+                            url: 'data/river-line.json',
                             content: {},
                             handleAs: "json"
                         });
@@ -97,7 +97,7 @@
                                     var feature = response.features[i];
                                     var attribute = feature.attributes;
                                     var geometry = feature.geometry;
-                                    var lnglats = [];
+                                        var lnglats = [];
                                     for (var j = 0; j < geometry.paths[0].length; j++) {
                                         var point = geometry.paths[0][j];
                                         lnglats.push(new Point({
@@ -108,6 +108,19 @@
                                             }
                                         }));
                                     }
+                                    // for (var j = 0; j < geometry.rings.length; j++) {
+                                    //     var lnglats = [];
+                                    //     var ring = geometry.rings[j];
+                                    //     ring.forEach(function (point) {
+                                    //         lnglats.push(new Point({
+                                    //             "x": point[0],
+                                    //             "y": point[1],
+                                    //             "spatialReference": {
+                                    //                 "wkid": 4326
+                                    //             }
+                                    //         }));
+                                    //     });
+                                    // }
                                     lines.push(lnglats);
                                     // lines.push({
                                     //     "name": attribute.NAME,

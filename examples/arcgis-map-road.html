@@ -116,9 +116,9 @@
                                     // });
                                 }
                                 moveline = new MoveLine(map, {
-                                    lineWidth: 0.8, //线条宽度
+                                    lineWidth: 0.4, //线条宽度
                                     lineStyle: 'rgb(200, 40, 0)', //线条颜色
-                                    animateLineWidth: 1, //动画线条宽度
+                                    animateLineWidth: .8, //动画线条宽度
                                     animateLineStyle: '#ffff00', //动画线条颜色
                                     canvas: baseLayer._element,
                                     animateCanvas: animateLayer._element,
@@ -141,10 +141,6 @@
                 }
 
                 function redraw() {
-                    baseLayer._element.width = map.width;
-                    baseLayer._element.height = map.height;
-                    animateLayer._element.width = map.width;
-                    animateLayer._element.height = map.height;
                     moveline.start();
                 }
             });
