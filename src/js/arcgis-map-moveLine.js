@@ -1,4 +1,5 @@
 import tool from '../utils/tool';
+import {default as resolutionScale} from '../canvas/resolutionScale';
 import {
     requestAnimationFrame,
     cancelAnimationFrame
@@ -50,7 +51,7 @@ MoveLine.prototype.animate = function () {
         return;
     }
 
-    animateCtx.fillStyle = "rgba(0,0,0,0.7)";
+    animateCtx.fillStyle = "rgba(0,0,0,0.8)";
     var prev = animateCtx.globalCompositeOperation;
     animateCtx.globalCompositeOperation = "destination-in";
     animateCtx.fillRect(0, 0, self.map.width, self.map.height);
@@ -62,9 +63,21 @@ MoveLine.prototype.animate = function () {
     });
 }
 
+MoveLine.prototype.adjustSize = function () {
+    var width = this.map.width;
+    var height = this.map.height;
+    this.baseCtx.canvas.width = width;
+    this.baseCtx.canvas.height = height;
+    this.animateCtx.canvas.width = width;
+    this.animateCtx.canvas.height = height;
+    resolutionScale(this.baseCtx);
+    resolutionScale(this.animateCtx);
+}
+
 MoveLine.prototype.start = function () {
     var self = this;
     self.stop();
+    self.adjustSize();
     self.addLine();
     self.render();
     (function drawFrame() {
