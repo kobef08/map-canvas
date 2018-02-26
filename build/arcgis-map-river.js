@@ -95,16 +95,17 @@ MoveLine.prototype.animate = function () {
     if (!animateCtx) {
         return;
     }
-
-    animateCtx.fillStyle = "rgba(0,0,0,0.97)";
-    var prev = animateCtx.globalCompositeOperation;
-    animateCtx.globalCompositeOperation = "destination-in";
-    animateCtx.fillRect(0, 0, self.map.width, self.map.height);
-    animateCtx.globalCompositeOperation = prev;
+    animateCtx.clearRect(0, 0, self.map.width, self.map.height);
+    // animateCtx.fillStyle = "rgba(0,0,0,0.97)";
+    // var prev = animateCtx.globalCompositeOperation;
+    // animateCtx.globalCompositeOperation = "destination-in";
+    // animateCtx.fillRect(0, 0, self.map.width, self.map.height);
+    // animateCtx.globalCompositeOperation = prev;
 
     var roadLines = self.roadLines;
     roadLines.forEach(function (line) {
-        line.draw(animateCtx, self.map, self.options);
+        // line.draw(animateCtx, self.map, self.options);
+        line.drawCircle(animateCtx, self.map, self.options);
     });
 };
 
@@ -112,12 +113,12 @@ MoveLine.prototype.start = function () {
     var self = this;
     self.stop();
     self.addLine();
-    // self.render();
+    self.render();
     (function drawFrame() {
         self.timer = setTimeout(function () {
             self.animationId = requestAnimationFrame(drawFrame);
             self.animate();
-        }, 1000 / 20);
+        }, 1000 / 10);
     })();
     // (function drawFrame() {
     //     requestAnimationFrame(drawFrame);
@@ -193,7 +194,47 @@ Line.prototype.draw = function (context, map, options) {
     this.age++;
 };
 
-Line.prototype.drawCircle = function (context, map, options) {};
+Line.prototype.drawCircle = function (context, map, options) {
+    var pointList = this.path || this.getPointList(map);
+    if (this.movePoints && this.movePoints.length > 0) {
+        var moveLen = this.movePoints.length;
+        for (var i = 0; i < moveLen; i++) {
+            if (this.movePoints[i] >= this.maxAge - 1) {
+                this.movePoints[i] = Math.floor(Math.random() * pointList.length);
+            }
+            var currentPoint = pointList[this.movePoints[i]];
+            context.beginPath();
+            context.arc(currentPoint.pixel.x, currentPoint.pixel.y, 2, 0, Math.PI * 2);
+            context.fillStyle = this.color;
+            context.fill();
+            this.movePoints[i]++;
+        }
+    } else {
+        this.random(map);
+    }
+};
+
+Line.prototype.random = function (map) {
+    var pointList = this.path || this.getPointList(map);
+    var arr = [];
+    var maxNum = Math.floor(pointList.length / 8);
+    while (arr.length < maxNum) {
+        //原数组长度为0，每次成功添加一个元素后长度加1，则当数组添加最后一个数字之前长度为9即可
+        var num = Math.floor(Math.random() * pointList.length); //生成一个0-100的随机整数　
+        if (arr.length === 0) {
+            //如果数组长度为0则直接添加到arr数组　　　　　　
+            arr.push(num);
+        } else {
+            for (var i = 0; i < arr.length; i++) {
+                //当新生成的数字与数组中的元素不重合时则添加到arr数组　　　　　　
+                if (arr.join(',').indexOf(num) < 0) {
+                    arr.push(num);
+                }
+            }
+        }
+    }
+    this.movePoints = arr;
+};
 
 return MoveLine;
 

@@ -41,11 +41,11 @@ var demos = [{
 }, {
     src: 'arcgis-map-moveLine.js',
     name: 'MoveLine',
-    build: true
+    build: false
 }, {
     src: 'arcgis-map-river.js',
     name: 'MoveLine',
-    build: false
+    build: true
 }];
 
 var module;
