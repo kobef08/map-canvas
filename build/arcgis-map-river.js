@@ -39,6 +39,15 @@ var tool = {
     }
 };
 
+var resolutionScale = function (context) {
+    var devicePixelRatio = window.devicePixelRatio || 1;
+    context.canvas.width = context.canvas.width * devicePixelRatio;
+    context.canvas.height = context.canvas.height * devicePixelRatio;
+    context.canvas.style.width = context.canvas.width / devicePixelRatio + 'px';
+    context.canvas.style.height = context.canvas.height / devicePixelRatio + 'px';
+    context.scale(devicePixelRatio, devicePixelRatio);
+};
+
 var global = typeof window === 'undefined' ? {} : window;
 
 var requestAnimationFrame = global.requestAnimationFrame || global.mozRequestAnimationFrame || global.webkitRequestAnimationFrame || global.msRequestAnimationFrame || function (callback) {
@@ -56,7 +65,7 @@ var MoveLine = function MoveLine(map, userOptions) {
     //默认参数
     var options = {
         lineWidth: 0.5, //线条宽度
-        lineStyle: 'rgb(200, 40, 0)', //线条颜色
+        lineStyle: '#C82800', //线条颜色
         animateLineWidth: 1, //动画线条宽度
         animateLineStyle: '#ffff00', //动画线条颜色
         // colors: ["#516b91", "#59c4e6", "#edafda", "#93b7e3", "#a5e7f0", "#cbb0e3"]
@@ -95,12 +104,12 @@ MoveLine.prototype.animate = function () {
     if (!animateCtx) {
         return;
     }
-    animateCtx.clearRect(0, 0, self.map.width, self.map.height);
-    // animateCtx.fillStyle = "rgba(0,0,0,0.97)";
-    // var prev = animateCtx.globalCompositeOperation;
-    // animateCtx.globalCompositeOperation = "destination-in";
-    // animateCtx.fillRect(0, 0, self.map.width, self.map.height);
-    // animateCtx.globalCompositeOperation = prev;
+    // animateCtx.clearRect(0, 0, self.map.width, self.map.height);
+    animateCtx.fillStyle = "rgba(0,0,0,0.9)";
+    var prev = animateCtx.globalCompositeOperation;
+    animateCtx.globalCompositeOperation = "destination-in";
+    animateCtx.fillRect(0, 0, self.map.width, self.map.height);
+    animateCtx.globalCompositeOperation = prev;
 
     var roadLines = self.roadLines;
     roadLines.forEach(function (line) {
@@ -109,9 +118,21 @@ MoveLine.prototype.animate = function () {
     });
 };
 
+MoveLine.prototype.adjustSize = function () {
+    var width = this.map.width;
+    var height = this.map.height;
+    this.baseCtx.canvas.width = width;
+    this.baseCtx.canvas.height = height;
+    this.animateCtx.canvas.width = width;
+    this.animateCtx.canvas.height = height;
+    resolutionScale(this.baseCtx);
+    resolutionScale(this.animateCtx);
+};
+
 MoveLine.prototype.start = function () {
     var self = this;
     self.stop();
+    self.adjustSize();
     self.addLine();
     self.render();
     (function drawFrame() {
@@ -171,7 +192,8 @@ Line.prototype.drawPath = function (context, map, options) {
     var pointList = this.path || this.getPointList(map);
     context.beginPath();
     context.lineWidth = options.lineWidth;
-    context.strokeStyle = options.lineStyle;
+    context.strokeStyle = this.color;
+    // context.strokeStyle = options.lineStyle;
     context.moveTo(pointList[0].pixel.x, pointList[0].pixel.y);
     for (var i = 0, len = pointList.length; i < len; i++) {
         context.lineTo(pointList[i].pixel.x, pointList[i].pixel.y);
@@ -204,9 +226,14 @@ Line.prototype.drawCircle = function (context, map, options) {
             }
             var currentPoint = pointList[this.movePoints[i]];
             context.beginPath();
-            context.arc(currentPoint.pixel.x, currentPoint.pixel.y, 2, 0, Math.PI * 2);
-            context.fillStyle = this.color;
-            context.fill();
+            // context.arc(currentPoint.pixel.x, currentPoint.pixel.y, 2, 0, Math.PI * 2);
+            // context.fillStyle = this.color;
+            // context.fill();
+            context.lineWidth = 2;
+            context.strokeStyle = this.color;
+            context.moveTo(currentPoint.pixel.x, currentPoint.pixel.y);
+            context.lineTo(pointList[this.movePoints[i] + 1].pixel.x, pointList[this.movePoints[i] + 1].pixel.y);
+            context.stroke();
             this.movePoints[i]++;
         }
     } else {
