@@ -108,31 +108,13 @@
                                             }
                                         }));
                                     }
-                                    // for (var j = 0; j < geometry.rings.length; j++) {
-                                    //     var lnglats = [];
-                                    //     var ring = geometry.rings[j];
-                                    //     ring.forEach(function (point) {
-                                    //         lnglats.push(new Point({
-                                    //             "x": point[0],
-                                    //             "y": point[1],
-                                    //             "spatialReference": {
-                                    //                 "wkid": 4326
-                                    //             }
-                                    //         }));
-                                    //     });
-                                    // }
                                     lines.push(lnglats);
-                                    // lines.push({
-                                    //     "name": attribute.NAME,
-                                    //     "solid": attribute.DJ == 0 ? 1 : attribute.DJ,
-                                    //     "points": lnglats
-                                    // });
                                 }
                                 moveline = new MoveLine(map, {
                                     lineWidth: .5, //线条宽度
                                     lineStyle: '#C82800', //线条颜色
-                                    animateLineWidth: 1, //动画线条宽度
-                                    animateLineStyle: '#ffffff', //动画线条颜色
+                                    animateLineWidth: 2, //动画线条宽度
+                                    animateLineStyle: '#ffff00', //动画线条颜色
                                     canvas: baseLayer._element,
                                     animateCanvas: animateLayer._element,
                                     data: lines

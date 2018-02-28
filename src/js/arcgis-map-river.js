@@ -79,8 +79,8 @@ MoveLine.prototype.animate = function () {
 
     var roadLines = self.roadLines;
     roadLines.forEach(function (line) {
-        // line.draw(animateCtx, self.map, self.options);
-        line.drawCircle(animateCtx, self.map, self.options);
+        line.draw(animateCtx, self.map, self.options);
+        // line.drawCircle(animateCtx, self.map, self.options);
     });
 }
 
@@ -169,17 +169,26 @@ Line.prototype.drawPath = function (context, map, options) {
 
 Line.prototype.draw = function (context, map, options) {
     var pointList = this.path || this.getPointList(map);
-    context.beginPath();
-    context.lineWidth = options.animateLineWidth;
-    context.strokeStyle = this.color;
-    if (this.age >= this.maxAge - 1) {
-        this.age = 0;
+    var movePoints = this.movePoints;
+    if (movePoints && movePoints.length > 0) {
+        var moveLen = movePoints.length;
+        for (var i = 0; i < moveLen; i++) {
+            if (movePoints[i] >= this.maxAge - 1) {
+                movePoints[i] = Math.floor(Math.random() * (pointList.length-1));
+            }
+            var currentPoint = pointList[movePoints[i]];
+            context.beginPath();
+            context.lineWidth = options.animateLineWidth;
+            context.strokeStyle = this.color;
+            context.lineCap="round";
+            context.moveTo(currentPoint.pixel.x, currentPoint.pixel.y);
+            context.lineTo(pointList[movePoints[i] + 1].pixel.x, pointList[movePoints[i] + 1].pixel.y);
+            context.stroke();
+            this.movePoints[i]++;
+        }
+    } else {
+        this.random(map);
     }
-    context.moveTo(pointList[this.age].pixel.x, pointList[this.age].pixel.y);
-    context.lineTo(pointList[this.age + 1].pixel.x, pointList[this.age + 1].pixel.y);
-    context.stroke();
-
-    this.age++;
 }
 
 Line.prototype.drawCircle = function (context, map, options) {
@@ -192,14 +201,9 @@ Line.prototype.drawCircle = function (context, map, options) {
             }
             var currentPoint = pointList[this.movePoints[i]];
             context.beginPath();
-            // context.arc(currentPoint.pixel.x, currentPoint.pixel.y, 2, 0, Math.PI * 2);
-            // context.fillStyle = this.color;
-            // context.fill();
-            context.lineWidth = 2;
-            context.strokeStyle = this.color;
-            context.moveTo(currentPoint.pixel.x, currentPoint.pixel.y);
-            context.lineTo(pointList[this.movePoints[i] + 1].pixel.x, pointList[this.movePoints[i] + 1].pixel.y);
-            context.stroke();
+            context.arc(currentPoint.pixel.x, currentPoint.pixel.y, 1, 0, Math.PI * 2);
+            context.fillStyle = this.color;
+            context.fill();
             this.movePoints[i]++;
         }
     } else {
@@ -210,18 +214,18 @@ Line.prototype.drawCircle = function (context, map, options) {
 Line.prototype.random = function (map) {
     var pointList = this.path || this.getPointList(map);
     var arr = [];
-    var maxNum = Math.floor(pointList.length / 8);
+    var maxNum = Math.floor(pointList.length / 9);
     while (arr.length < maxNum) { //原数组长度为0，每次成功添加一个元素后长度加1，则当数组添加最后一个数字之前长度为9即可
-        var num = Math.floor(Math.random() * pointList.length); //生成一个0-100的随机整数　
-        if (arr.length === 0) { //如果数组长度为0则直接添加到arr数组　　　　　　
-            arr.push(num);　　　　
-        } else {　　　　　　
-            for (var i = 0; i < arr.length; i++) { //当新生成的数字与数组中的元素不重合时则添加到arr数组　　　　　　
-                if (arr.join(',').indexOf(num) < 0) {　　　　　　　　　　
-                    arr.push(num);　　　　　　　　
-                }　　　　　　
-            }　　　　
-        }　　
+        var num = Math.floor(Math.random() * pointList.length); //生成一个0-100的随机整数
+        if (arr.length === 0) { //如果数组长度为0则直接添加到arr数组
+            arr.push(num);
+        } else {
+            for (var i = 0; i < arr.length; i++) { //当新生成的数字与数组中的元素不重合时则添加到arr数组
+                if (arr.join(',').indexOf(num) < 0) {
+                    arr.push(num);
+                }
+            }
+        }
     }
     this.movePoints = arr;
 }
