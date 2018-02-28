@@ -50,6 +50,10 @@ var resolutionScale = function (context) {
 
 var global = typeof window === 'undefined' ? {} : window;
 
+var requestAnimationFrame = global.requestAnimationFrame || global.mozRequestAnimationFrame || global.webkitRequestAnimationFrame || global.msRequestAnimationFrame || function (callback) {
+    return global.setTimeout(callback, 1000 / 60);
+};
+
 var cancelAnimationFrame = global.cancelAnimationFrame || global.mozCancelAnimationFrame || global.webkitCancelAnimationFrame || global.msCancelAnimationFrame || function (id) {
     clearTimeout(id);
 };
@@ -131,12 +135,12 @@ MoveRiver.prototype.start = function () {
     self.adjustSize();
     self.addLine();
     self.render();
-    // (function drawFrame() {
-    //     self.timer = setTimeout(function () {
-    //         self.animationId = requestAnimationFrame(drawFrame);
-    //         self.animate();
-    //     }, 1000 / 10);
-    // })();
+    (function drawFrame() {
+        self.timer = setTimeout(function () {
+            self.animationId = requestAnimationFrame(drawFrame);
+            self.animate();
+        }, 1000 / 10);
+    })();
 
     // (function drawFrame() {
     //     requestAnimationFrame(drawFrame);
