@@ -101,12 +101,12 @@ MoveRiver.prototype.start = function () {
     self.adjustSize();
     self.addLine();
     self.render();
-    (function drawFrame() {
-        self.timer = setTimeout(function () {
-            self.animationId = requestAnimationFrame(drawFrame);
-            self.animate();
-        }, 1000 / 10);
-    })();
+    // (function drawFrame() {
+    //     self.timer = setTimeout(function () {
+    //         self.animationId = requestAnimationFrame(drawFrame);
+    //         self.animate();
+    //     }, 1000 / 10);
+    // })();
 
     // (function drawFrame() {
     //     requestAnimationFrame(drawFrame);

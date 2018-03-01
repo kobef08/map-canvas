@@ -61,7 +61,7 @@
                 parser.parse();
                 canvasSupport = supports_canvas();
                 map = new Map("mapCanvas", {
-                    center: [103.791, 30.639],
+                    center: [114.0873634815216, 30.383849143981934],
                     zoom: 9,
                     basemap: "dark-gray-vector",
                 });
@@ -86,7 +86,7 @@
                         map.on("zoom-start", redraw);
                         map.on("pan-start", redraw);
                         var layersRequest = esriRequest({
-                            url: 'data/river-poyline.json',
+                            url: 'data/heliu.json',
                             content: {},
                             handleAs: "json"
                         });
