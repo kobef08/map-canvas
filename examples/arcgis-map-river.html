@@ -40,15 +40,15 @@
         var map, rasterLayer, moveline;
         var canvasSupport;
         require(["esri/map",
-                "esri/request",
-                "dojo/parser",
-                "dojo/number",
-                "dojo/json",
-                "esri/geometry/Point",
-                // "extend/TDTTilesLayer",
-                "extend/RasterLayer",
-                "dojo/domReady!"
-            ],
+            "esri/request",
+            "dojo/parser",
+            "dojo/number",
+            "dojo/json",
+            "esri/geometry/Point",
+            // "extend/TDTTilesLayer",
+            "extend/RasterLayer",
+            "dojo/domReady!"
+        ],
             function (Map,
                 esriRequest,
                 parser,
@@ -67,7 +67,7 @@
                 });
 
                 map.on("load", mapLoaded);
-                
+
                 function mapLoaded() {
                     // Add raster layer
                     if (canvasSupport) {
@@ -82,7 +82,7 @@
                         // map.addLayers([vec_c, cva_c, baseLayer, animateLayer]);
                         map.addLayers([baseLayer, animateLayer]);
                         map.on("extent-change", redraw);
-                        map.on("resize", function () {});
+                        map.on("resize", function () { });
                         map.on("zoom-start", redraw);
                         map.on("pan-start", redraw);
                         var layersRequest = esriRequest({
@@ -97,7 +97,7 @@
                                     var feature = response.features[i];
                                     var attribute = feature.attributes;
                                     var geometry = feature.geometry;
-                                        var lnglats = [];
+                                    var lnglats = [];
                                     for (var j = 0; j < geometry.paths[0].length; j++) {
                                         var point = geometry.paths[0][j];
                                         lnglats.push(new Point({
@@ -111,6 +111,8 @@
                                     lines.push(lnglats);
                                 }
                                 moveline = new MoveLine(map, {
+                                    type: 'arrow', //点或箭头,point,arrow
+                                    isShowBaseLine: true, //是否显示底层线条
                                     lineWidth: .5, //线条宽度
                                     lineStyle: '#C82800', //线条颜色
                                     animateLineWidth: 2, //动画线条宽度

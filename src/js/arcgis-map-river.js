@@ -14,6 +14,8 @@ var MoveLine = function (map, userOptions) {
 
     //默认参数
     var options = {
+        type: 'point',
+        isShowBaseLine: 'true',
         lineWidth: 0.5, //线条宽度
         lineStyle: '#C82800', //线条颜色
         animateLineWidth: 1, //动画线条宽度
@@ -44,13 +46,13 @@ var MoveLine = function (map, userOptions) {
     var baseCtx = self.baseCtx = self.options.canvas.getContext("2d");
     var animateCtx = self.animateCtx = self.options.animateCanvas.getContext("2d");
     baseCtx.lineWidth = options.lineWidth;
-}
+};
 
 MoveLine.prototype.init = function (setting, defaults) {
     //合并参数
     tool.merge(setting, defaults);
     this.options = defaults;
-}
+};
 
 MoveLine.prototype.render = function () {
     var self = this;
@@ -62,7 +64,7 @@ MoveLine.prototype.render = function () {
     roadLines.forEach(function (line) {
         line.drawPath(baseCtx, self.map, self.options);
     });
-}
+};
 
 MoveLine.prototype.animate = function () {
     var self = this;
@@ -82,7 +84,20 @@ MoveLine.prototype.animate = function () {
         line.draw(animateCtx, self.map, self.options);
         // line.drawCircle(animateCtx, self.map, self.options);
     });
-}
+};
+
+MoveLine.prototype.animateArrow = function () {
+    var self = this;
+    var animateCtx = self.animateCtx;
+    if (!animateCtx) {
+        return;
+    }
+    animateCtx.clearRect(0, 0, self.map.width, self.map.height);
+    var roadLines = self.roadLines;
+    roadLines.forEach(function (line) {
+        line.drawArrow(animateCtx, self.map, self.options);
+    });
+};
 
 MoveLine.prototype.adjustSize = function () {
     var width = this.map.width;
@@ -93,25 +108,31 @@ MoveLine.prototype.adjustSize = function () {
     this.animateCtx.canvas.height = height;
     resolutionScale(this.baseCtx);
     resolutionScale(this.animateCtx);
-}
+};
 
 MoveLine.prototype.start = function () {
     var self = this;
     self.stop();
     self.adjustSize();
     self.addLine();
-    self.render();
+    if (self.options.isShowBaseLine) {
+        self.render();
+    }
     (function drawFrame() {
         self.timer = setTimeout(function () {
             self.animationId = requestAnimationFrame(drawFrame);
-            self.animate();
+            if (self.options.type == 'point') {
+                self.animate();
+            } else if (self.options.type == 'arrow') {
+                self.animateArrow();
+            }
         }, 1000 / 10);
     })();
     // (function drawFrame() {
     //     requestAnimationFrame(drawFrame);
     //     self.animate();
     // })();
-}
+};
 
 MoveLine.prototype.stop = function () {
     var self = this;
@@ -119,7 +140,7 @@ MoveLine.prototype.stop = function () {
     if (self.timer) {
         clearTimeout(self.timer);
     }
-}
+};
 
 MoveLine.prototype.addLine = function () {
     var options = this.options;
@@ -131,7 +152,7 @@ MoveLine.prototype.addLine = function () {
             color: options.colors[Math.floor(Math.random() * options.colors.length)]
         }));
     });
-}
+};
 
 function Line(options) {
     this.points = options.points || [];
@@ -152,7 +173,7 @@ Line.prototype.getPointList = function (map) {
         this.maxAge = path.length;
     }
     return path;
-}
+};
 
 Line.prototype.drawPath = function (context, map, options) {
     var pointList = this.path || this.getPointList(map);
@@ -165,7 +186,46 @@ Line.prototype.drawPath = function (context, map, options) {
         context.lineTo(pointList[i].pixel.x, pointList[i].pixel.y);
     }
     context.stroke();
-}
+};
+
+Line.prototype.drawArrow = function (context, map, options) {
+    var pointList = this.path || this.getPointList(map);
+    var movePoints = this.movePoints;
+    if (movePoints && movePoints.length > 0) {
+        var moveLen = movePoints.length;
+        for (var i = 0; i < moveLen; i++) {
+            if (movePoints[i] >= this.maxAge - 1) {
+                movePoints[i] = Math.floor(Math.random() * (pointList.length - 1));
+            }
+            var currentPoint = pointList[movePoints[i]];
+            context.beginPath();
+            context.lineWidth = options.animateLineWidth;
+            context.strokeStyle = this.color;
+            context.moveTo(currentPoint.pixel.x, currentPoint.pixel.y);
+            context.lineTo(pointList[movePoints[i] + 1].pixel.x, pointList[movePoints[i] + 1].pixel.y);
+            context.stroke();
+
+            context.save();
+
+            context.translate(pointList[movePoints[i] + 1].pixel.x, pointList[movePoints[i] + 1].pixel.y);
+            //我的箭头本垂直向下，算出直线偏离Y的角，然后旋转 ,rotate是顺时针旋转的，所以加个负号
+            var ang = (pointList[movePoints[i] + 1].pixel.x - currentPoint.pixel.x) / (pointList[movePoints[i] + 1].pixel.y - currentPoint.pixel.y);
+            ang = Math.atan(ang);
+            pointList[movePoints[i] + 1].pixel.y - currentPoint.pixel.y >= 0 ? context.rotate(-ang) : context.rotate(Math.PI - ang); //加个180度，反过来
+            context.lineTo(-5, -5);
+            context.lineTo(0, -4);
+            context.lineTo(5, -5);
+            context.lineTo(0, 0);
+            context.fillStyle = this.color;
+            context.fill(); //箭头是个封闭图形
+            context.restore(); //用来恢复Canvas之前保存的状态,否则会影响后续绘制
+
+            this.movePoints[i]++;
+        }
+    } else {
+        this.random(map);
+    }
+};
 
 Line.prototype.draw = function (context, map, options) {
     var pointList = this.path || this.getPointList(map);
@@ -174,13 +234,13 @@ Line.prototype.draw = function (context, map, options) {
         var moveLen = movePoints.length;
         for (var i = 0; i < moveLen; i++) {
             if (movePoints[i] >= this.maxAge - 1) {
-                movePoints[i] = Math.floor(Math.random() * (pointList.length-1));
+                movePoints[i] = Math.floor(Math.random() * (pointList.length - 1));
             }
             var currentPoint = pointList[movePoints[i]];
             context.beginPath();
             context.lineWidth = options.animateLineWidth;
             context.strokeStyle = this.color;
-            context.lineCap="round";
+            context.lineCap = "round";
             context.moveTo(currentPoint.pixel.x, currentPoint.pixel.y);
             context.lineTo(pointList[movePoints[i] + 1].pixel.x, pointList[movePoints[i] + 1].pixel.y);
             context.stroke();
@@ -189,7 +249,7 @@ Line.prototype.draw = function (context, map, options) {
     } else {
         this.random(map);
     }
-}
+};
 
 Line.prototype.drawCircle = function (context, map, options) {
     var pointList = this.path || this.getPointList(map);
@@ -209,7 +269,7 @@ Line.prototype.drawCircle = function (context, map, options) {
     } else {
         this.random(map);
     }
-}
+};
 
 Line.prototype.random = function (map) {
     var pointList = this.path || this.getPointList(map);
@@ -228,6 +288,6 @@ Line.prototype.random = function (map) {
         }
     }
     this.movePoints = arr;
-}
+};
 
 export default MoveLine;
