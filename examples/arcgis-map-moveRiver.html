@@ -121,12 +121,13 @@
                                 moveRiver = new MoveLine(map, {
                                     type: 'arrow', //点或箭头或圆点,point,arrow,circle
                                     grap: 10, //粒子间隔倍数,数字越大显示的粒子越少
-                                    isShowTail: false, //是否显示粒子尾巴效果
-                                    isShowBaseLine: false, //是否显示底层线条
+                                    isShowBaseLine: true, //是否显示底层线条
                                     lineWidth: .5, //底层线条宽度
                                     lineStyle: '#C82800', //线条颜色
-                                    animateLineWidth: 2, //动画线条宽度
-                                    animateLineStyle: '#ffff00', //动画线条颜色
+                                    isShowTail: true, //是否显示粒子尾巴动画效果
+                                    tailOpacity: .4, //尾巴动画透明度
+                                    animateLineWidth: 2, //尾巴动画线条宽度
+                                    animateLineStyle: '#ffff00', //尾巴动画线条颜色
                                     canvas: baseLayer._element,
                                     animateCanvas: animateLayer._element,
                                     data: lines

@@ -20,6 +20,7 @@ var MoveLine = function (map, userOptions) {
         isShowTail: true, //是否显示粒子尾巴效果
         lineWidth: 0.5, //线条宽度
         lineStyle: '#C82800', //线条颜色
+        tailOpacity: 0.88, //尾巴动画透明度
         animateLineWidth: 1, //动画线条宽度
         animateLineStyle: '#ffff00', //动画线条颜色
         // colors: ["#516b91", "#59c4e6", "#edafda", "#93b7e3", "#a5e7f0", "#cbb0e3"]
@@ -75,7 +76,7 @@ MoveLine.prototype.animate = function () {
         return;
     }
     if (self.options.isShowTail) {
-        animateCtx.fillStyle = "rgba(0,0,0,0.4)";
+        animateCtx.fillStyle = "rgba(0,0,0," + self.options.tailOpacity + ")";
         var prev = animateCtx.globalCompositeOperation;
         animateCtx.globalCompositeOperation = "destination-in";
         animateCtx.fillRect(0, 0, self.map.width, self.map.height);
@@ -131,7 +132,7 @@ MoveLine.prototype.start = function () {
             }
             self.animationId = requestAnimationFrame(drawFrame);
             self.animate();
-        }, 100);
+        }, 150);
     })();
     // (function drawFrame() {
     //     if (self.animationId) {
@@ -228,7 +229,7 @@ Line.prototype.drawArrow = function (context, map, options) {
             ang = Math.atan(ang);
             pointList[movePoints[i] + 1].pixel.y - currentPoint.pixel.y >= 0 ? context.rotate(-ang) : context.rotate(Math.PI - ang); //加个180度，反过来
             context.lineTo(-3, -3);
-            context.lineTo(0, -3);
+            context.lineTo(0, 3);
             context.lineTo(3, -3);
             context.lineTo(0, 0);
             context.fillStyle = this.color;
