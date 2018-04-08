@@ -67,6 +67,7 @@ var MoveLine = function MoveLine(map, userOptions) {
         type: 'point',
         isShowBaseLine: 'true',
         grap: 10,
+        isShowTail: true, //是否显示粒子尾巴效果
         lineWidth: 0.5, //线条宽度
         lineStyle: '#C82800', //线条颜色
         animateLineWidth: 1, //动画线条宽度
@@ -107,31 +108,34 @@ MoveLine.prototype.animate = function () {
     if (!animateCtx) {
         return;
     }
-    // animateCtx.clearRect(0, 0, self.map.width, self.map.height);
-    animateCtx.fillStyle = "rgba(0,0,0,0.9)";
-    var prev = animateCtx.globalCompositeOperation;
-    animateCtx.globalCompositeOperation = "destination-in";
-    animateCtx.fillRect(0, 0, self.map.width, self.map.height);
-    animateCtx.globalCompositeOperation = prev;
-
-    var roadLines = self.roadLines;
-    roadLines.forEach(function (line) {
-        line.draw(animateCtx, self.map, self.options);
-        // line.drawCircle(animateCtx, self.map, self.options);
-    });
-};
-
-MoveLine.prototype.animateArrow = function () {
-    var self = this;
-    var animateCtx = self.animateCtx;
-    if (!animateCtx) {
-        return;
+    if (self.options.isShowTail) {
+        animateCtx.fillStyle = "rgba(0,0,0,0.4)";
+        var prev = animateCtx.globalCompositeOperation;
+        animateCtx.globalCompositeOperation = "destination-in";
+        animateCtx.fillRect(0, 0, self.map.width, self.map.height);
+        animateCtx.globalCompositeOperation = prev;
+    } else {
+        animateCtx.clearRect(0, 0, self.map.width, self.map.height);
     }
-    animateCtx.clearRect(0, 0, self.map.width, self.map.height);
+
     var roadLines = self.roadLines;
-    roadLines.forEach(function (line) {
-        line.drawArrow(animateCtx, self.map, self.options);
-    });
+    switch (self.options.type) {
+        case 'point':
+            roadLines.forEach(function (line) {
+                line.draw(animateCtx, self.map, self.options);
+            });
+            break;
+        case 'arrow':
+            roadLines.forEach(function (line) {
+                line.drawArrow(animateCtx, self.map, self.options);
+            });
+            break;
+        case 'circle':
+            roadLines.forEach(function (line) {
+                line.drawCircle(animateCtx, self.map, self.options);
+            });
+            break;
+    }
 };
 
 MoveLine.prototype.adjustSize = function () {
@@ -160,11 +164,7 @@ MoveLine.prototype.start = function () {
                 cancelAnimationFrame(self.animationId);
             }
             self.animationId = requestAnimationFrame(drawFrame);
-            if (self.options.type == 'point') {
-                self.animate();
-            } else if (self.options.type == 'arrow') {
-                self.animateArrow();
-            }
+            self.animate();
         }, 100);
     })();
     // (function drawFrame() {
@@ -261,9 +261,9 @@ Line.prototype.drawArrow = function (context, map, options) {
             var ang = (pointList[movePoints[i] + 1].pixel.x - currentPoint.pixel.x) / (pointList[movePoints[i] + 1].pixel.y - currentPoint.pixel.y);
             ang = Math.atan(ang);
             pointList[movePoints[i] + 1].pixel.y - currentPoint.pixel.y >= 0 ? context.rotate(-ang) : context.rotate(Math.PI - ang); //加个180度，反过来
-            context.lineTo(-2.7, -2.7);
-            context.lineTo(0, -2.7);
-            context.lineTo(2.7, -2.7);
+            context.lineTo(-3, -3);
+            context.lineTo(0, -3);
+            context.lineTo(3, -3);
             context.lineTo(0, 0);
             context.fillStyle = this.color;
             context.fill(); //箭头是个封闭图形
