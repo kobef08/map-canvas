@@ -29,7 +29,7 @@
             }]
         };
     </script>
-    <script type="text/javascript" src="../build/arcgis-map-moveRiver.js"></script>
+    <script type="text/javascript" src="../build/arcgis-map-river.js"></script>
     <script src="https://js.arcgis.com/3.23/"></script>
 </head>
 
@@ -86,34 +86,43 @@
                         map.on("zoom-start", redraw);
                         map.on("pan-start", redraw);
                         var layersRequest = esriRequest({
-                            url: 'data/heliu.json',
+                            url: 'data/river-point.json',
                             content: {},
                             handleAs: "json"
                         });
                         layersRequest.then(
                             function (response) {
                                 var lines = [];
+                                var lnglats = [];
+                                var lnglats2 = [];
                                 for (var i = 0; i < response.features.length; i++) {
                                     var feature = response.features[i];
                                     var attribute = feature.attributes;
-                                    var geometry = feature.geometry;
-                                    for (var j = 0; j < geometry.rings.length; j++) {
-                                        var lnglats = [];
-                                        var points = geometry.rings[j];
-                                        points.forEach(function (point) {
-                                            lnglats.push(new Point({
-                                                "x": point[0],
-                                                "y": point[1],
-                                                "spatialReference": {
-                                                    "wkid": 4326
-                                                }
-                                            }));
-                                        });
-                                        lines.push(lnglats);
+                                    if (attribute.jmax == 3) {
+                                        lnglats.push(new Point({
+                                            "x": attribute.X_1_WGS198,
+                                            "y": attribute.Y_1_WGS198,
+                                            "spatialReference": {
+                                                "wkid": 4326
+                                            }
+                                        }));
+                                    } else if (attribute.jmax == 4) {
+                                        lnglats2.push(new Point({
+                                            "x": attribute.X_1_WGS198,
+                                            "y": attribute.Y_1_WGS198,
+                                            "spatialReference": {
+                                                "wkid": 4326
+                                            }
+                                        }));
                                     }
                                 }
-                                moveRiver = new MoveRiver(map, {
-                                    lineWidth: 1, //线条宽度
+                                lines.push(lnglats);
+                                // lines.push(lnglats2);
+                                moveRiver = new MoveLine(map, {
+                                    type: 'arrow', //点或箭头,point,arrow
+                                    isShowBaseLine: true, //是否显示底层线条
+                                    grap: 10, //粒子间隔,数字越大粒子越少
+                                    lineWidth: .5, //线条宽度
                                     lineStyle: '#C82800', //线条颜色
                                     animateLineWidth: 2, //动画线条宽度
                                     animateLineStyle: '#ffff00', //动画线条颜色

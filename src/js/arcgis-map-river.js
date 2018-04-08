@@ -16,6 +16,7 @@ var MoveLine = function (map, userOptions) {
     var options = {
         type: 'point',
         isShowBaseLine: 'true',
+        grap: 10,
         lineWidth: 0.5, //线条宽度
         lineStyle: '#C82800', //线条颜色
         animateLineWidth: 1, //动画线条宽度
@@ -118,25 +119,34 @@ MoveLine.prototype.start = function () {
     if (self.options.isShowBaseLine) {
         self.render();
     }
+
     (function drawFrame() {
         self.timer = setTimeout(function () {
+            if (self.animationId) {
+                cancelAnimationFrame(self.animationId);
+            }
             self.animationId = requestAnimationFrame(drawFrame);
             if (self.options.type == 'point') {
                 self.animate();
             } else if (self.options.type == 'arrow') {
                 self.animateArrow();
             }
-        }, 1000 / 10);
+        }, 100);
     })();
     // (function drawFrame() {
-    //     requestAnimationFrame(drawFrame);
-    //     self.animate();
+    //     if (self.animationId) {
+    //         cancelAnimationFrame(drawFrame);
+    //     }
+    //     self.animationId = requestAnimationFrame(drawFrame);
+    //     self.animateArrow();
     // })();
 };
 
 MoveLine.prototype.stop = function () {
     var self = this;
-    cancelAnimationFrame(self.animationId);
+    if (self.animationId) {
+        cancelAnimationFrame(self.animationId);
+    }
     if (self.timer) {
         clearTimeout(self.timer);
     }
@@ -159,6 +169,7 @@ function Line(options) {
     this.age = options.age || 0;
     this.maxAge = options.maxAge || 0;
     this.color = options.color || '#ffff00';
+    this.grap = options.grap || 10;
 }
 
 Line.prototype.getPointList = function (map) {
@@ -166,6 +177,10 @@ Line.prototype.getPointList = function (map) {
         points = this.points;
     if (points && points.length > 0) {
         points.forEach(function (p) {
+            var _screePoint = map.toScreen(p);
+            // if (_screePoint.x < 0 || _screePoint.y < 0) {
+            //     return;
+            // }
             path.push({
                 pixel: map.toScreen(p)
             });
@@ -195,7 +210,7 @@ Line.prototype.drawArrow = function (context, map, options) {
         var moveLen = movePoints.length;
         for (var i = 0; i < moveLen; i++) {
             if (movePoints[i] >= this.maxAge - 1) {
-                movePoints[i] = Math.floor(Math.random() * (pointList.length - 1));
+                movePoints[i] = 0;
             }
             var currentPoint = pointList[movePoints[i]];
             context.beginPath();
@@ -212,9 +227,9 @@ Line.prototype.drawArrow = function (context, map, options) {
             var ang = (pointList[movePoints[i] + 1].pixel.x - currentPoint.pixel.x) / (pointList[movePoints[i] + 1].pixel.y - currentPoint.pixel.y);
             ang = Math.atan(ang);
             pointList[movePoints[i] + 1].pixel.y - currentPoint.pixel.y >= 0 ? context.rotate(-ang) : context.rotate(Math.PI - ang); //加个180度，反过来
-            context.lineTo(-5, -5);
-            context.lineTo(0, -4);
-            context.lineTo(5, -5);
+            context.lineTo(-2.7, -2.7);
+            context.lineTo(0, -2.7);
+            context.lineTo(2.7, -2.7);
             context.lineTo(0, 0);
             context.fillStyle = this.color;
             context.fill(); //箭头是个封闭图形
@@ -234,7 +249,7 @@ Line.prototype.draw = function (context, map, options) {
         var moveLen = movePoints.length;
         for (var i = 0; i < moveLen; i++) {
             if (movePoints[i] >= this.maxAge - 1) {
-                movePoints[i] = Math.floor(Math.random() * (pointList.length - 1));
+                movePoints[i] = 0;
             }
             var currentPoint = pointList[movePoints[i]];
             context.beginPath();
@@ -257,7 +272,7 @@ Line.prototype.drawCircle = function (context, map, options) {
         var moveLen = this.movePoints.length;
         for (var i = 0; i < moveLen; i++) {
             if (this.movePoints[i] >= this.maxAge - 1) {
-                this.movePoints[i] = Math.floor(Math.random() * pointList.length);
+                this.movePoints[i] = 0;
             }
             var currentPoint = pointList[this.movePoints[i]];
             context.beginPath();
@@ -273,20 +288,22 @@ Line.prototype.drawCircle = function (context, map, options) {
 
 Line.prototype.random = function (map) {
     var pointList = this.path || this.getPointList(map);
-    var arr = [];
-    var maxNum = Math.floor(pointList.length / 9);
-    while (arr.length < maxNum) { //原数组长度为0，每次成功添加一个元素后长度加1，则当数组添加最后一个数字之前长度为9即可
-        var num = Math.floor(Math.random() * pointList.length); //生成一个0-100的随机整数
-        if (arr.length === 0) { //如果数组长度为0则直接添加到arr数组
-            arr.push(num);
-        } else {
-            for (var i = 0; i < arr.length; i++) { //当新生成的数字与数组中的元素不重合时则添加到arr数组
-                if (arr.join(',').indexOf(num) < 0) {
-                    arr.push(num);
+    var arr = [],
+        gap = this.grap, //间隔
+        maxNum = Math.floor(pointList.length / gap);
+
+    while (arr.length < maxNum) {
+        for (var i = 0; i < pointList.length; i += gap) {
+            if (arr.length === 0) { //如果数组长度为0则直接添加到arr数组
+                arr.push(i);
+            } else {
+                if (arr.indexOf(i) == -1) {
+                    arr.push(i);
                 }
             }
         }
     }
+
     this.movePoints = arr;
 };
 
