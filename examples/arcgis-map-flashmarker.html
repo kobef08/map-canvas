@@ -2,7 +2,7 @@
 <html>
 
 <head>
-    <title>arcgis map point</title>
+    <title>arcgis map flashmarker</title>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, user-scalable=no">
     <link rel="stylesheet" href="https://js.arcgis.com/3.23/esri/css/esri.css">
@@ -52,24 +52,18 @@
             var lnglats = [], //经纬度点的集合
                 canvas = null, //定义canvas元素
                 context = null, //上下文，canvas的api都是从这个变量中去调用;
-                canvas2 = null,
-                context2 = null,
-                index = 0;
+                colors = ["#c1232b", "#27727b", "#fcce10", "#e87c25", "#b5c334", "#fe8463", "#9bca63",
+                    "#fad860", "#f3a43b", "#60c0dd", "#d7504b", "#c6e579", "#f4e001", "#f0805a", "#26c0c0"
+                ];
 
             function mapLoaded() {
                 //定义一个canvas图层,叠加在地图上，用于绘制一些点、线基本图形
                 baseLayer = new RasterLayer(null, {
                     opacity: 1
                 });
-                //定义一个canvas图层,叠加在地图上，用于绘制动画效果
-                animateLayer = new RasterLayer(null, {
-                    opacity: 1
-                });
-                map.addLayers([baseLayer, animateLayer]);
+                map.addLayers([baseLayer]);
                 canvas = baseLayer._element; //canvas元素赋值
                 context = canvas.getContext('2d'); //上下文赋值，canvas的api都是从这个变量中去调用
-                canvas2 = animateLayer._element; //动画层canvas元素赋值
-                context2 = canvas2.getContext('2d'); //上下文赋值，canvas的api都是从这个变量中去调用
 
                 //这里触发地图的移动、放大、缩小事件时，将调用redraw方法，对canvas上的圆点进行重新绘制
                 map.on("extent-change", redraw);
@@ -86,16 +80,18 @@
                 layersRequest.then(
                     function (response) {
                         for (var i = 0; i < response.features.length; i++) {
-                            var feature = response.features[i];
-                            var attribute = feature.attributes;
-                            if (attribute.jmax == 3) {
-                                lnglats.push(new Point({
-                                    "x": attribute.X_1_WGS198,
-                                    "y": attribute.Y_1_WGS198,
-                                    "spatialReference": {
-                                        "wkid": 4326
-                                    }
-                                }));
+                            if (i % 50 == 0) {
+                                var feature = response.features[i];
+                                var attribute = feature.attributes;
+                                if (attribute.jmax == 3) {
+                                    lnglats.push(new Point({
+                                        "x": attribute.X_1_WGS198,
+                                        "y": attribute.Y_1_WGS198,
+                                        "spatialReference": {
+                                            "wkid": 4326
+                                        }
+                                    }));
+                                }
                             }
                         }
                         redraw(); //调用重新绘制的方法
@@ -120,12 +116,9 @@
                 //将canvas图层的宽、高设置为地图的高、宽，防止地图经纬度点转canvas坐标时定位不准
                 canvas.width = map.width;
                 canvas.height = map.height;
-                canvas2.width = map.width;
-                canvas2.height = map.height;
 
                 //渲染环境在硬件设备上的缩放程度，防止图像、文字太小
                 resolutionScale(context);
-                resolutionScale(context2);
 
                 //canvas只认识x，y坐标，对于arcgis、baidu、google各类地图的经纬度坐标识别不了
                 //因此这里需要将经纬度点转换成屏幕坐标x，y，也就是canvas坐标，才能在canvas上去绘制各种图形
@@ -135,60 +128,37 @@
                 lnglats.forEach(function (p) { //循环每一个经纬度点
                     var _point = map.toScreen(p); //将经纬度点转为canvas坐标点
                     points.push({
-                        pixel: _point
+                        pixel: _point,
+                        size: 0,
+                        speed: 0.5 + Math.random(),
+                        max: Math.floor(Math.random() * 80),
+                        color: colors[Math.floor(Math.random() * colors.length)]
                     }); //将转换后的canvas坐标点添加到points数组中
                 });
-
-
-                /*======================绘制点======================*/
-                //到这里，我们就已经获取到了再canvas上绘制点所需要的数据源了，也就是转换后的points，相当于前期工作已经做完了
-                //接下来，就需要利用canvas绘制圆点的方法了
-                points.forEach(function (p) {
-                    context.beginPath();
-                    context.arc(p.pixel.x, p.pixel.y, 1.5, 0, Math.PI * 2); //圆点x、y坐标，颜色等
-                    context.fillStyle = '#fcce10'; //圆点颜色
-                    context.fill();
-                });
-                /*======================绘制点结束======================*/
-
-
-                /*======================绘制线开始======================*/
-                //绘制线，原理很简单，由第1点去连接第2点，第2点再连接第3点，首尾相连...依此类推
-                context.beginPath();
-                context.lineWidth = 1; //设置线的宽度，小数、整数都可
-                context.strokeStyle = '#f0805a'; //设置线条的颜色
-                context.moveTo(points[0].pixel.x, points[0].pixel.y); //首先我们取出第一点
-                for (var i = 0, len = points.length; i < len; i++) {
-                    context.lineTo(points[i].pixel.x, points[i].pixel.y);
-                }
-                context.stroke();
-                /*======================绘制线结束======================*/
-
 
                 /*======================点动画效果开始======================*/
                 function animate() {
                     //点运动尾巴效果关键代码
                     //每绘制一次动画，canvas图层的透明度变成0.9，第2次透明度为0.9*0.9,第3次透明度为0.9*0.9*0.9...,以此类推
                     //这样重复绘制改变透明度后，已绘制的圆点将越来越透明
-                    context2.fillStyle = "rgba(0,0,0,0.95)";
-                    var prev = context2.globalCompositeOperation;
-                    context2.globalCompositeOperation = "destination-in";
-                    context2.fillRect(0, 0, self.map.width, self.map.height);
-                    context2.globalCompositeOperation = prev;
+                    context.fillStyle = "rgba(0,0,0,0.95)";
+                    var prev = context.globalCompositeOperation;
+                    context.globalCompositeOperation = "destination-in";
+                    context.fillRect(0, 0, self.map.width, self.map.height);
+                    context.globalCompositeOperation = prev;
 
-                    //关键，点运动方法,每一次运动画出当前点
-                    var currentPoint = points[index];
-                    context2.beginPath();
-                    context2.arc(currentPoint.pixel.x, currentPoint.pixel.y, 3, 0, Math.PI * 2);
-                    context2.fillStyle = '#26c0c0'; //运动点颜色
-                    context2.shadowColor = '#26c0c0'; //阴影颜色
-                    context2.shadowBlur = 5; //阴影大小
-                    context2.fill();
-                    //当运动到最后一点时，将当前索引设置为0，又从第一个点开始运动
-                    if (index >= points.length - 1) {
-                        index = 0;
-                    }
-                    index++;
+                    points.forEach(function (p) {
+                        context.beginPath();
+                        context.arc(p.pixel.x, p.pixel.y, p.size, 0, Math.PI * 2); //圆点x、y坐标，颜色等
+                        context.strokeStyle = p.color; //圆点颜色
+                        context.stroke();
+
+                        //圆绘制到最大时，从头开始
+                        p.size += p.speed;
+                        if (p.size > p.max) {
+                            p.size = 0;
+                        }
+                    });
                 }
 
                 (function drawFrame() {
