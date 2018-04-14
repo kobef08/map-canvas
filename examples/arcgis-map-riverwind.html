@@ -98,6 +98,8 @@
                                         lnglats.push(new Point({
                                             "x": attribute.X_1_WGS198,
                                             "y": attribute.Y_1_WGS198,
+                                            "angle": attribute.Angle,
+                                            "speed": attribute.Speed,
                                             "spatialReference": {
                                                 "wkid": 4326
                                             }
@@ -106,26 +108,25 @@
                                         lnglats2.push(new Point({
                                             "x": attribute.X_1_WGS198,
                                             "y": attribute.Y_1_WGS198,
+                                            "angle": attribute.Angle,
+                                            "speed": attribute.Speed,
                                             "spatialReference": {
                                                 "wkid": 4326
                                             }
                                         }));
                                     }
                                 }
-                                lines.push(lnglats);
-                                lines.push(lnglats2);
-                                moveline = new MoveLine(map, {
-                                    type: 'point', //点或箭头或圆点,point,arrow,circle
-                                    grap: 10, //粒子间隔倍数,数字越大显示的粒子越少
-                                    isShowBaseLine: true, //是否显示底层线条
-                                    lineWidth: .5, //底层线条宽度
-                                    lineStyle: '#C82800', //线条颜色
-                                    isShowTail: true, //是否显示粒子尾巴动画效果
-                                    tailOpacity: .7, //尾巴动画透明度
-                                    animateLineWidth: 2, //尾巴动画线条宽度
-                                    animateLineStyle: '#ffff00', //尾巴动画线条颜色
+                                lines.push(lnglats.concat(lnglats2));
+
+                                windy = new Windy(map, {
+                                    MAX_PARTICLE_AGE: 100,
+                                    FRAME_RATE: 20,
+                                    PARTICLE_MULTIPLIER: 8,
+                                    size: 0.8,
+                                    color: 'rgba(71,160,233,0.8)',
                                     canvas: baseLayer._element,
                                     animateCanvas: animateLayer._element,
+                                    isShowLine: true,
                                     data: lines
                                 });
                                 redraw();
@@ -149,7 +150,7 @@
                     baseLayer._element.height = map.height;
                     animateLayer._element.width = map.width;
                     animateLayer._element.height = map.height;
-                    moveline.start();
+                    windy.start();
                 }
             });
     </script>

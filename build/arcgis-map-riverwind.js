@@ -1,13 +1,60 @@
-import tool from '../utils/tool';
-import {
-    default as resolutionScale
-} from '../canvas/resolutionScale';
-import {
-    requestAnimationFrame,
-    cancelAnimationFrame
-} from '../animation/requestAnimationFrame';
+(function (global, factory) {
+	typeof exports === 'object' && typeof module !== 'undefined' ? module.exports = factory() :
+	typeof define === 'function' && define.amd ? define(factory) :
+	(global.Windy = factory());
+}(this, (function () { 'use strict';
 
-var Windy = function (map, userOptions) {
+var tool = {
+    merge: function merge(settings, defaults) {
+        Object.keys(settings).forEach(function (key) {
+            defaults[key] = settings[key];
+        });
+    },
+    //计算两点间距离
+    getDistance: function getDistance(p1, p2) {
+        return Math.sqrt((p1[0] - p2[0]) * (p1[0] - p2[0]) + (p1[1] - p2[1]) * (p1[1] - p2[1]));
+    },
+    //判断点是否在线段上
+    containStroke: function containStroke(x0, y0, x1, y1, lineWidth, x, y) {
+        if (lineWidth === 0) {
+            return false;
+        }
+        var _l = lineWidth;
+        var _a = 0;
+        var _b = x0;
+        // Quick reject
+        if (y > y0 + _l && y > y1 + _l || y < y0 - _l && y < y1 - _l || x > x0 + _l && x > x1 + _l || x < x0 - _l && x < x1 - _l) {
+            return false;
+        }
+
+        if (x0 !== x1) {
+            _a = (y0 - y1) / (x0 - x1);
+            _b = (x0 * y1 - x1 * y0) / (x0 - x1);
+        } else {
+            return Math.abs(x - x0) <= _l / 2;
+        }
+        var tmp = _a * x - y + _b;
+        var _s = tmp * tmp / (_a * _a + 1);
+        return _s <= _l / 2 * _l / 2;
+    }
+};
+
+var resolutionScale = function (context) {
+    var devicePixelRatio = window.devicePixelRatio || 1;
+    context.canvas.width = context.canvas.width * devicePixelRatio;
+    context.canvas.height = context.canvas.height * devicePixelRatio;
+    context.canvas.style.width = context.canvas.width / devicePixelRatio + 'px';
+    context.canvas.style.height = context.canvas.height / devicePixelRatio + 'px';
+    context.scale(devicePixelRatio, devicePixelRatio);
+};
+
+var global = typeof window === 'undefined' ? {} : window;
+
+var cancelAnimationFrame = global.cancelAnimationFrame || global.mozCancelAnimationFrame || global.webkitCancelAnimationFrame || global.msCancelAnimationFrame || function (id) {
+    clearTimeout(id);
+};
+
+var Windy = function Windy(map, userOptions) {
     var self = this;
     self.map = map;
 
@@ -97,9 +144,9 @@ Windy.prototype.createParticle = function () {
         var x = Math.floor(Math.random() * self.width),
             y = Math.floor(Math.random() * self.height);
         if (self.rayCasting({
-                x: x,
-                y: y
-            }, poly) === 'out') {
+            x: x,
+            y: y
+        }, poly) === 'out') {
             continue;
         }
         particles.push(new Particle({
@@ -124,9 +171,7 @@ Windy.prototype.drawParticle = function () {
     });
 };
 
-Windy.prototype.interpolate = function (x, y) {
-
-};
+Windy.prototype.interpolate = function (x, y) {};
 
 Windy.prototype.rayCasting = function (p, poly) {
     var px = p.x,
@@ -140,12 +185,12 @@ Windy.prototype.rayCasting = function (p, poly) {
             ty = poly[j].y;
 
         // 点与多边形顶点重合
-        if ((sx === px && sy === py) || (tx === px && ty === py)) {
+        if (sx === px && sy === py || tx === px && ty === py) {
             return 'in';
         }
 
         // 判断线段两端点是否在射线两侧
-        if ((sy < py && ty >= py) || (sy >= py && ty < py)) {
+        if (sy < py && ty >= py || sy >= py && ty < py) {
             // 线段上与射线 Y 坐标相同的点的 X 坐标
             var x = sx + (py - sy) * (tx - sx) / (ty - sy);
 
@@ -217,4 +262,6 @@ Line.prototype.drawPath = function (context, map) {
     context.stroke();
 };
 
-export default Windy;
+return Windy;
+
+})));
