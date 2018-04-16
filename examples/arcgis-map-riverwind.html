@@ -72,11 +72,8 @@
                         baseLayer = new RasterLayer(null, {
                             opacity: .3
                         });
-                        animateLayer = new RasterLayer(null, {
-                            opacity: 1
-                        });
                         // map.addLayers([vec_c, cva_c, baseLayer, animateLayer]);
-                        map.addLayers([baseLayer, animateLayer]);
+                        map.addLayers([baseLayer]);
                         map.on("extent-change", redraw);
                         map.on("resize", function () {});
                         map.on("zoom-start", redraw);
@@ -125,7 +122,6 @@
                                     size: 0.8,
                                     color: 'rgba(71,160,233,0.8)',
                                     canvas: baseLayer._element,
-                                    animateCanvas: animateLayer._element,
                                     isShowLine: true,
                                     data: lines
                                 });
@@ -148,8 +144,6 @@
                 function redraw() {
                     baseLayer._element.width = map.width;
                     baseLayer._element.height = map.height;
-                    animateLayer._element.width = map.width;
-                    animateLayer._element.height = map.height;
                     windy.start();
                 }
             });
