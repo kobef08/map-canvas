@@ -214,6 +214,7 @@ function Line(options) {
     this.color = options.color || '#ffff00';
     this.grap = options.grap || 10;
     this.lineWidth = options.lineWidth || 1;
+    this.index = 0;
 }
 
 Line.prototype.getPointList = function (map) {
@@ -312,6 +313,31 @@ Line.prototype.draw = function (context, map, options) {
     }
 };
 
+Line.prototype.drawNew = function (context, map, options) {
+    var pointList = this.path || this.getPointList(map);
+    var movePoints = this.movePoints;
+    if (movePoints && movePoints.length > 0) {
+        var moveLen = movePoints.length;
+        for (var i = 0; i < moveLen; i++) {
+            if (movePoints[i] >= this.maxAge - 1) {
+                movePoints[i] = 0;
+            }
+            var currentPoint = pointList[movePoints[i]];
+            context.beginPath();
+            // context.lineWidth = options.animateLineWidth;
+            context.lineWidth = this.lineWidth;
+            context.strokeStyle = this.color;
+            context.lineCap = "round";
+            context.moveTo(currentPoint.pixel.x, currentPoint.pixel.y);
+            context.lineTo(pointList[movePoints[i] + 1].pixel.x, pointList[movePoints[i] + 1].pixel.y);
+            context.stroke();
+            this.movePoints[i]++;
+        }
+    } else {
+        this.random(map);
+    }
+};
+
 Line.prototype.drawCircle = function (context, map, options) {
     var pointList = this.path || this.getPointList(map);
     if (this.movePoints && this.movePoints.length > 0) {
@@ -353,7 +379,12 @@ Line.prototype.random = function (map) {
         }
     }
 
-    this.movePoints = arr;
+    this.movePoints = [0];
+    // this.movePoints = arr;
+};
+
+Line.prototype.generate = function (map) {
+    var pointList = this.path || this.getPointList(map);
 };
 
 return BranchRiver;
