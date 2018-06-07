@@ -53,6 +53,10 @@ var demos = [{
 }, {
     src: 'arcgis-map-riverwind.js',
     name: 'Windy',
+    build: false
+}, {
+    src: 'arcgis-map-branchRiver.js',
+    name: 'BranchRiver',
     build: true
 }];
 
