@@ -89,7 +89,8 @@ BranchRiver.prototype.animate = function () {
             break;
         case 'circle':
             roadLines.forEach(function (line) {
-                line.drawCircle(animateCtx, self.map, self.options);
+                // line.drawCircle(animateCtx, self.map, self.options);
+                line.drawCircleNew(animateCtx, self.map, self.options);
             });
             break;
     }
@@ -122,14 +123,14 @@ BranchRiver.prototype.start = function () {
             }
             self.animationId = requestAnimationFrame(drawFrame);
             self.animate();
-        }, 60);
+        }, 15);
     })();
     // (function drawFrame() {
     //     if (self.animationId) {
     //         cancelAnimationFrame(drawFrame);
     //     }
     //     self.animationId = requestAnimationFrame(drawFrame);
-    //     self.animateArrow();
+    //     self.animate();
     // })();
 };
 
@@ -152,7 +153,7 @@ BranchRiver.prototype.addLine = function () {
         var color = (i == 0 ? options.colors[0] : options.colors[1]);
         var lineWidth = (i == 0 ? options.renderLineWidth[0] : options.renderLineWidth[1]);
         // var baseLineWidth = (i == 0 ? options.renderLineWidth[0] : 0);
-        var baseLineWidth = (i == 0 ? 2 : 0);
+        var baseLineWidth = (i == 0 ? 1 : 0);
         roadLines.push(new Line({
             points: line,
             color: color,
@@ -199,7 +200,7 @@ Line.prototype.drawPath = function (context, map, options) {
     context.save();
     context.beginPath();
     context.lineWidth = this.baseLineWidth;
-    context.strokeStyle = '#fff';this.color;
+    context.strokeStyle = '#fff';//this.color;
     // context.strokeStyle = options.lineStyle;
     context.moveTo(pointList[0].pixel.x, pointList[0].pixel.y);
     for (var i = 0, len = pointList.length; i < len; i++) {
@@ -324,6 +325,48 @@ Line.prototype.drawNew = function (context, map, options) {
             context.moveTo(currentPoint.pixel.x, currentPoint.pixel.y);
             context.lineTo(pointList[movePoints[k] + 1].pixel.x, pointList[movePoints[k] + 1].pixel.y);
             context.stroke();
+            this.movePoints[k]++;
+        }
+    }
+};
+
+Line.prototype.drawCircleNew = function (context, map, options) {
+    var pointList = this.path || this.getPointList(map);
+    if (this.movePoints == undefined || this.movePoints.length == 0) {
+        this.random(map);
+    }
+    var movePoints = this.movePoints;
+    var moveLen = movePoints.length;
+    var tempPoints = this.tempPoints;
+    if (tempPoints.length < moveLen) {
+        for (var j = 0; j < tempPoints.length; j++) {
+            if (tempPoints[j] >= this.maxAge - 1) {
+                tempPoints[j] = 0;
+            }
+            var nowPoint = pointList[tempPoints[j]].pixel;
+            var nextPoint = pointList[tempPoints[j] + 1].pixel;
+
+            context.beginPath();
+            context.arc(nowPoint.x, nowPoint.y, this.lineWidth, 0, Math.PI * 2);
+            context.fillStyle = this.color;
+            context.fill();
+            this.tempPoints[j]++;
+            var index = this.tempPoints[tempPoints.length - 1];
+            if (movePoints.contains(index)) { //&& !tempPoints.contains(index)
+                // tempPoints.push(0);
+                tempPoints.unshift(0);
+            }
+        }
+    } else {
+        for (var k = 0; k < moveLen; k++) {
+            if (movePoints[k] >= this.maxAge - 1) {
+                movePoints[k] = 0;
+            }
+            var currentPoint = pointList[movePoints[k]].pixel;
+            context.beginPath();
+            context.arc(currentPoint.x, currentPoint.y, this.lineWidth, 0, Math.PI * 2);
+            context.fillStyle = this.color;
+            context.fill();
             this.movePoints[k]++;
         }
     }
