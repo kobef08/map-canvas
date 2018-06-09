@@ -151,7 +151,8 @@ BranchRiver.prototype.addLine = function () {
     dataset.forEach(function (line, i) {
         var color = (i == 0 ? options.colors[0] : options.colors[1]);
         var lineWidth = (i == 0 ? options.renderLineWidth[0] : options.renderLineWidth[1]);
-        var baseLineWidth = (i == 0 ? options.renderLineWidth[0] : 0);
+        // var baseLineWidth = (i == 0 ? options.renderLineWidth[0] : 0);
+        var baseLineWidth = (i == 0 ? 2 : 0);
         roadLines.push(new Line({
             points: line,
             color: color,
@@ -198,7 +199,7 @@ Line.prototype.drawPath = function (context, map, options) {
     context.save();
     context.beginPath();
     context.lineWidth = this.baseLineWidth;
-    context.strokeStyle = this.color;
+    context.strokeStyle = '#fff';this.color;
     // context.strokeStyle = options.lineStyle;
     context.moveTo(pointList[0].pixel.x, pointList[0].pixel.y);
     for (var i = 0, len = pointList.length; i < len; i++) {
