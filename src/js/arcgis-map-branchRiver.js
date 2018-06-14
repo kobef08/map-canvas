@@ -73,24 +73,44 @@ BranchRiver.prototype.animate = function () {
     } else {
         animateCtx.clearRect(0, 0, self.map.width, self.map.height);
     }
-
-    var roadLines = self.roadLines;
+    //首先加载grade=0||grade=1,0&1——2——3，
+    if (self.runlines && self.runlines.length === 0) {
+        self.runlines = self.roadLines.filter(function (item, index, array) {
+            return (item.type == 0 || item.type == 1);
+        });
+    } else if (self.runlines.length < self.roadLines.length) {
+        //准备加载grade:2,3
+        self.runlines.forEach(function (runline) {
+            var finished = runline.finished; //是否完成第一次运动
+            if (finished) {
+                var type = runline.type;
+                var lastPointLng = runline.points[runline.points.length - 1].x;
+                var childLines = self.roadLines.filter(function (value) {
+                    return (value.running == false && value.type == type + 1);
+                });
+                childLines.forEach(function (childline) {
+                    if (childline.points[0].x == lastPointLng) {
+                        self.runlines.push(childline);
+                    }
+                });
+            }
+        });
+    }
+    var roadLines = self.runlines;
     switch (self.options.type) {
         case 'point':
-            roadLines.forEach(function (line) {
-                // line.draw(animateCtx, self.map, self.options);
-                line.drawNew(animateCtx, self.map, self.options);
+            roadLines.forEach(function (line, index, arr) {
+                line.draw(animateCtx, self.map, self.options);
             });
             break;
         case 'arrow':
-            roadLines.forEach(function (line) {
+            roadLines.forEach(function (line, index, arr) {
                 line.drawArrow(animateCtx, self.map, self.options);
             });
             break;
         case 'circle':
-            roadLines.forEach(function (line) {
-                // line.drawCircle(animateCtx, self.map, self.options);
-                line.drawCircleNew(animateCtx, self.map, self.options);
+            roadLines.forEach(function (line, index, arr) {
+                line.drawCircle(animateCtx, self.map, self.options);
             });
             break;
     }
@@ -123,7 +143,7 @@ BranchRiver.prototype.start = function () {
             }
             self.animationId = requestAnimationFrame(drawFrame);
             self.animate();
-        }, 15);
+        }, 20);
     })();
     // (function drawFrame() {
     //     if (self.animationId) {
@@ -146,6 +166,7 @@ BranchRiver.prototype.stop = function () {
 
 BranchRiver.prototype.addLine = function () {
     var options = this.options;
+    this.runlines = [];
     var roadLines = this.roadLines = [],
         dataset = this.options.data;
 
@@ -155,7 +176,8 @@ BranchRiver.prototype.addLine = function () {
         // var baseLineWidth = (i == 0 ? options.renderLineWidth[0] : 0);
         var baseLineWidth = (i == 0 ? 1 : 0);
         roadLines.push(new Line({
-            points: line,
+            type: line.type,
+            points: line.list,
             color: color,
             lineWidth: lineWidth,
             baseLineWidth: baseLineWidth
@@ -165,6 +187,7 @@ BranchRiver.prototype.addLine = function () {
 };
 
 function Line(options) {
+    this.type = options.type;
     this.points = options.points || [];
     this.age = options.age || 0;
     this.maxAge = options.maxAge || 0;
@@ -172,7 +195,8 @@ function Line(options) {
     this.grap = options.grap || 10;
     this.lineWidth = options.lineWidth || 1;
     this.baseLineWidth = options.baseLineWidth || 0;
-    this.index = 0;
+    this.running = false; //是否正在运动
+    this.finished = false; //是否已经完成第一次运动
     this.tempPoints = [0];
 }
 
@@ -200,7 +224,7 @@ Line.prototype.drawPath = function (context, map, options) {
     context.save();
     context.beginPath();
     context.lineWidth = this.baseLineWidth;
-    context.strokeStyle = '#fff';//this.color;
+    context.strokeStyle = '#fff'; //this.color;
     // context.strokeStyle = options.lineStyle;
     context.moveTo(pointList[0].pixel.x, pointList[0].pixel.y);
     for (var i = 0, len = pointList.length; i < len; i++) {
@@ -250,38 +274,13 @@ Line.prototype.drawArrow = function (context, map, options) {
     }
 };
 
-Line.prototype.draw = function (context, map, options) {
-    var pointList = this.path || this.getPointList(map);
-    var movePoints = this.movePoints;
-    if (movePoints && movePoints.length > 0) {
-        var moveLen = movePoints.length;
-        for (var i = 0; i < moveLen; i++) {
-            if (movePoints[i] >= this.maxAge - 1) {
-                movePoints[i] = 0;
-            }
-            var currentPoint = pointList[movePoints[i]];
-            context.beginPath();
-            // context.lineWidth = options.animateLineWidth;
-            context.lineWidth = this.lineWidth;
-            context.strokeStyle = this.color;
-            context.lineCap = "round";
-            context.moveTo(currentPoint.pixel.x, currentPoint.pixel.y);
-            context.lineTo(pointList[movePoints[i] + 1].pixel.x, pointList[movePoints[i] + 1].pixel.y);
-            context.stroke();
-            this.movePoints[i]++;
-        }
-    } else {
-        this.random(map);
-    }
-};
-
 //第一个点从0开始，
 //0
 //0，10
 //0，10，20
 //0，10，20，30
 //0，10，20，30，40
-Line.prototype.drawNew = function (context, map, options) {
+Line.prototype.draw = function (context, map, options) {
     var pointList = this.path || this.getPointList(map);
     if (this.movePoints == undefined || this.movePoints.length == 0) {
         this.random(map);
@@ -305,16 +304,16 @@ Line.prototype.drawNew = function (context, map, options) {
             context.lineTo(nextPoint.x, nextPoint.y);
             context.stroke();
             this.tempPoints[j]++;
-            var index = this.tempPoints[tempPoints.length - 1];
-            if (movePoints.contains(index)) { //&& !tempPoints.contains(index)
-                // tempPoints.push(0);
-                tempPoints.unshift(0);
-            }
+        }
+        var index = this.tempPoints[tempPoints.length - 1];
+        if (movePoints.contains(index)) {
+            tempPoints.unshift(0);
         }
     } else {
         for (var k = 0; k < moveLen; k++) {
             if (movePoints[k] >= this.maxAge - 1) {
                 movePoints[k] = 0;
+                this.finished = true;
             }
             var currentPoint = pointList[movePoints[k]];
             context.beginPath();
@@ -328,9 +327,10 @@ Line.prototype.drawNew = function (context, map, options) {
             this.movePoints[k]++;
         }
     }
+    this.running = true;
 };
 
-Line.prototype.drawCircleNew = function (context, map, options) {
+Line.prototype.drawCircle = function (context, map, options) {
     var pointList = this.path || this.getPointList(map);
     if (this.movePoints == undefined || this.movePoints.length == 0) {
         this.random(map);
@@ -351,16 +351,16 @@ Line.prototype.drawCircleNew = function (context, map, options) {
             context.fillStyle = this.color;
             context.fill();
             this.tempPoints[j]++;
-            var index = this.tempPoints[tempPoints.length - 1];
-            if (movePoints.contains(index)) { //&& !tempPoints.contains(index)
-                // tempPoints.push(0);
-                tempPoints.unshift(0);
-            }
+        }
+        var index = this.tempPoints[tempPoints.length - 1];
+        if (movePoints.contains(index)) {
+            tempPoints.unshift(0);
         }
     } else {
         for (var k = 0; k < moveLen; k++) {
             if (movePoints[k] >= this.maxAge - 1) {
                 movePoints[k] = 0;
+                this.finished = true;
             }
             var currentPoint = pointList[movePoints[k]].pixel;
             context.beginPath();
@@ -370,27 +370,7 @@ Line.prototype.drawCircleNew = function (context, map, options) {
             this.movePoints[k]++;
         }
     }
-};
-
-Line.prototype.drawCircle = function (context, map, options) {
-    var pointList = this.path || this.getPointList(map);
-    if (this.movePoints && this.movePoints.length > 0) {
-        var moveLen = this.movePoints.length;
-        for (var i = 0; i < moveLen; i++) {
-            if (this.movePoints[i] >= this.maxAge - 1) {
-                this.movePoints[i] = 0;
-            }
-            var currentPoint = pointList[this.movePoints[i]];
-            context.beginPath();
-            // context.arc(currentPoint.pixel.x, currentPoint.pixel.y, 1, 0, Math.PI * 2);
-            context.arc(currentPoint.pixel.x, currentPoint.pixel.y, this.lineWidth, 0, Math.PI * 2);
-            context.fillStyle = this.color;
-            context.fill();
-            this.movePoints[i]++;
-        }
-    } else {
-        this.random(map);
-    }
+    this.running = true;
 };
 
 Line.prototype.random = function (map) {
@@ -421,11 +401,6 @@ Array.prototype.contains = function (needle) {
         if (this[i] == needle) return true;
     }
     return false;
-}
-
-Line.prototype.generate = function (map) {
-    var pointList = this.path || this.getPointList(map);
-
 };
 
 export default BranchRiver;

@@ -64,7 +64,7 @@
                 canvasSupport = supports_canvas();
                 map = new Map("mapCanvas", {
                     center: [110.67037693948942, 32.61283084506727],
-                    zoom: 9,
+                    zoom: 8,
                     basemap: "dark-gray-vector",
                 });
 
@@ -91,19 +91,23 @@
                         });
                         layersRequest.then(
                             function (response) {
-                                var lines = [
-                                    []
-                                ];
+                                var lines = [{
+                                    type: 0,
+                                    list: []
+                                }];
                                 for (var i = 0; i < response.features.length; i++) {
                                     var feature = response.features[i];
                                     var attribute = feature.attributes;
-                                    var grade = attribute.grade === 1;
+                                    var grade = attribute.grade === 0;
                                     var geometry = feature.geometry;
-                                    var childLine = [];
+                                    var childLine = {
+                                        type: attribute.grade,
+                                        list: []
+                                    };
                                     if (grade) {
                                         for (var j = 0; j < geometry.paths[0].length; j++) {
                                             var point = geometry.paths[0][j];
-                                            lines[0].push(new Point({
+                                            lines[0]['list'].push(new Point({
                                                 "x": point[0],
                                                 "y": point[1],
                                                 "spatialReference": {
@@ -114,7 +118,7 @@
                                     } else {
                                         for (var j = 0; j < geometry.paths[0].length; j++) {
                                             var point = geometry.paths[0][j];
-                                            childLine.push(new Point({
+                                            childLine['list'].push(new Point({
                                                 "x": point[0],
                                                 "y": point[1],
                                                 "spatialReference": {
