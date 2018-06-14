@@ -75,9 +75,9 @@ var BranchRiver = function BranchRiver(map, userOptions) {
         renderLineWidth: [4, 0.9], //尾巴动画线条宽度
         animateLineStyle: '#ffff00', //动画线条颜色
         // colors: ["#516b91", "#59c4e6", "#edafda", "#93b7e3", "#a5e7f0", "#cbb0e3"]
-        colors: ["#b5c334", "rgba(181,195,52,.6)"
-        // "#B98153"
-        ]
+        colors: ["#b5c334",
+        // "rgba(181,195,52,.6)"
+        "#B98153"]
     };
 
     self.init(userOptions, options);

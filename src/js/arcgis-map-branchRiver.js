@@ -27,8 +27,8 @@ var BranchRiver = function (map, userOptions) {
         // colors: ["#516b91", "#59c4e6", "#edafda", "#93b7e3", "#a5e7f0", "#cbb0e3"]
         colors: [
             "#b5c334",
-            "rgba(181,195,52,.6)"
-            // "#B98153"
+            // "rgba(181,195,52,.6)"
+            "#B98153"
         ]
     };
 
