@@ -99,7 +99,7 @@ BranchRiver.prototype.render = function () {
     }
     var roadLines = self.roadLines;
     roadLines.forEach(function (line) {
-        line.drawPath(baseCtx, self.map, self.options);
+        //line.drawPath(baseCtx, self.map, self.options);
     });
 };
 
