@@ -22,14 +22,9 @@ var BranchRiver = function (map, userOptions) {
         lineStyle: '#C82800', //线条颜色
         tailOpacity: 0.88, //尾巴动画透明度
         animateLineWidth: 1, //动画线条宽度
-        renderLineWidth: [4, 0.9], //尾巴动画线条宽度
+        renderLineWidth: [4, 3, 2, 1], //尾巴动画线条宽度
         animateLineStyle: '#ffff00', //动画线条颜色
-        // colors: ["#516b91", "#59c4e6", "#edafda", "#93b7e3", "#a5e7f0", "#cbb0e3"]
-        colors: [
-            "#b5c334",
-            // "rgba(181,195,52,.6)"
-            "#B98153"
-        ]
+        colors: ["#b5c334", "#59c4e6", "#edafda", "#93b7e3", "#a5e7f0", "#cbb0e3"]
     };
 
     self.init(userOptions, options);
@@ -76,24 +71,39 @@ BranchRiver.prototype.animate = function () {
     //首先加载grade=0||grade=1,0&1——2——3，
     if (self.runlines && self.runlines.length === 0) {
         self.runlines = self.roadLines.filter(function (item, index, array) {
-            return (item.type == 0 || item.type == 1);
+            return (item.type == 0);
         });
-    } else if (self.runlines.length < self.roadLines.length) {
-        //准备加载grade:2,3
+    }
+    // else if (self.runlines.length < self.roadLines.length) {
+    //     //准备加载grade:2,3
+    //     self.runlines.forEach(function (runline) {
+    //         var finished = runline.finished; //是否完成第一次运动
+    //         if (finished) {
+    //             var type = runline.type;
+    //             var lastPointLng = runline.points[runline.points.length - 1].x;
+    //             var childLines = self.roadLines.filter(function (value) {
+    //                 return (value.running == false && value.type == type + 1);
+    //             });
+    //             childLines.forEach(function (childline) {
+    //                 if (childline.points[0].x == lastPointLng) {
+    //                     self.runlines.push(childline);
+    //                 }
+    //             });
+    //         }
+    //     });
+    // } 
+    else if (self.runlines.length < self.roadLines.length) {
         self.runlines.forEach(function (runline) {
-            var finished = runline.finished; //是否完成第一次运动
-            if (finished) {
-                var type = runline.type;
-                var lastPointLng = runline.points[runline.points.length - 1].x;
-                var childLines = self.roadLines.filter(function (value) {
-                    return (value.running == false && value.type == type + 1);
-                });
-                childLines.forEach(function (childline) {
-                    if (childline.points[0].x == lastPointLng) {
-                        self.runlines.push(childline);
-                    }
-                });
-            }
+            var type = runline.type;
+            var lastPointLng = runline.currentpoint.x;
+            var childLines = self.roadLines.filter(function (value) {
+                return (value.type == type + 1);
+            });
+            childLines.forEach(function (childline) {
+                if (childline.points[0].x == lastPointLng) {
+                    self.runlines.push(childline);
+                }
+            });
         });
     }
     var roadLines = self.runlines;
@@ -136,22 +146,22 @@ BranchRiver.prototype.start = function () {
         self.render();
     }
 
-    (function drawFrame() {
-        self.timer = setTimeout(function () {
-            if (self.animationId) {
-                cancelAnimationFrame(self.animationId);
-            }
-            self.animationId = requestAnimationFrame(drawFrame);
-            self.animate();
-        }, 20);
-    })();
     // (function drawFrame() {
-    //     if (self.animationId) {
-    //         cancelAnimationFrame(drawFrame);
-    //     }
-    //     self.animationId = requestAnimationFrame(drawFrame);
-    //     self.animate();
+    //     self.timer = setTimeout(function () {
+    //         if (self.animationId) {
+    //             cancelAnimationFrame(self.animationId);
+    //         }
+    //         self.animationId = requestAnimationFrame(drawFrame);
+    //         self.animate();
+    //     }, 60);
     // })();
+    (function drawFrame() {
+        if (self.animationId) {
+            cancelAnimationFrame(drawFrame);
+        }
+        self.animationId = requestAnimationFrame(drawFrame);
+        self.animate();
+    })();
 };
 
 BranchRiver.prototype.stop = function () {
@@ -171,17 +181,17 @@ BranchRiver.prototype.addLine = function () {
         dataset = this.options.data;
 
     dataset.forEach(function (line, i) {
-        var color = (i == 0 ? options.colors[0] : options.colors[1]);
-        var lineWidth = (i == 0 ? options.renderLineWidth[0] : options.renderLineWidth[1]);
+        var color = options.colors[line.type];
+        // var lineWidth = (i == 0 ? options.renderLineWidth[0] : options.renderLineWidth[1]);
+        var lineWidth = options.renderLineWidth[line.type];
         // var baseLineWidth = (i == 0 ? options.renderLineWidth[0] : 0);
         var baseLineWidth = (i == 0 ? 1 : 0);
         roadLines.push(new Line({
             type: line.type,
             points: line.list,
-            color: color,
-            lineWidth: lineWidth,
+            color: color || '#a5e7f0',
+            lineWidth: lineWidth || 1,
             baseLineWidth: baseLineWidth
-            // color: options.colors[Math.floor(Math.random() * options.colors.length)]
         }));
     });
 };
@@ -197,6 +207,7 @@ function Line(options) {
     this.baseLineWidth = options.baseLineWidth || 0;
     this.running = false; //是否正在运动
     this.finished = false; //是否已经完成第一次运动
+    this.currentpoint = this.points[0];
     this.tempPoints = [0];
 }
 
@@ -288,7 +299,7 @@ Line.prototype.draw = function (context, map, options) {
     var movePoints = this.movePoints;
     var moveLen = movePoints.length;
     var tempPoints = this.tempPoints;
-    if (tempPoints.length < moveLen) {
+    if (tempPoints.length <= moveLen) {
         for (var j = 0; j < tempPoints.length; j++) {
             if (tempPoints[j] >= this.maxAge - 1) {
                 tempPoints[j] = 0;
@@ -306,6 +317,7 @@ Line.prototype.draw = function (context, map, options) {
             this.tempPoints[j]++;
         }
         var index = this.tempPoints[tempPoints.length - 1];
+        this.currentpoint = this.points[index];
         if (movePoints.contains(index)) {
             tempPoints.unshift(0);
         }
