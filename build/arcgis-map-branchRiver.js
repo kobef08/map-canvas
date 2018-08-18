@@ -58,6 +58,13 @@ var cancelAnimationFrame = global.cancelAnimationFrame || global.mozCancelAnimat
     clearTimeout(id);
 };
 
+var img1 = document.createElement('img');
+var img2 = document.createElement('img');
+var img3 = document.createElement('img');
+img1.src = 'images/1.png';
+img2.src = 'images/2.png';
+img3.src = 'images/3.png';
+
 var BranchRiver = function BranchRiver(map, userOptions) {
     var self = this;
     self.map = map;
@@ -82,6 +89,7 @@ var BranchRiver = function BranchRiver(map, userOptions) {
     //全局变量
     var baseCtx = self.baseCtx = self.options.canvas.getContext("2d");
     var animateCtx = self.animateCtx = self.options.animateCanvas.getContext("2d");
+    var topCtx = self.topCtx = self.options.topCanvas.getContext("2d");
     baseCtx.lineWidth = options.lineWidth;
 };
 
@@ -123,44 +131,25 @@ BranchRiver.prototype.animate = function () {
         self.runlines = self.roadLines.filter(function (item, index, array) {
             return item.type == 0;
         });
-    }
-    // else if (self.runlines.length < self.roadLines.length) {
-    //     //准备加载grade:2,3
-    //     self.runlines.forEach(function (runline) {
-    //         var finished = runline.finished; //是否完成第一次运动
-    //         if (finished) {
-    //             var type = runline.type;
-    //             var lastPointLng = runline.points[runline.points.length - 1].x;
-    //             var childLines = self.roadLines.filter(function (value) {
-    //                 return (value.running == false && value.type == type + 1);
-    //             });
-    //             childLines.forEach(function (childline) {
-    //                 if (childline.points[0].x == lastPointLng) {
-    //                     self.runlines.push(childline);
-    //                 }
-    //             });
-    //         }
-    //     });
-    // } 
-    else if (self.runlines.length < self.roadLines.length) {
-            self.runlines.forEach(function (runline) {
-                var type = runline.type;
-                var lastPointLng = runline.currentpoint.x;
-                var childLines = self.roadLines.filter(function (value) {
-                    return value.type == type + 1;
-                });
-                childLines.forEach(function (childline) {
-                    if (childline.points[0].x == lastPointLng) {
-                        self.runlines.push(childline);
-                    }
-                });
+    } else if (self.runlines.length < self.roadLines.length) {
+        self.runlines.forEach(function (runline) {
+            var type = runline.type;
+            var lastPointLng = runline.currentpoint.x;
+            var childLines = self.roadLines.filter(function (value) {
+                return value.type == type + 1;
             });
-        }
+            childLines.forEach(function (childline) {
+                if (childline.points[0].x == lastPointLng) {
+                    self.runlines.push(childline);
+                }
+            });
+        });
+    }
     var roadLines = self.runlines;
     switch (self.options.type) {
         case 'point':
             roadLines.forEach(function (line, index, arr) {
-                line.draw(animateCtx, self.map, self.options);
+                line.draw(animateCtx, self.map, self.options, self.topCtx);
             });
             break;
         case 'arrow':
@@ -183,8 +172,11 @@ BranchRiver.prototype.adjustSize = function () {
     this.baseCtx.canvas.height = height;
     this.animateCtx.canvas.width = width;
     this.animateCtx.canvas.height = height;
+    this.topCtx.canvas.width = width;
+    this.topCtx.canvas.height = height;
     resolutionScale(this.baseCtx);
     resolutionScale(this.animateCtx);
+    resolutionScale(this.topCtx);
 };
 
 BranchRiver.prototype.start = function () {
@@ -212,6 +204,8 @@ BranchRiver.prototype.start = function () {
         self.animationId = requestAnimationFrame(drawFrame);
         self.animate();
     })();
+
+    // self.drawStation(this.topCtx, this.map);
 };
 
 BranchRiver.prototype.stop = function () {
@@ -246,6 +240,19 @@ BranchRiver.prototype.addLine = function () {
     });
 };
 
+// BranchRiver.prototype.drawStation = function (context, map) {
+//     context.clearRect(0, 0, map.width, map.height);
+//     var options = this.options;
+//     var stations = options.stations;
+//     stations.forEach(function (station, i) {
+//         var _screePoint = map.toScreen(station.point);
+//         context.beginPath();
+//         context.arc(_screePoint.x, _screePoint.y, 5, 0, Math.PI * 2);
+//         context.fillStyle = 'red';
+//         context.fill();
+//     });
+// };
+
 function Line(options) {
     this.type = options.type;
     this.points = options.points || [];
@@ -279,6 +286,21 @@ Line.prototype.getPointList = function (map) {
     return path;
 };
 
+Line.prototype.getStationPointList = function (map, stationList) {
+    var stations = this.stations = [];
+    if (stationList && stationList.length > 0) {
+        stationList.forEach(function (s) {
+            stations.push({
+                name: s.name,
+                grade: s.grade,
+                isdraw: false,
+                pixel: map.toScreen(s.point)
+            });
+        });
+    }
+    return stations;
+};
+
 Line.prototype.drawPath = function (context, map, options) {
     if (this.baseLineWidth == 0) return;
     var pointList = this.path || this.getPointList(map);
@@ -292,6 +314,40 @@ Line.prototype.drawPath = function (context, map, options) {
         context.lineTo(pointList[i].pixel.x, pointList[i].pixel.y);
     }
     context.stroke();
+    context.restore();
+};
+
+Line.prototype.drawSingleStation = function (context, map, point) {
+    // context.clearRect(0, 0, map.width, map.height);
+    // context.beginPath();
+    // context.arc(point.pixel.x, point.pixel.y, 5, 0, Math.PI * 2);
+    // context.fillStyle = 'red';
+    // context.fill();
+    // context.closePath();
+
+    // //绘制文字
+    // context.font = '12px Arial';
+    // context.textAlign = 'left';
+    // context.textBaseline = 'Alphabetic';
+    // context.strokeStyle = '#FF0000';
+    // // context.strokeText(point.name, point.pixel.x + 5, point.pixel.y);
+    // context.fillText(point.name, point.pixel.x + 5, point.pixel.y);
+    var _img;
+    switch (parseInt(point.grade)) {
+        case 1:
+            _img = img1;
+            break;
+        case 2:
+            _img = img2;
+            break;
+        case 3:
+            _img = img3;
+            break;
+    }
+    context.save();
+    context.translate(point.pixel.x, point.pixel.y);
+    // context.drawImage(_img, -12, -12, 24, 24);
+    context.drawImage(_img, 0, 0, 20, 20);
     context.restore();
 };
 
@@ -341,7 +397,8 @@ Line.prototype.drawArrow = function (context, map, options) {
 //0，10，20
 //0，10，20，30
 //0，10，20，30，40
-Line.prototype.draw = function (context, map, options) {
+Line.prototype.draw = function (context, map, options, topCtx) {
+    var self = this;
     var pointList = this.path || this.getPointList(map);
     if (this.movePoints == undefined || this.movePoints.length == 0) {
         this.random(map);
@@ -349,6 +406,7 @@ Line.prototype.draw = function (context, map, options) {
     var movePoints = this.movePoints;
     var moveLen = movePoints.length;
     var tempPoints = this.tempPoints;
+    var stations = this.stations || this.getStationPointList(map, options.stations);
     if (tempPoints.length <= moveLen) {
         for (var j = 0; j < tempPoints.length; j++) {
             if (tempPoints[j] >= this.maxAge - 1) {
@@ -365,6 +423,14 @@ Line.prototype.draw = function (context, map, options) {
             context.lineTo(nextPoint.x, nextPoint.y);
             context.stroke();
             this.tempPoints[j]++;
+            //判断当前点是否是站点，如果是则画出站点
+            for (var s = 0; s < stations.length; s++) {
+                var _point = stations[s];
+                if (_point.isdraw == false && _point.pixel.x == nowPoint.x && _point.pixel.y == nowPoint.y) {
+                    self.drawSingleStation(topCtx, map, _point);
+                    _point.isdraw = true;
+                }
+            }
         }
         var index = this.tempPoints[tempPoints.length - 1];
         this.currentpoint = this.points[index];
@@ -438,9 +504,11 @@ Line.prototype.drawCircle = function (context, map, options) {
 Line.prototype.random = function (map) {
     var pointList = this.path || this.getPointList(map);
     var arr = [],
-        gap = this.grap,
-        //间隔
-    maxNum = Math.floor(pointList.length / gap);
+        gap = this.grap; //间隔
+    if (gap > pointList.length) {
+        this.grap = Math.floor(pointList.length / 2);
+    }
+    var maxNum = Math.floor(pointList.length / gap);
 
     while (arr.length < maxNum) {
         for (var i = 0; i < pointList.length; i += gap) {
