@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>baidu map lineGradients</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, user-scalable=no">
+    <link rel="stylesheet" href="css/style.css">
+    <script type="text/javascript" src="https://api.map.baidu.com/api?v=2.0&ak=nuWah68S1WieW2AEwiT8T3Ro&s=1"></script>
+    <script type="text/javascript" src="mapstyle/gray.js"></script>
+    <script type="text/javascript" src="js/jquery.min.js"></script>
+</head>
+
+<body>
+    <div id="map"></div>
+    <!-- <script type="text/javascript" src="../build/release/baidu-map-pointLine.min.js"></script> -->
+    <script type="text/javascript">
+        var map = new BMap.Map('map', {
+            minZoom: 5
+        });
+        map.centerAndZoom(new BMap.Point(112.954699, 27.851256), 13);
+        map.enableScrollWheelZoom(true);
+        map.setMapStyle({
+            styleJson: styleJson
+        });
+
+        $.getJSON('data/line-gradients.json', function (result) {
+            
+        })
+    </script>
+</body>
