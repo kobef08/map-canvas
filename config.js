@@ -1,7 +1,7 @@
 var demos = [{
     src: 'baidu-map-flashMarker.js',
     name: 'FlashMarker',
-    build: true
+    build: false
 }, {
     src: 'baidu-map-moveLine.js',
     name: 'MoveLine',
@@ -58,6 +58,10 @@ var demos = [{
     src: 'arcgis-map-branchRiver.js',
     name: 'BranchRiver',
     build: false
+}, {
+    src: 'baidu-map-lineGradients.js',
+    name: 'LineGradients',
+    build: true
 }];
 
 var module;
