@@ -52,17 +52,20 @@ var LineGradients = function (map, userOptions) {
 
     Line.prototype.draw = function (context) {
         var pointList = this.pixelList || this.getPointList();
-        context.save();
-        context.beginPath();
-        context.lineWidth = options.lineWidth;
-        for (var i = 0, len = pointList.length; i < len; i++) {
+
+        for (var i = 0, len = pointList.length; i < len - 1; i++) {
+            context.save();
+            context.beginPath();
+            context.lineCap = "round";
+            context.lineJoin = "round";
+            context.lineWidth = options.lineWidth;
             context.strokeStyle = pointList[i].color;
             context.moveTo(pointList[i].pixel.x, pointList[i].pixel.y);
             context.lineTo(pointList[i + 1].pixel.x, pointList[i + 1].pixel.y);
             context.stroke();
+            context.closePath();
+            context.restore();
         }
-        context.closePath();
-        context.restore();
     }
 
     //底层canvas渲染，标注，线条
@@ -84,14 +87,24 @@ var LineGradients = function (map, userOptions) {
             })
             line.draw(baseCtx);
         });
+        drawLegend(baseCtx);
     }
 
     var addLine = function () {
         if (self.lines && self.lines.length > 0) return;
         var dataset = options.data;
         var palette = new Palette({
-            min: 600,
-            max: 1100
+            gradient: {
+                0: 'rgba(175, 46, 90,1)',
+                0.167: 'rgba(234, 164, 62,1)',
+                0.333: 'rgba(89, 208, 73,1)',
+                0.5: 'rgba(255,255,71,0.8)',
+                0.667: 'rgba(255,250,150,1',
+                0.833: 'rgba(255,187,102,0.9)',
+                1: 'rgba(255,119,68,0.9)'
+            },
+            min: 700,
+            max: 1200
         });
 
         dataset.forEach(function (l, i) {
@@ -112,7 +125,35 @@ var LineGradients = function (map, userOptions) {
         });
     }
 
-    self.init(userOptions, options)
+    var drawLegend = function (context) {
+        //调色板
+        var palette = new Palette({
+            width: 13,
+            height: 18,
+            min: 600,
+            max: 1500,
+            gradient: {
+                0: 'rgba(100,255,51,1)',
+                0.167: 'rgba(153,255,51,1)',
+                0.333: 'rgba(204,255,51,1)',
+                0.5: 'rgba(255,255,71,0.8)',
+                0.667: 'rgba(255,250,150,1',
+                0.833: 'rgba(255,187,102,0.9)',
+                1: 'rgba(255,119,68,0.9)'
+            }
+        });
+        context.putImageData(palette.getImageData(), 925, 235);
+        context.save();
+        context.font = '12px Microsoft YaHei';
+        context.fillStyle = '#3c3c3c';
+        context.textAlign = 'center';
+        context.textBaseline = 'middle';
+        context.fillText(10, 925 + 13 / 2, 235 - 10);
+        context.fillText(0, 925 + 13 / 2, 415 + 10);
+        context.restore();
+    }
+
+    self.init(userOptions, options);
 
     baseLayer = new CanvasLayer({
         map: map,
