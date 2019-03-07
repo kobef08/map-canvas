@@ -14,7 +14,7 @@
 
         #content {
             margin: 20px auto;
-            width: 600px;
+            width: 900px;
             height: 300px
         }
 
@@ -66,9 +66,7 @@
     <div id="content">
         <div class="content-left">
             <canvas id="colorCanvas" width="400" height="15"></canvas>
-            <div class="canvas-scale">
-                <canvas id="rangeCanvas" width="400" height="15"></canvas>
-            </div>
+            <canvas id="rangeCanvas" width="400" height="55"></canvas>
             <div class="canvas-selColor"></div>
         </div>
         <div class="content-right">
@@ -77,7 +75,12 @@
             <input type="text" name="rgb" size="10">rgb颜色值<br /><br />
             <input type="text" name="color" size="10">16进制颜色码<br /><br />
         </div>
+        <div class="content-right">
+            <input type="tel" name="Num" size="10" /><br /><br />
+            <input type="button" id="btnok" value="获取颜色">
+        </div>
     </div>
+
 </body>
 
 </html>
@@ -85,14 +88,21 @@
 <script type="text/javascript">
     var colorCanvas = document.getElementById("colorCanvas");
     var context = colorCanvas.getContext("2d");
+    var pointColors = ['#FFD277', "#FFD579", "#FFD67A", "#FFE284", "#FFEF8D", "#FFF794", "#FFFD65", "#FFFF51", "#FDFF46", "#FFFE56", "#FFF794", "#FFED8C", "#FFEA8A", "#FFE888", "#FFE787", "#FFE687", "#FFE98A", "#FFEA8A", "#FFF290", "#FFF794", "#FFFA90"];
+    // var colorGradient = {
+    //     0: 'rgba(100,255,51,1)',
+    //     0.167: 'rgba(153,255,51,1)',
+    //     0.333: 'rgba(204,255,51,1)',
+    //     0.5: 'rgba(255,255,71,0.8)',
+    //     0.667: 'rgba(255,250,150,1',
+    //     0.833: 'rgba(255,187,102,0.9)',
+    //     1: 'rgba(255,119,68,0.9)'
+    // };
     var colorGradient = {
-        0: 'rgba(100,255,51,1)',
-        0.167: 'rgba(153,255,51,1)',
-        0.333: 'rgba(204,255,51,1)',
-        0.5: 'rgba(255,255,71,0.8)',
-        0.667: 'rgba(255,250,150,1',
-        0.833: 'rgba(255,187,102,0.9)',
-        1: 'rgba(255,119,68,0.9)'
+        0.1: '#fe0000',
+        0.4: '#ffaa01',
+        0.7: '#b0e000',
+        1.0: '#38a702'
     };
     var sortNumber = function (a, b) {
         return a - b;
@@ -229,6 +239,12 @@
             $("input[name='rgb']").val(rgb);
             $("input[name='color']").val(color);
         };
+
+        this.getColor = function (value) {
+            var colorValue = value - this.range[0];
+            var point = Math.round((colorValue * colorCanvas.width) / (this.range[this.range.length - 1] - this.range[0]));
+            return this.getRgbColor({ X: point, Y: 1 });
+        };
     };
     var initPicker = function () {
         var picker = new Picker();
@@ -237,7 +253,31 @@
         colorCanvas.onclick = function (e) {
             var point = picker.getIntOffset(e);
             picker.setColor(point);
+        };
+        document.getElementById('btnok').onclick = function (e) {
+            console.log(picker.getColor($("input[name='Num']").val()));
+        }
+    }
+    var drawLine = function () {
+        var canvas = document.getElementById("rangeCanvas");
+        var ctx = canvas.getContext("2d");
+
+        var index = 0;
+        for (var i = 0, len = pointColors.length; i < len - 1; i++) {
+            ctx.save();
+            ctx.beginPath();
+            // ctx.lineCap = "round";
+            ctx.lineJoin = "round";
+            ctx.lineWidth = 5;
+            ctx.strokeStyle = pointColors[i];
+            ctx.moveTo(index, 35);
+            ctx.lineTo(index + 4, 35);
+            ctx.stroke();
+            ctx.closePath();
+            ctx.restore();
+            index += 4;
         }
     }
     initPicker();
+    drawLine();
 </script>
