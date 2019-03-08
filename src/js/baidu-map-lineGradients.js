@@ -26,11 +26,13 @@ var LineGradients = function (map, userOptions) {
         height = map.getSize().height;
 
     function Point(opts) {
+        this.code = opts.code;
         this.name = opts.name;
         this.lon = opts.Longitude;
         this.lat = opts.Latitude;
         this.value = opts.value;
         this.time = opts.time;
+        this.height = opts.height;
     }
 
     function Line(opts) {
@@ -47,8 +49,11 @@ var LineGradients = function (map, userOptions) {
         if (path && path.length > 0) {
             path.forEach(function (p) {
                 points.push({
+                    code: p.code,
                     name: p.name,
+                    location: p.location,
                     pixel: map.pointToPixel(p.location),
+                    height: p.height,
                     value: p.value,
                     time: p.time,
                     color: p.color
@@ -217,8 +222,10 @@ var LineGradients = function (map, userOptions) {
             });
             l.data.forEach(function (p, j) {
                 line.path.push({
+                    code: p.code,
                     name: p.name,
                     location: new BMap.Point(p.Longitude, p.Latitude),
+                    height: p.height,
                     value: p.value,
                     time: p.time,
                     color: legend.getColor(p.value).color
@@ -357,11 +364,18 @@ LineGradients.prototype.clickEvent = function (e) {
                 }
                 var endPt = line.data[j + 1].pixel;
                 var curPt = e.pixel;
-                var isOnLine = tool.containStroke(beginPt.x, beginPt.y, endPt.x, endPt.y, self.options.lineWidth, curPt.x, curPt.y);
-                if (isOnLine) {
-                    self.options.methods.click(e, line.name);
+                var inCircle = tool.isPointInCircle(curPt, beginPt, self.options.lineWidth);
+                if (inCircle) {
+                    // self.options.methods.click(e, line.name);
+                    self.options.methods.mousemove(e, line.data[j]);
                     return;
                 }
+                // var isOnLine = tool.containStroke(beginPt.x, beginPt.y, endPt.x, endPt.y, self.options.lineWidth, curPt.x, curPt.y);
+                // if (isOnLine) {
+                //     // self.options.methods.click(e, line.name);
+                //     self.options.methods.mousemove(e, line);
+                //     return;
+                // }
             }
 
         });

@@ -104,9 +104,7 @@ CanvasLayer.prototype.getZIndex = function () {
     return this.zIndex;
 };
 
-function _defineProperty(obj, key, value) { if (key in obj) { Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true }); } else { obj[key] = value; } return obj; }
-
-var tool = _defineProperty({
+var tool = {
     merge: function merge(settings, defaults) {
         Object.keys(settings).forEach(function (key) {
             defaults[key] = settings[key];
@@ -149,12 +147,15 @@ var tool = _defineProperty({
 
     //是否在圆内
     isPointInCircle: function isPointInCircle(point, center, radius) {
-        var dis = getDistance(point, center);
+        var dis = this.getDistanceNew(point, center);
         return dis <= radius;
+    },
+
+    //两点间距离
+    getDistanceNew: function getDistanceNew(point1, point2) {
+        return Math.sqrt(Math.pow(point1.x - point2.x, 2) + Math.pow(point1.y - point2.y, 2));
     }
-}, "getDistance", function getDistance(point1, point2) {
-    return Math.sqrt(Math.pow(point1.x - point2.x, 2) + Math.pow(point1.y - point2.y, 2));
-});
+};
 
 var global = typeof window === 'undefined' ? {} : window;
 
@@ -196,8 +197,11 @@ var LineGradients = function LineGradients(map, userOptions) {
         if (path && path.length > 0) {
             path.forEach(function (p) {
                 points.push({
+                    code: p.code,
                     name: p.name,
+                    location: p.location,
                     pixel: map.pointToPixel(p.location),
+                    height: p.height,
                     value: p.value,
                     time: p.time,
                     color: p.color
@@ -366,8 +370,10 @@ var LineGradients = function LineGradients(map, userOptions) {
             });
             l.data.forEach(function (p, j) {
                 line.path.push({
+                    code: p.code,
                     name: p.name,
                     location: new BMap.Point(p.Longitude, p.Latitude),
+                    height: p.height,
                     value: p.value,
                     time: p.time,
                     color: legend.getColor(p.value).color
@@ -506,11 +512,18 @@ LineGradients.prototype.clickEvent = function (e) {
                 }
                 var endPt = line.data[j + 1].pixel;
                 var curPt = e.pixel;
-                var isOnLine = tool.containStroke(beginPt.x, beginPt.y, endPt.x, endPt.y, self.options.lineWidth, curPt.x, curPt.y);
-                if (isOnLine) {
-                    self.options.methods.click(e, line.name);
+                var inCircle = tool.isPointInCircle(curPt, beginPt, self.options.lineWidth);
+                if (inCircle) {
+                    // self.options.methods.click(e, line.name);
+                    self.options.methods.mousemove(e, line.data[j]);
                     return;
                 }
+                // var isOnLine = tool.containStroke(beginPt.x, beginPt.y, endPt.x, endPt.y, self.options.lineWidth, curPt.x, curPt.y);
+                // if (isOnLine) {
+                //     // self.options.methods.click(e, line.name);
+                //     self.options.methods.mousemove(e, line);
+                //     return;
+                // }
             }
         });
     }

@@ -13,6 +13,8 @@
 
 <body>
     <div id="map"></div>
+    <div id='tooltips' style="position: absolute; visibility: visible; background-color: rgba(0, 0, 0, 0.7); transition: top 0.2s ease 0s, left 0.2s ease 0s; border-radius: 2px; color: rgb(255, 255, 255); line-height: 16px; padding: 5px 10px; left: 137px; top: 337.333px;">2019-9-8<br>AQI
+        : 102<br><span style="display:inline-block;margin-right:5px;border-radius:10px;width:9px;height:9px;background-color:rgba(197, 233, 0, 1);"></span>轻度污染</div>
     <script type="text/javascript" src="../build/baidu-map-lineGradients.js"></script>
     <script type="text/javascript">
         var map = new BMap.Map('map', {
@@ -39,8 +41,9 @@
                         line.labelColor = key == '1' ? '#d01118' : (key == '2' ? '#058c29' : '#0e46b1');
                         element.forEach(function (item, idx) {
                             line.data.push({
+                                code: item.code,
                                 name: idx + 1,
-                                z: item.z,
+                                height: item.z,
                                 Latitude: item.y,
                                 Longitude: item.x,
                                 time: item.time,
@@ -62,10 +65,16 @@
                 data: dataset,
                 //事件
                 methods: {
-                    click: function (e, name) {
-                        console.log('你当前点击的是' + name);
+                    mousemove: function (e, obj) {
+                        console.log('你当前点击的是' + obj);
+                        var tooltips = document.getElementById('tooltips');
+                        var content = obj.time + '<br>序号：' + obj.code + '<br>经度 : ' + obj.location.lat +'<br>纬度 : ' + obj.location.lng + '<br>高度 : ' + obj.height +'<br><span style="display:inline-block;margin-right:5px;border-radius:10px;width:9px;height:9px;background-color:' +obj.color + ';"></span>' + obj.value;
+                        tooltips.innerHTML = content;
+                        tooltips.style.visibility = 'visble';
+                        tooltips.style.left = e.clientX + 'px';
+                        tooltips.style.top = e.clientY + 'px';
                     },
-                    // mousemove: function (e, name) {
+                    // click: function (e, name) {
                     //     console.log('你当前点击的是' + name);
                     // }
                 }
