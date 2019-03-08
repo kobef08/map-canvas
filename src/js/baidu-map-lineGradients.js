@@ -354,7 +354,9 @@ LineGradients.prototype.bindEvent = function (e) {
 
 LineGradients.prototype.clickEvent = function (e) {
     var self = this,
+        flag = false,
         lines = self.pixelList;
+
     if (lines.length > 0) {
         lines.forEach(function (line, i) {
             for (var j = 0; j < line.data.length; j++) {
@@ -368,6 +370,7 @@ LineGradients.prototype.clickEvent = function (e) {
                 if (inCircle) {
                     // self.options.methods.click(e, line.name);
                     self.options.methods.mousemove(e, line.data[j]);
+                    flag = true;
                     return;
                 }
                 // var isOnLine = tool.containStroke(beginPt.x, beginPt.y, endPt.x, endPt.y, self.options.lineWidth, curPt.x, curPt.y);
@@ -379,6 +382,9 @@ LineGradients.prototype.clickEvent = function (e) {
             }
 
         });
+        if (!flag) {
+            document.getElementById('tooltips').style.visibility = 'hidden';
+        }
     }
 }
 
