@@ -46,11 +46,11 @@ export default {
     },
     //是否在圆内
     isPointInCircle(point, center, radius) {
-        var dis = getDistance(point, center);
+        var dis = this.getDistanceNew(point, center);
         return dis <= radius;
     },
     //两点间距离
-    getDistance(point1, point2) {
+    getDistanceNew(point1, point2) {
         return Math.sqrt(Math.pow(point1.x - point2.x, 2) + Math.pow(point1.y - point2.y, 2));
     }
 }
