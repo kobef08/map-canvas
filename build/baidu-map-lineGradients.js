@@ -104,7 +104,9 @@ CanvasLayer.prototype.getZIndex = function () {
     return this.zIndex;
 };
 
-var tool = {
+function _defineProperty(obj, key, value) { if (key in obj) { Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true }); } else { obj[key] = value; } return obj; }
+
+var tool = _defineProperty({
     merge: function merge(settings, defaults) {
         Object.keys(settings).forEach(function (key) {
             defaults[key] = settings[key];
@@ -136,53 +138,28 @@ var tool = {
         var tmp = _a * x - y + _b;
         var _s = tmp * tmp / (_a * _a + 1);
         return _s <= _l / 2 * _l / 2;
+    },
+
+    //是否在矩形内
+    isPointInRect: function isPointInRect(point, bound) {
+        var wn = bound.wn; //西北
+        var es = bound.es; //东南
+        return point.x >= wn.x && point.x <= es.x && point.y >= wn.y && point.y <= es.y;
+    },
+
+    //是否在圆内
+    isPointInCircle: function isPointInCircle(point, center, radius) {
+        var dis = getDistance(point, center);
+        return dis <= radius;
     }
-};
+}, "getDistance", function getDistance(point1, point2) {
+    return Math.sqrt(Math.pow(point1.x - point2.x, 2) + Math.pow(point1.y - point2.y, 2));
+});
 
-/**
- * 调色板
- */
-function Palette(options) {
-    options = options || {};
-    this.gradient = options.gradient || {
-        0.1: '#fe0000',
-        0.4: '#ffaa01',
-        0.7: '#b0e000',
-        1.0: '#38a702'
-    };
-    this.width = options.width || 1;
-    this.height = options.height || 256;
-    this.min = options.min || 0;
-    this.max = options.max || 300;
-    this.init();
-}
+var global = typeof window === 'undefined' ? {} : window;
 
-Palette.prototype.init = function () {
-    var gradient = this.gradient;
-    var canvas = document.createElement('canvas');
-    canvas.width = this.width;
-    canvas.height = this.height;
-    var context = this.context = canvas.getContext('2d');
-    var lineGradient = context.createLinearGradient(0, 0, canvas.width, canvas.height);
-    for (var key in gradient) {
-        lineGradient.addColorStop(parseFloat(key), gradient[key]);
-    }
-    context.fillStyle = lineGradient;
-    context.fillRect(0, 0, canvas.width, canvas.height);
-};
-
-Palette.prototype.getImageData = function () {
-    return this.context.getImageData(0, 0, this.width, this.height);
-};
-
-Palette.prototype.getColor = function (value) {
-    var max = this.max;
-    if (value > max) {
-        max = value;
-    }
-    var index = Math.floor((max - value) / max * (this.height - 1)) * 4;
-    var imageData = this.context.getImageData(0, 0, 1, this.height).data; //this.width会获取整个调色板data
-    return "rgba(" + imageData[index] + ", " + imageData[index + 1] + ", " + imageData[index + 2] + ", 1)";
+var requestAnimationFrame = global.requestAnimationFrame || global.mozRequestAnimationFrame || global.webkitRequestAnimationFrame || global.msRequestAnimationFrame || function (callback) {
+    return global.setTimeout(callback, 1000 / 60);
 };
 
 var LineGradients = function LineGradients(map, userOptions) {
@@ -200,12 +177,17 @@ var LineGradients = function LineGradients(map, userOptions) {
 
     //全局变量
     var baseLayer = null,
+        animationLayer = null,
+        animationFlag = true,
         width = map.getSize().width,
         height = map.getSize().height;
 
     function Line(opts) {
         this.name = opts.name;
+        this.label = opts.label;
+        this.labelColor = opts.labelColor;
         this.path = opts.path;
+        this.step = 0;
     }
 
     Line.prototype.getPointList = function () {
@@ -231,8 +213,8 @@ var LineGradients = function LineGradients(map, userOptions) {
         for (var i = 0, len = pointList.length; i < len - 1; i++) {
             context.save();
             context.beginPath();
-            context.lineCap = "round";
-            context.lineJoin = "round";
+            // context.lineCap = "round";
+            // context.lineJoin = "round";
             context.lineWidth = options.lineWidth;
             context.strokeStyle = pointList[i].color;
             context.moveTo(pointList[i].pixel.x, pointList[i].pixel.y);
@@ -241,6 +223,63 @@ var LineGradients = function LineGradients(map, userOptions) {
             context.closePath();
             context.restore();
         }
+
+        var lastpoint = pointList[pointList.length - 1];
+        context.font = 'bold 14px Arial';
+        context.textAlign = 'left';
+        context.textBaseline = 'middle';
+        context.fillStyle = this.labelColor;
+        context.fillText(this.label, lastpoint.pixel.x, lastpoint.pixel.y);
+    };
+
+    Line.prototype.drawMoveCircle = function (context) {
+        var pointList = this.pixelList || this.getPointList();
+
+        context.save();
+        context.fillStyle = '#fff';
+        context.shadowColor = '#fff';
+        context.shadowBlur = 5;
+        context.beginPath();
+        context.arc(pointList[this.step].pixel.x, pointList[this.step].pixel.y, 3, 0, Math.PI * 2, true);
+        context.fill();
+        context.closePath();
+        context.restore();
+        this.step += 1;
+        if (this.step >= pointList.length) {
+            this.step = 0;
+        }
+    };
+
+    Line.prototype.drawArrow = function (context, map) {
+        var pointList = this.pixelList || this.getPointList();
+        // for (var i = 0, len = pointList.length; i < len - 1; i++) {
+        if (this.step >= pointList.length - 1) {
+            this.step = 0;
+        }
+        context.beginPath();
+        // context.lineWidth = options.animateLineWidth;
+        context.lineWidth = 5;
+        context.strokeStyle = '#fff';
+        context.moveTo(pointList[this.step].pixel.x, pointList[this.step].pixel.y);
+        context.lineTo(pointList[this.step + 1].pixel.x, pointList[this.step + 1].pixel.y);
+        context.stroke();
+
+        context.save();
+        context.translate(pointList[this.step + 1].pixel.x, pointList[this.step + 1].pixel.y);
+        //我的箭头本垂直向下，算出直线偏离Y的角，然后旋转 ,rotate是顺时针旋转的，所以加个负号
+        var ang = (pointList[this.step + 1].pixel.x - pointList[this.step].pixel.x) / (pointList[this.step + 1].pixel.y - pointList[this.step].pixel.y);
+        ang = Math.atan(ang);
+        pointList[this.step + 1].pixel.y - pointList[this.step].pixel.y >= 0 ? context.rotate(-ang) : context.rotate(Math.PI - ang); //加个180度，反过来
+        context.lineTo(-6, -6);
+        context.lineTo(0, 6);
+        context.lineTo(6, -6);
+        context.lineTo(0, 0);
+        context.fillStyle = '#fff';
+        context.fill(); //箭头是个封闭图形
+        context.restore(); //用来恢复Canvas之前保存的状态,否则会影响后续绘制
+
+        this.step += 1;
+        // }
     };
 
     //底层canvas渲染，标注，线条
@@ -258,33 +297,71 @@ var LineGradients = function LineGradients(map, userOptions) {
         self.lines.forEach(function (line) {
             self.pixelList.push({
                 name: line.name,
+                label: line.label,
+                labelColor: line.labelColor,
                 data: line.getPointList()
             });
             line.draw(baseCtx);
         });
-        drawLegend(baseCtx);
+    };
+
+    //中层canvas渲染，动画效果
+    var render = function render() {
+        var animationCtx = animationLayer.canvas.getContext('2d');
+        if (!animationCtx) {
+            return;
+        }
+
+        if (!animationFlag) {
+            animationCtx.clearRect(0, 0, width, height);
+            return;
+        }
+
+        animationCtx.fillStyle = 'rgba(0,0,0,.2)';
+        var prev = animationCtx.globalCompositeOperation;
+        animationCtx.globalCompositeOperation = 'destination-in';
+        animationCtx.fillRect(0, 0, width, height);
+        animationCtx.globalCompositeOperation = prev;
+
+        var lines = self.lines;
+        for (var i = 0; i < lines.length; i++) {
+            var line = lines[i];
+            // line.drawMoveCircle(animationCtx); //移动圆点
+            line.drawArrow(animationCtx); //画箭头
+        }
+    };
+
+    //鼠标事件
+    var mouseInteract = function mouseInteract() {
+        map.addEventListener('movestart', function () {
+            animationFlag = false;
+        });
+
+        map.addEventListener('moveend', function () {
+            animationFlag = true;
+            self.lines = []; //解决拖动后多余的小圆点bug，没想明白，暂时这样
+        });
+
+        map.addEventListener('zoomstart', function () {
+            animationFlag = false;
+        });
+
+        map.addEventListener('zoomend', function () {
+            animationFlag = true;
+            self.lines = [];
+        });
     };
 
     var addLine = function addLine() {
         if (self.lines && self.lines.length > 0) return;
         var dataset = options.data;
-        var palette = new Palette({
-            gradient: {
-                0: 'rgba(175, 46, 90,1)',
-                0.167: 'rgba(153,255,51,1)',
-                0.333: 'rgba(204,255,51,1)',
-                0.5: 'rgba(255,255,71,0.8)',
-                0.667: 'rgba(255,250,150,1',
-                0.833: 'rgba(255,187,102,0.9)',
-                1: 'rgba(255,119,68,0.9)'
-            },
-            min: 700,
-            max: 1200
-        });
+        var legend = new Legend();
 
         dataset.forEach(function (l, i) {
             var line = new Line({
                 name: l.name,
+                label: l.label,
+                labelColor: l.labelColor,
                 path: []
             });
             l.data.forEach(function (p, j) {
@@ -293,39 +370,79 @@ var LineGradients = function LineGradients(map, userOptions) {
                     location: new BMap.Point(p.Longitude, p.Latitude),
                     value: p.value,
                     time: p.time,
-                    color: palette.getColor(p.value)
+                    color: legend.getColor(p.value).color
                 });
             });
             self.lines.push(line);
         });
     };
 
-    var drawLegend = function drawLegend(context) {
-        //调色板
-        var palette = new Palette({
-            width: 13,
-            height: 18,
-            min: 600,
-            max: 1500,
+    var Legend = function Legend() {
+        var options = {
+            width: 400,
+            height: 15,
+            range: [700, 750, 800, 850, 900, 950, 1000, 1050, 1100],
+            // gradient: {
+            //     0: 'rgba(100,255,51,1)',
+            //     0.167: 'rgba(153,255,51,1)',
+            //     0.333: 'rgba(204,255,51,1)',
+            //     0.5: 'rgba(255,255,71,0.8)',
+            //     0.667: 'rgba(255,250,150,1',
+            //     0.833: 'rgba(255,187,102,0.9)',
+            //     1: 'rgba(255,119,68,0.9)'
+            // }
             gradient: {
-                0: 'rgba(100,255,51,1)',
-                0.167: 'rgba(153,255,51,1)',
-                0.333: 'rgba(204,255,51,1)',
-                0.5: 'rgba(255,255,71,0.8)',
-                0.667: 'rgba(255,250,150,1',
-                0.833: 'rgba(255,187,102,0.9)',
-                1: 'rgba(255,119,68,0.9)'
+                0.1: '#fe0000',
+                0.4: '#ffaa01',
+                0.7: '#b0e000',
+                1.0: '#38a702'
             }
-        });
-        context.putImageData(palette.getImageData(), 925, 235);
-        context.save();
-        context.font = '12px Microsoft YaHei';
-        context.fillStyle = '#3c3c3c';
-        context.textAlign = 'center';
-        context.textBaseline = 'middle';
-        context.fillText(10, 925 + 13 / 2, 235 - 10);
-        context.fillText(0, 925 + 13 / 2, 415 + 10);
-        context.restore();
+        };
+
+        var canvas = document.createElement('canvas');
+        var context = canvas.getContext('2d');
+        canvas.width = options.width;
+        canvas.height = options.height;
+        var grad = context.createLinearGradient(0, 0, canvas.width, canvas.height);
+        for (var gradient in options.gradient) {
+            grad.addColorStop(gradient, options.gradient[gradient]);
+        }
+        context.fillStyle = grad;
+        context.fillRect(0, 0, canvas.width, canvas.height);
+
+        this.d2Hex = function (d) {
+            // Converts a decimal number to a two digit Hex value
+            var hex = Number(d).toString(16);
+            while (hex.length < 2) {
+                hex = "0" + hex;
+            }
+            return hex.toUpperCase();
+        };
+        this.getRgbColor = function (point) {
+            var imageData = context.getImageData(0, 0, canvas.width, canvas.height);
+            var data = imageData.data;
+            var i = (point.Y * canvas.width + point.X) * 4;
+            var rgb = [],
+                color = '#',
+                objRgbColor = {
+                "rgb": rgb,
+                "color": color
+            };
+            for (var j = 0; j < 3; j++) {
+                rgb.push(data[i + j]);
+                color += this.d2Hex(data[i + j]);
+            }
+            objRgbColor.color = color;
+            return objRgbColor;
+        };
+        this.getColor = function (value) {
+            var colorValue = value - options.range[0];
+            var point = Math.round(colorValue * canvas.width / (options.range[options.range.length - 1] - options.range[0]));
+            return this.getRgbColor({
+                X: point,
+                Y: 1
+            });
+        };
     };
 
     self.init(userOptions, options);
@@ -335,6 +452,23 @@ var LineGradients = function LineGradients(map, userOptions) {
         update: brush
     });
 
+    animationLayer = new CanvasLayer({
+        map: map,
+        update: render
+    });
+
+    mouseInteract();
+
+    (function drawFrame() {
+        self.timer = setTimeout(function () {
+            self.animationId = requestAnimationFrame(drawFrame);
+            render();
+        }, 1000 / 10);
+
+        // requestAnimationFrame(drawFrame);
+        // render();
+    })();
+
     this.clickEvent = this.clickEvent.bind(this);
 
     this.bindEvent();
@@ -343,7 +477,6 @@ var LineGradients = function LineGradients(map, userOptions) {
 LineGradients.prototype.init = function (settings, defaults) {
     //合并参数
     tool.merge(settings, defaults);
-
     this.options = defaults;
 };
 

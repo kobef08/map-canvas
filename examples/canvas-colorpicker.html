@@ -89,21 +89,21 @@
     var colorCanvas = document.getElementById("colorCanvas");
     var context = colorCanvas.getContext("2d");
     var pointColors = ['#FFD277', "#FFD579", "#FFD67A", "#FFE284", "#FFEF8D", "#FFF794", "#FFFD65", "#FFFF51", "#FDFF46", "#FFFE56", "#FFF794", "#FFED8C", "#FFEA8A", "#FFE888", "#FFE787", "#FFE687", "#FFE98A", "#FFEA8A", "#FFF290", "#FFF794", "#FFFA90"];
-    // var colorGradient = {
-    //     0: 'rgba(100,255,51,1)',
-    //     0.167: 'rgba(153,255,51,1)',
-    //     0.333: 'rgba(204,255,51,1)',
-    //     0.5: 'rgba(255,255,71,0.8)',
-    //     0.667: 'rgba(255,250,150,1',
-    //     0.833: 'rgba(255,187,102,0.9)',
-    //     1: 'rgba(255,119,68,0.9)'
-    // };
     var colorGradient = {
-        0.1: '#fe0000',
-        0.4: '#ffaa01',
-        0.7: '#b0e000',
-        1.0: '#38a702'
+        0: 'rgba(100,255,51,1)',
+        0.167: 'rgba(153,255,51,1)',
+        0.333: 'rgba(204,255,51,1)',
+        0.5: 'rgba(255,255,71,0.8)',
+        0.667: 'rgba(255,250,150,1',
+        0.833: 'rgba(255,187,102,0.9)',
+        1: 'rgba(255,119,68,0.9)'
     };
+    // var colorGradient = {
+    //     0.1: '#fe0000',
+    //     0.4: '#ffaa01',
+    //     0.7: '#b0e000',
+    //     1.0: '#38a702'
+    // };
     var sortNumber = function (a, b) {
         return a - b;
     };
