@@ -4,7 +4,7 @@
   "description": "基于baidu、google、openlayers、arcgis、高德地图、canvas数据可视化",
   "main": "rollup.config.js",
   "scripts": {
-    "mini": "npm run build && uglifyjs build/arcgis-map-moveLine.js -c -m -o build/release/arcgis-map-moveLine.min.js",
+    "mini": "npm run build && uglifyjs build/baidu-map-lineGradient.js -c -m -o build/release/baidu-map-lineGradient.min.js",
     "build": "rollup -c",
     "watch": "npm-watch",
     "test": "npm run build"

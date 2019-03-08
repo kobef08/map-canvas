@@ -1,7 +1,7 @@
 (function (global, factory) {
 	typeof exports === 'object' && typeof module !== 'undefined' ? module.exports = factory() :
 	typeof define === 'function' && define.amd ? define(factory) :
-	(global.LineGradients = factory());
+	(global.LineGradient = factory());
 }(this, (function () { 'use strict';
 
 /**
@@ -163,7 +163,7 @@ var requestAnimationFrame = global.requestAnimationFrame || global.mozRequestAni
     return global.setTimeout(callback, 1000 / 60);
 };
 
-var LineGradients = function LineGradients(map, userOptions) {
+var LineGradient = function LineGradient(map, userOptions) {
     var self = this;
 
     self.map = map;
@@ -480,13 +480,13 @@ var LineGradients = function LineGradients(map, userOptions) {
     this.bindEvent();
 };
 
-LineGradients.prototype.init = function (settings, defaults) {
+LineGradient.prototype.init = function (settings, defaults) {
     //合并参数
     tool.merge(settings, defaults);
     this.options = defaults;
 };
 
-LineGradients.prototype.bindEvent = function (e) {
+LineGradient.prototype.bindEvent = function (e) {
     var map = this.map;
     if (this.options.methods) {
         if (this.options.methods.click) {
@@ -500,7 +500,7 @@ LineGradients.prototype.bindEvent = function (e) {
     }
 };
 
-LineGradients.prototype.clickEvent = function (e) {
+LineGradient.prototype.clickEvent = function (e) {
     var self = this,
         flag = false,
         lines = self.pixelList;
@@ -535,6 +535,6 @@ LineGradients.prototype.clickEvent = function (e) {
     }
 };
 
-return LineGradients;
+return LineGradient;
 
 })));

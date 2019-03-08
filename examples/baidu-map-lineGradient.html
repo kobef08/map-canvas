@@ -15,7 +15,7 @@
     <div id="map"></div>
     <div id='tooltips' style="position: absolute; visibility: hidden; background-color: rgba(0, 0, 0, 0.7); transition: top 0.2s ease 0s, left 0.2s ease 0s; border-radius: 2px; color: rgb(255, 255, 255); line-height: 16px; padding: 5px 10px; left: 137px; top: 337.333px;">2019-9-8<br>AQI
         : 102<br><span style="display:inline-block;margin-right:5px;border-radius:10px;width:9px;height:9px;background-color:rgba(197, 233, 0, 1);"></span>轻度污染</div>
-    <script type="text/javascript" src="../build/baidu-map-lineGradients.js"></script>
+    <script type="text/javascript" src="../build/release/baidu-map-lineGradient.min.js"></script>
     <script type="text/javascript">
         var map = new BMap.Map('map', {
             minZoom: 5
@@ -56,7 +56,7 @@
                 console.log(dataset);
             }
 
-            var lineGradients = new LineGradients(map, {
+            var lineGradients = new LineGradient(map, {
                 //线条宽度
                 lineWidth: 4,
                 //线条颜色

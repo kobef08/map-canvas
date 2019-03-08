@@ -59,8 +59,8 @@ var demos = [{
     name: 'BranchRiver',
     build: false
 }, {
-    src: 'baidu-map-lineGradients.js',
-    name: 'LineGradients',
+    src: 'baidu-map-lineGradient.js',
+    name: 'LineGradient',
     build: true
 }];
 

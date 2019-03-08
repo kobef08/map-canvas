@@ -5,7 +5,7 @@ import {
     cancelAnimationFrame
 } from '../animation/requestAnimationFrame';
 
-var LineGradients = function (map, userOptions) {
+var LineGradient = function (map, userOptions) {
     var self = this;
 
     self.map = map;
@@ -332,13 +332,13 @@ var LineGradients = function (map, userOptions) {
     this.bindEvent();
 };
 
-LineGradients.prototype.init = function (settings, defaults) {
+LineGradient.prototype.init = function (settings, defaults) {
     //合并参数
     tool.merge(settings, defaults);
     this.options = defaults;
 }
 
-LineGradients.prototype.bindEvent = function (e) {
+LineGradient.prototype.bindEvent = function (e) {
     var map = this.map;
     if (this.options.methods) {
         if (this.options.methods.click) {
@@ -352,7 +352,7 @@ LineGradients.prototype.bindEvent = function (e) {
     }
 }
 
-LineGradients.prototype.clickEvent = function (e) {
+LineGradient.prototype.clickEvent = function (e) {
     var self = this,
         flag = false,
         lines = self.pixelList;
@@ -388,4 +388,4 @@ LineGradients.prototype.clickEvent = function (e) {
     }
 }
 
-export default LineGradients;
+export default LineGradient;
