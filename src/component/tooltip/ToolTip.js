@@ -3,9 +3,9 @@
  */
 function ToolTip(container, options) {
     this.opts = options;
-    this.container = container;
-    this.style = options.style;
-    this.isShow = options.isShow;
+    this.container = container; //容器
+    this.style = options.style; //样式
+    this.isShow = options.isShow; //是否显示
     this.create();
 }
 
