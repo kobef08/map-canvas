@@ -267,6 +267,7 @@ var LineGradient = function (map, userOptions) {
         }
         context.fillStyle = grad;
         context.fillRect(0, 0, canvas.width, canvas.height);
+        this.imageData = context.getImageData(0, 0, canvas.width, canvas.height);
 
         this.d2Hex = function (d) {
             // Converts a decimal number to a two digit Hex value
@@ -277,7 +278,7 @@ var LineGradient = function (map, userOptions) {
             return hex.toUpperCase();
         };
         this.getRgbColor = function (point) {
-            var imageData = context.getImageData(0, 0, canvas.width, canvas.height);
+            var imageData = this.imageData || context.getImageData(0, 0, canvas.width, canvas.height);
             var data = imageData.data;
             var i = ((point.Y * canvas.width) + point.X) * 4;
             var rgb = [],
