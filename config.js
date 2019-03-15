@@ -61,6 +61,10 @@ var demos = [{
 }, {
     src: 'baidu-map-lineGradient.js',
     name: 'LineGradient',
+    build: false
+}, {
+    src: 'arcgis-map-lineGradient.js',
+    name: 'LineGradient',
     build: true
 }];
 
