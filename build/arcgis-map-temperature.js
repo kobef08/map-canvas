@@ -1,13 +1,78 @@
-import tool from '../utils/tool';
-import {
-    default as resolutionScale
-} from '../canvas/resolutionScale';
-import {
-    requestAnimationFrame,
-    cancelAnimationFrame
-} from '../animation/requestAnimationFrame';
+(function (global, factory) {
+	typeof exports === 'object' && typeof module !== 'undefined' ? module.exports = factory() :
+	typeof define === 'function' && define.amd ? define(factory) :
+	(global.Temperature = factory());
+}(this, (function () { 'use strict';
 
-var Temperature = function (map, userOptions) {
+var tool = {
+    merge: function merge(settings, defaults) {
+        Object.keys(settings).forEach(function (key) {
+            defaults[key] = settings[key];
+        });
+    },
+    //计算两点间距离
+    getDistance: function getDistance(p1, p2) {
+        return Math.sqrt((p1[0] - p2[0]) * (p1[0] - p2[0]) + (p1[1] - p2[1]) * (p1[1] - p2[1]));
+    },
+    //判断点是否在线段上
+    containStroke: function containStroke(x0, y0, x1, y1, lineWidth, x, y) {
+        if (lineWidth === 0) {
+            return false;
+        }
+        var _l = lineWidth;
+        var _a = 0;
+        var _b = x0;
+        // Quick reject
+        if (y > y0 + _l && y > y1 + _l || y < y0 - _l && y < y1 - _l || x > x0 + _l && x > x1 + _l || x < x0 - _l && x < x1 - _l) {
+            return false;
+        }
+
+        if (x0 !== x1) {
+            _a = (y0 - y1) / (x0 - x1);
+            _b = (x0 * y1 - x1 * y0) / (x0 - x1);
+        } else {
+            return Math.abs(x - x0) <= _l / 2;
+        }
+        var tmp = _a * x - y + _b;
+        var _s = tmp * tmp / (_a * _a + 1);
+        return _s <= _l / 2 * _l / 2;
+    },
+
+    //是否在矩形内
+    isPointInRect: function isPointInRect(point, bound) {
+        var wn = bound.wn; //西北
+        var es = bound.es; //东南
+        return point.x >= wn.x && point.x <= es.x && point.y >= wn.y && point.y <= es.y;
+    },
+
+    //是否在圆内
+    isPointInCircle: function isPointInCircle(point, center, radius) {
+        var dis = this.getDistanceNew(point, center);
+        return dis <= radius;
+    },
+
+    //两点间距离
+    getDistanceNew: function getDistanceNew(point1, point2) {
+        return Math.sqrt(Math.pow(point1.x - point2.x, 2) + Math.pow(point1.y - point2.y, 2));
+    }
+};
+
+var resolutionScale = function (context) {
+    var devicePixelRatio = window.devicePixelRatio || 1;
+    context.canvas.width = context.canvas.width * devicePixelRatio;
+    context.canvas.height = context.canvas.height * devicePixelRatio;
+    context.canvas.style.width = context.canvas.width / devicePixelRatio + 'px';
+    context.canvas.style.height = context.canvas.height / devicePixelRatio + 'px';
+    context.scale(devicePixelRatio, devicePixelRatio);
+};
+
+var global = typeof window === 'undefined' ? {} : window;
+
+var cancelAnimationFrame = global.cancelAnimationFrame || global.mozCancelAnimationFrame || global.webkitCancelAnimationFrame || global.msCancelAnimationFrame || function (id) {
+    clearTimeout(id);
+};
+
+var Temperature = function Temperature(map, userOptions) {
     var self = this;
 
     self.map = map;
@@ -17,7 +82,7 @@ var Temperature = function (map, userOptions) {
     //默认参数
     var options = {
         //线条宽度
-        lineWidth: 1,
+        lineWidth: 1
     };
 
     self.init(userOptions, options);
@@ -91,7 +156,7 @@ Temperature.prototype.addLine = function () {
 
         self.lines.push(line);
     });
-}
+};
 
 Temperature.prototype.init = function (settings, defaults) {
     //合并参数
@@ -127,7 +192,7 @@ Temperature.prototype.renderBaselayer = function () {
             context.fillStyle = color;
             context.closePath();
             context.fill();
-        })
+        });
     });
 };
 
@@ -174,7 +239,6 @@ Temperature.prototype.clickEvent = function (e) {
                     return;
                 }
             }
-
         });
         if (!flag) {
             document.getElementById('tooltips').style.visibility = 'hidden';
@@ -295,13 +359,13 @@ Legend.prototype.d2Hex = function (d) {
 Legend.prototype.getRgbColor = function (point) {
     var imageData = this.imageData;
     var data = imageData.data;
-    var i = ((point.y * this.canvas.width) + point.x) * 4;
+    var i = (point.y * this.canvas.width + point.x) * 4;
     var rgb = [],
         color = '#',
         objRgbColor = {
-            "rgb": rgb,
-            "color": color
-        };
+        "rgb": rgb,
+        "color": color
+    };
     for (var j = 0; j < 3; j++) {
         rgb.push(data[i + j]);
         color += this.d2Hex(data[i + j]);
@@ -314,10 +378,12 @@ Legend.prototype.getColor = function (value) {
     var options = this.options;
     var colorValue = value - options.range[0];
     var point = {
-        x: Math.round((colorValue * this.canvas.width) / (options.range[options.range.length - 1] - options.range[0])),
+        x: Math.round(colorValue * this.canvas.width / (options.range[options.range.length - 1] - options.range[0])),
         y: 1
     };
     return this.getRgbColor(point);
 };
 
-export default Temperature;
+return Temperature;
+
+})));

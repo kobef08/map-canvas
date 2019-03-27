@@ -65,7 +65,7 @@ var demos = [{
 }, {
     src: 'arcgis-map-lineGradient.js',
     name: 'LineGradient',
-    build: true
+    build: false
 }, {
     src: 'arcgis-map-temperature.js',
     name: 'Temperature',
