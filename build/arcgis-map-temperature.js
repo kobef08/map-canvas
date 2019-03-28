@@ -72,12 +72,14 @@ var cancelAnimationFrame = global.cancelAnimationFrame || global.mozCancelAnimat
     clearTimeout(id);
 };
 
+//创建一个canvas，width，height为地图的大小，并获取到imageData
+//for循环width、height，i+=2;
+//将point(x,y)转换成经纬度坐标point(lat,lon)，判断点point是否在地图范围内
+//如果点point(x,y)不在地图范围内，将color设置为透明色rgba(0,0,0,0)，且point(x,y) = point(x+1,y) = point(x,y+1) = point(x+1,y+1)
 var Temperature = function Temperature(map, userOptions) {
-    var self = this;
-
-    self.map = map;
-    self.lines = [];
-    self.pixelList = [];
+    this.map = map;
+    this.lines = [];
+    this.pixelList = [];
 
     //默认参数
     var options = {
@@ -85,11 +87,10 @@ var Temperature = function Temperature(map, userOptions) {
         lineWidth: 1
     };
 
-    self.init(userOptions, options);
+    this.init(userOptions, options);
 
     //全局变量
-    this.baseCtx = self.options.baseCanvas.getContext("2d");
-    this.animateCtx = self.options.animateCanvas.getContext("2d");
+    this.baseCtx = this.options.baseCanvas.getContext("2d");
     this.width = map.width;
     this.height = map.height;
 
@@ -98,12 +99,137 @@ var Temperature = function Temperature(map, userOptions) {
     this.bindEvent();
 };
 
+Temperature.prototype.init = function (settings, defaults) {
+    //合并参数
+    tool.merge(settings, defaults);
+    this.options = defaults;
+};
+
+Temperature.prototype.createMask = function () {
+    var width = this.width;
+    var height = this.height;
+    var canvas = document.createElement('canvas');
+    canvas.width = width;
+    canvas.height = height;
+    var context = canvas.getContext('2d');
+
+    context.fillStyle = "rgba(255, 0, 0, 1)";
+    context.fillRect(0, 0, width, height);
+
+    var imageData = context.getImageData(0, 0, width, height);
+    var data = imageData.data;
+    return {
+        imageData: imageData,
+        isVisible: function isVisible(x, y) {
+            var i = (y * width + x) * 4;
+            return data[i + 3] > 0;
+        },
+        set: function set(x, y, rgba) {
+            var i = (y * width + x) * 4;
+            data[i] = rgba[0];
+            data[i + 1] = rgba[1];
+            data[i + 2] = rgba[2];
+            data[i + 3] = rgba[3];
+            return this;
+        }
+    };
+};
+
+Temperature.prototype.createView = function () {
+    var options = this.options;
+    var Point = options.Point;
+    var start = map.toScreen(new Point({
+        x: options.leftTop[0],
+        y: options.leftTop[1],
+        spatialReference: {
+            wkid: 4326
+        }
+    }));
+    var end = map.toScreen(new Point({
+        x: options.rightBottom[0],
+        y: options.rightBottom[1],
+        spatialReference: {
+            wkid: 4326
+        }
+    }));
+    this.view = {
+        x: start.x,
+        y: start.y,
+        xMax: end.x,
+        yMax: end.y
+    };
+};
+
+Temperature.prototype.interpolateField = function () {
+    var self = this;
+    var map = this.map;
+    var xMax = this.width;
+    var yMax = this.height;
+    var options = this.options;
+    var mask = this.createMask();
+    var view = this.view;
+    var columns = [];
+    var point = {};
+    var x = 0;
+    var SpatialReference = options.SpatialReference;
+    var ScreenPoint = options.ScreenPoint;
+    var Point = options.Point;
+    var webMercatorUtils = options.webMercatorUtils;
+
+    function interpolateColumn(x) {
+        var column = [];
+        for (var y = 0; y < yMax; y += 2) {
+            var color = [0, 0, 0, 0];
+            if (mask.isVisible(x, y)) {
+                point.x = x;
+                point.y = y;
+                // if (x > 962 && y > 470) {
+                //     console.log(x);
+                // }
+                //判断该点是否在矩形区域范围内，true则插值计算出value得到rgba并更新imageData，false则设置透明
+                if (x >= view.x && x <= view.xMax && y >= view.y && y <= view.yMax) {
+                    color = [232, 227, 183, 100];
+                }
+                mask.set(x, y, color).set(x + 1, y, color).set(x, y + 1, color).set(x + 1, y + 1, color);
+                // var coord = map.toMap(new ScreenPoint(x, y));
+                // var value = webMercatorUtils.xyToLngLat(coord.x, coord.y);
+            } else {
+                console.error(x, y);
+            }
+        }
+    }
+
+    (function batchInterpolate() {
+        var start = Date.now();
+        while (x < xMax) {
+            interpolateColumn(x);
+            x += 2;
+            if (Date.now() - start > 1000) {
+                setTimeout(batchInterpolate, 25);
+                return;
+            }
+        }
+
+        self.renderBaselayer(mask);
+    })();
+};
+
+Temperature.prototype.renderBaselayer = function (mask) {
+    var context = this.baseCtx;
+    context.putImageData(mask.imageData, 0, 0);
+};
+
 Temperature.prototype.start = function () {
     var self = this;
-    self.stop();
+    // self.stop();
     self.adjustSize();
 
-    self.renderBaselayer(); //底层canvas渲染
+    self.createView();
+
+    //插值
+    self.interpolateField();
+
+    // self.renderBaselayer(); //底层canvas渲染
 
     // (function drawFrame() {
     //     self.timer = setTimeout(function () {
@@ -128,10 +254,7 @@ Temperature.prototype.adjustSize = function () {
     var height = this.height;
     this.baseCtx.canvas.width = width;
     this.baseCtx.canvas.height = height;
-    this.animateCtx.canvas.width = width;
-    this.animateCtx.canvas.height = height;
     resolutionScale(this.baseCtx);
-    resolutionScale(this.animateCtx);
 };
 
 Temperature.prototype.addLine = function () {
@@ -155,44 +278,6 @@ Temperature.prototype.addLine = function () {
         });
 
         self.lines.push(line);
-    });
-};
-
-Temperature.prototype.init = function (settings, defaults) {
-    //合并参数
-    tool.merge(settings, defaults);
-    this.options = defaults;
-
-    //初始化线条数据
-    //this.addLine();
-};
-
-Temperature.prototype.renderBaselayer = function () {
-    var self = this;
-    var data = self.options.data;
-    var context = self.baseCtx;
-    if (!context) return;
-
-    context.clearRect(0, 0, self.width, self.height);
-
-    var legend = new Legend();
-    var canvas = document.createElement('canvas');
-    canvas.width = data[0].length;
-    canvas.height = data.length;
-    document.body.appendChild(canvas);
-
-    data.forEach(function (row) {
-        row.forEach(function (col) {
-            var pixel = self.map.toScreen(col.point);
-            context.beginPath();
-            // context.fillRect(pixel.x, pixel.y, self.options.size, self.options.size);
-            context.arc(pixel.x, pixel.y, self.options.size, 0, Math.PI * 2, true);
-            // context.fillStyle = self.options.color;
-            var color = legend.getColor(col.value).color;
-            context.fillStyle = color;
-            context.closePath();
-            context.fill();
-        });
     });
 };
 

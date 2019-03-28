@@ -46,14 +46,18 @@
             "dojo/number",
             "dojo/json",
             "dojo/request",
+            "esri/SpatialReference",
             "esri/geometry/Point",
+            "esri/geometry/ScreenPoint",
+            "esri/geometry/webMercatorUtils",
             "extend/RasterLayer",
             "dojo/domReady!"
-        ], function (Map, parser, number, JSON, request, Point, RasterLayer) {
+        ], function (Map, parser, number, JSON, request, SpatialReference, Point, ScreenPoint, webMercatorUtils,
+            RasterLayer) {
             parser.parse();
             map = new Map("mapCanvas", {
-                center: [81, 41.9],
-                zoom: 6,
+                center: [104.35, 29.45],
+                zoom: 4,
                 basemap: "gray"
             });
 
@@ -63,13 +67,7 @@
                 baseLayer = new RasterLayer(null, {
                     opacity: 1
                 });
-                middleLayer = new RasterLayer(null, {
-                    opacity: 1
-                });
-                animateLayer = new RasterLayer(null, {
-                    opacity: 1
-                });
-                map.addLayers([baseLayer, middleLayer, animateLayer]);
+                map.addLayers([baseLayer]);
                 map.on("extent-change", redraw);
                 map.on("resize", redraw);
                 map.on("zoom-start", redraw);
@@ -77,57 +75,49 @@
 
                 request.get('data/2019032412_2019032516-fsp-surface-level-wrf-27km.json', {
                     handleAs: "json"
-                }).then(function (res) {
-                    var result = res[0],
-                        matrixData = [],
-                        idx = 0,
-                        nx = result.header.nx, //x方向网格数
-                        ny = result.header.ny, //y方向网格数
-                        dx = result.header.dx / 1000, //经度间隔度数
-                        dy = result.header.dy / 1000, //纬度间隔度数
-                        lonMin = result.header.lo1, //最小经度
-                        lonMax = result.header.lo2, //最大经度
-                        latMin = result.header.la2, //最小纬度
-                        latMax = result.header.la1; //最大纬度
+                }).then(function (result) {
+                    var header = result[0].header,
+                        data = result[0].data,
+                        ltlon = header.lo1, //左上角经度
+                        ltlat = header.la1, //左上角纬度
+                        rblon = header.lo2, //右下角经度
+                        rblat = header.la2, //右下角纬度
+                        dx = header.dx / 1000, //x方向经度间隔度数
+                        dy = header.dy / 1000, //y方向纬度间隔度数
+                        ni = header.nx, //x方向网格数
+                        nj = header.ny, //y方向网格数
+                        grid = [], //二维网格数组
+                        p = 0; //网格点索引
 
-                    for (let y = 0; y < ny; y++) {
-                        var row = [],
-                            lat = (latMax * 10 - y * dy * 10) / 10; //避免加减算法不准确
-                        for (let x = 0; x < nx; x++) {
-                            row.push({
-                                point: new Point({
-                                    x: (lonMin * 10 + x * dx * 10) / 10,
-                                    y: lat,
-                                    spatialReference: {
-                                        wkid: 4326
-                                    }
-                                }),
-                                value: result.data[idx]
-                            });
-                            idx++;
+                    for (let j = 0; j < nj; j++) {
+                        var row = [];
+                        for (let i = 0; i < ni; i++, p++) {
+                            row[i] = data[p];
                         }
-                        matrixData.push(row);
+                        grid[j] = row;
                     }
 
                     temperature = new Temperature(map, {
-                        size: 2,
-                        color: '#F9815C',
-                        data: matrixData,
+                        SpatialReference: SpatialReference,
+                        Point: Point,
+                        ScreenPoint: ScreenPoint,
+                        webMercatorUtils: webMercatorUtils,
+                        leftTop: [ltlon, ltlat],
+                        rightBottom: [rblon, rblat],
+                        dx: header.dx / 1000,
+                        dy: header.dy / 1000,
+                        data: grid,
                         baseCanvas: baseLayer._element,
-                        animateCanvas: animateLayer._element,
                     });
                     redraw();
-                    console.log(matrixData);
-                }, function (e) {
-                    console.log('Error: ', e.message);
+                    // console.log(grid);
                 });
             }
 
             function redraw() {
+
                 baseLayer._element.width = map.width;
                 baseLayer._element.height = map.height;
-                animateLayer._element.width = map.width;
-                animateLayer._element.height = map.height;
                 temperature.start();
             }
         });
