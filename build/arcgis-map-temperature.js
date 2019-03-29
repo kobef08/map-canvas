@@ -195,7 +195,7 @@ Temperature.prototype.interpolateField = function () {
                         lonlat = webMercatorUtils.xyToLngLat(coord.x, coord.y),
                         value = interpolate(lonlat[0], lonlat[1]),
                         rgb = legend.getColor(value).rgb;
-                    color = [rgb[0], rgb[1], rgb[2], 110];
+                    color = [rgb[0], rgb[1], rgb[2], 150];
                 }
                 mask.set(x, y, color).set(x + 1, y, color).set(x, y + 1, color).set(x + 1, y + 1, color);
             } else {
@@ -328,12 +328,23 @@ function Legend() {
         height: 15,
         range: [0, 220],
         gradient: {
-            0.1: '#38a702',
-            0.4: '#b0e000',
-            0.7: '#ffaa01',
-            1.0: '#fe0000'
-        }
-    };
+            0.1: '#96f3ff',
+            0.2: '#00c3ff',
+            0.3: '#00e68c',
+            0.4: '#00e600',
+            0.5: '#fffa00',
+            0.6: '#ffbe00',
+            0.7: '#ff7300',
+            0.8: '#fa1400',
+            0.9: '#c80091',
+            1.0: '#8200a0'
+            // gradient: {
+            //     0.1: '#38a702',
+            //     0.4: '#b0e000',
+            //     0.7: '#ffaa01',
+            //     1.0: '#fe0000'
+            // }
+        } };
     this.init();
 }
 
