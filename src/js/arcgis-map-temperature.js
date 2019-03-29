@@ -7,10 +7,22 @@ import {
     cancelAnimationFrame
 } from '../animation/requestAnimationFrame';
 
-//创建一个canvas，width，height为地图的大小，并获取到imageData
-//for循环width、height，i+=2;
-//将point(x,y)转换成经纬度坐标point(lat,lon)，判断点point是否在地图范围内
-//如果点point(x,y)不在地图范围内，将color设置为透明色rgba(0,0,0,0)，且point(x,y) = point(x+1,y) = point(x,y+1) = point(x+1,y+1)
+/**
+ * @author https://github.com/chengquan223
+ * @Date 2019-3-29
+ * 创建一个canvas，width，height为地图的大小，填充颜色，并获取到imageData
+ * for循环width、height，i+=2;
+ * 判断point(x,y)是否在地图范围内，矩形或边界地图都适用
+ * fasle，不在地图范围内，将color设置为透明色rgba(0,0,0,0)，且point(x,y) = point(x+1,y) = point(x,y+1) = point(x+1,y+1)
+ * true，在地图范围内，将point(x,y)转换成经纬度坐标point(lon,lat)
+ * 由point(lon,lat)与grid网格关系换算得出point(lon,lat)相对于grid的网格点g(x,y)
+ *     g00          g10
+ *          g(x,y)
+ *     g10          g11
+ * 双线性插值计算出点g(x,y)的value
+ * 将value作为参数传入颜色带，根据比例换算得出rgb
+ * 最终将rba回填至canvas图层的imageData
+ */
 var Temperature = function (map, userOptions) {
     this.map = map;
     this.lines = [];
@@ -32,23 +44,24 @@ var Temperature = function (map, userOptions) {
     this.clickEvent = this.clickEvent.bind(this);
 
     this.bindEvent();
-
 };
 
 Temperature.prototype.init = function (settings, defaults) {
     //合并参数
     tool.merge(settings, defaults);
     this.options = defaults;
+
+    this.legend = new Legend();
 };
 
 Temperature.prototype.createMask = function () {
-    var width = this.width;
-    var height = this.height;
-    var canvas = document.createElement('canvas');
+    var canvas = document.createElement('canvas'),
+        context = canvas.getContext('2d'),
+        width = this.width,
+        height = this.height;
+
     canvas.width = width;
     canvas.height = height;
-    var context = canvas.getContext('2d');
-
     context.fillStyle = "rgba(255, 0, 0, 1)";
     context.fillRect(0, 0, width, height);
 
@@ -72,23 +85,25 @@ Temperature.prototype.createMask = function () {
 };
 
 Temperature.prototype.createView = function () {
-    var options = this.options;
-    var Point = options.Point;
-    var start = map.toScreen(new Point({
-        x: options.leftTop[0],
-        y: options.leftTop[1],
-        spatialReference: {
-            wkid: 4326
-        }
-    }));
-    var end = map.toScreen(new Point({
-        x: options.rightBottom[0],
-        y: options.rightBottom[1],
-        spatialReference: {
-            wkid: 4326
-        }
-    }));
-    this.view = {
+    var options = this.options,
+        extent = options.extent,
+        Point = options.Point,
+        start = map.toScreen(new Point({
+            x: extent[0],
+            y: extent[1],
+            spatialReference: {
+                wkid: 4326
+            }
+        })),
+        end = map.toScreen(new Point({
+            x: extent[2],
+            y: extent[3],
+            spatialReference: {
+                wkid: 4326
+            }
+        }));
+
+    return {
         x: start.x,
         y: start.y,
         xMax: end.x,
@@ -97,42 +112,76 @@ Temperature.prototype.createView = function () {
 };
 
 Temperature.prototype.interpolateField = function () {
-    var self = this;
-    var map = this.map;
-    var xMax = this.width;
-    var yMax = this.height;
-    var options = this.options;
-    var mask = this.createMask();
-    var view = this.view;
-    var columns = [];
-    var point = {};
-    var x = 0;
-    var SpatialReference = options.SpatialReference;
-    var ScreenPoint = options.ScreenPoint;
-    var Point = options.Point;
-    var webMercatorUtils = options.webMercatorUtils;
+    var self = this,
+        map = this.map,
+        xMax = this.width,
+        yMax = this.height,
+        opts = this.options,
+        mask = this.createMask(),
+        view = this.createView(),
+        extent = opts.extent,
+        grid = opts.data,
+        legend = this.legend,
+        x = 0,
+        ScreenPoint = opts.ScreenPoint,
+        webMercatorUtils = opts.webMercatorUtils;
 
     function interpolateColumn(x) {
-        var column = [];
-        for (let y = 0; y < yMax; y += 2) {
+        for (var y = 0; y < yMax; y += 2) {
             var color = [0, 0, 0, 0];
             if (mask.isVisible(x, y)) {
-                point.x = x;
-                point.y = y;
-                // if (x > 962 && y > 470) {
-                //     console.log(x);
-                // }
                 //判断该点是否在矩形区域范围内，true则插值计算出value得到rgba并更新imageData，false则设置透明
-                if ((x >= view.x && x <= view.xMax && y >= view.y && y <= view.yMax)) {
-                    color = [232, 227, 183, 100];
+                if (x >= view.x && x <= view.xMax && y >= view.y && y <= view.yMax) {
+                    var coord = map.toMap(new ScreenPoint(x, y)),
+                        lonlat = webMercatorUtils.xyToLngLat(coord.x, coord.y),
+                        value = interpolate(lonlat[0], lonlat[1]),
+                        rgb = legend.getColor(value).rgb;
+                    color = [rgb[0], rgb[1], rgb[2], 110];
                 }
                 mask.set(x, y, color).set(x + 1, y, color).set(x, y + 1, color).set(x + 1, y + 1, color);
-                // var coord = map.toMap(new ScreenPoint(x, y));
-                // var value = webMercatorUtils.xyToLngLat(coord.x, coord.y);
             } else {
                 console.error(x, y);
             }
         }
+    }
+
+    function interpolate(lon, lat) {
+        var i = floorMod(Math.abs(lon - extent[0]), 360) / opts.dx;
+        var j = (extent[1] - lat) / opts.dy;
+
+        var fi = Math.floor(i),
+            ci = fi + 1,
+            fj = Math.floor(j),
+            cj = fj + 1;
+
+        var row;
+        if ((row = grid[fj])) {
+            var g00 = row[fi];
+            var g10 = row[ci];
+            if (isValue(g00) && isValue(g10) && (row = grid[cj])) {
+                var g01 = row[fi];
+                var g11 = row[ci];
+                if (isValue(g01) && isValue(g11)) {
+                    return bilinearInterpolateScalar(i - fi, j - fj, g00, g10, g01, g11);
+                }
+            }
+        }
+        return null;
+    }
+
+    function floorMod(a, n) {
+        var f = a - n * Math.floor(a / n);
+        return f === n ? 0 : f;
+    }
+
+    function isValue(x) {
+        return x !== null && x !== undefined;
+    }
+
+    function bilinearInterpolateScalar(x, y, g00, g10, g01, g11) {
+        var rx = (1 - x);
+        var ry = (1 - y);
+        return g00 * rx * ry + g10 * x * ry + g01 * rx * y + g11 * x * y;
     }
 
     (function batchInterpolate() {
@@ -140,12 +189,11 @@ Temperature.prototype.interpolateField = function () {
         while (x < xMax) {
             interpolateColumn(x);
             x += 2;
-            if ((Date.now() - start) > 1000) {
+            if (Date.now() - start > 100) {
                 setTimeout(batchInterpolate, 25);
                 return;
             }
         }
-
         self.renderBaselayer(mask);
     })();
 };
@@ -157,10 +205,7 @@ Temperature.prototype.renderBaselayer = function (mask) {
 
 Temperature.prototype.start = function () {
     var self = this;
-    // self.stop();
     self.adjustSize();
-
-    self.createView();
 
     //插值
     self.interpolateField();
@@ -175,62 +220,13 @@ Temperature.prototype.start = function () {
     // }());
 };
 
-Temperature.prototype.stop = function () {
-    var self = this;
-    if (self.animationId) {
-        cancelAnimationFrame(self.animationId);
-    }
-    if (self.timer) {
-        clearTimeout(self.timer);
-    }
-};
-
 Temperature.prototype.adjustSize = function () {
     var width = this.width;
     var height = this.height;
     this.baseCtx.canvas.width = width;
     this.baseCtx.canvas.height = height;
+    this.baseCtx.clearRect(0, 0, width, height);
     resolutionScale(this.baseCtx);
-};
-
-Temperature.prototype.addLine = function () {
-    var self = this,
-        options = this.options;
-    if (self.lines && self.lines.length > 0) return;
-    var dataset = options.data;
-    var legend = new Legend();
-
-    dataset.forEach(function (item, i) {
-        var line = new Line({
-            name: item.name,
-            label: item.label,
-            labelColor: item.labelColor,
-            path: []
-        });
-
-        item.data.forEach(function (point, j) {
-            point.color = legend.getColor(point.value).color;
-            line.path.push(point);
-        });
-
-        self.lines.push(line);
-    });
-};
-
-Temperature.prototype.renderAnimatelayer = function () {
-    var context = this.animateCtx;
-    if (!context) return;
-
-    context.fillStyle = 'rgba(0,0,0,.2)';
-    var prev = context.globalCompositeOperation;
-    context.globalCompositeOperation = 'destination-in';
-    context.fillRect(0, 0, this.width, this.height);
-    context.globalCompositeOperation = prev;
-
-    var lines = this.lines;
-    for (var i = 0; i < lines.length; i++) {
-        lines[i].drawArrow(context, this.map); //画箭头
-    }
 };
 
 Temperature.prototype.bindEvent = function (e) {
@@ -260,7 +256,6 @@ Temperature.prototype.clickEvent = function (e) {
                     return;
                 }
             }
-
         });
         if (!flag) {
             document.getElementById('tooltips').style.visibility = 'hidden';
@@ -268,79 +263,8 @@ Temperature.prototype.clickEvent = function (e) {
     }
 };
 
-function Line(opts) {
-    this.name = opts.name;
-    this.label = opts.label;
-    this.labelColor = opts.labelColor;
-    this.path = opts.path;
-    this.step = 0;
-}
-
-Line.prototype.getPointList = function (map) {
-    var points = this.path;
-    if (points && points.length > 0) {
-        points.forEach(function (point) {
-            point.pixel = map.toScreen(point.lonlat);
-        });
-    }
-    return points;
-};
-
-Line.prototype.draw = function (context, map, options) {
-    var pointList = this.pixelList || this.getPointList(map);
-
-    for (var i = 0, len = pointList.length; i < len - 1; i++) {
-        context.save();
-        context.beginPath();
-        context.lineWidth = options.lineWidth;
-        context.strokeStyle = pointList[i].color;
-        context.moveTo(pointList[i].pixel.x, pointList[i].pixel.y);
-        context.lineTo(pointList[i + 1].pixel.x, pointList[i + 1].pixel.y);
-        context.stroke();
-        context.closePath();
-        context.restore();
-    }
-
-    var lastpoint = pointList[pointList.length - 1];
-    context.font = 'bold 14px Arial';
-    context.textAlign = 'left';
-    context.textBaseline = 'middle';
-    context.fillStyle = this.labelColor;
-    context.fillText(this.label, lastpoint.pixel.x, lastpoint.pixel.y);
-};
-
-Line.prototype.drawArrow = function (context, map, options) {
-    var pointList = this.pixelList || this.getPointList(map);
-    if (this.step >= pointList.length - 1) {
-        this.step = 0;
-    }
-    context.beginPath();
-    // context.lineWidth = options.animateLineWidth;
-    context.lineWidth = 5;
-    context.strokeStyle = '#fff';
-    context.moveTo(pointList[this.step].pixel.x, pointList[this.step].pixel.y);
-    context.lineTo(pointList[this.step + 1].pixel.x, pointList[this.step + 1].pixel.y);
-    context.stroke();
-
-    context.save();
-    context.translate(pointList[this.step + 1].pixel.x, pointList[this.step + 1].pixel.y);
-    //我的箭头本垂直向下，算出直线偏离Y的角，然后旋转 ,rotate是顺时针旋转的，所以加个负号
-    var ang = (pointList[this.step + 1].pixel.x - pointList[this.step].pixel.x) / (pointList[this.step + 1].pixel.y - pointList[this.step].pixel.y);
-    ang = Math.atan(ang);
-    pointList[this.step + 1].pixel.y - pointList[this.step].pixel.y >= 0 ? context.rotate(-ang) : context.rotate(Math.PI - ang); //加个180度，反过来
-    context.lineTo(-6, -6);
-    context.lineTo(0, 6);
-    context.lineTo(6, -6);
-    context.lineTo(0, 0);
-    context.fillStyle = '#fff';
-    context.fill(); //箭头是个封闭图形
-    context.restore(); //用来恢复Canvas之前保存的状态,否则会影响后续绘制
-
-    this.step += 1;
-};
-
 function Legend() {
-    var options = this.options = {
+    this.options = {
         width: 400,
         height: 15,
         range: [0, 220],
@@ -351,23 +275,23 @@ function Legend() {
             1.0: '#fe0000'
         }
     };
-
     this.init();
 }
 
 Legend.prototype.init = function () {
-    var options = this.options;
-    var canvas = this.canvas = document.createElement('canvas');
-    var context = canvas.getContext('2d');
-    canvas.width = options.width;
-    canvas.height = options.height;
-    var grad = context.createLinearGradient(0, 0, canvas.width, canvas.height);
+    var options = this.options,
+        canvas = this.canvas = document.createElement('canvas'),
+        width = canvas.width = options.width,
+        height = canvas.height = options.height,
+        context = canvas.getContext('2d'),
+
+        grad = context.createLinearGradient(0, 0, width, height);
     for (var gradient in options.gradient) {
         grad.addColorStop(gradient, options.gradient[gradient]);
     }
     context.fillStyle = grad;
-    context.fillRect(0, 0, canvas.width, canvas.height);
-    this.imageData = context.getImageData(0, 0, canvas.width, canvas.height);
+    context.fillRect(0, 0, width, height);
+    this.imageData = context.getImageData(0, 0, width, height);
 };
 
 Legend.prototype.d2Hex = function (d) {
@@ -397,12 +321,13 @@ Legend.prototype.getRgbColor = function (point) {
 };
 
 Legend.prototype.getColor = function (value) {
-    var options = this.options;
-    var colorValue = value - options.range[0];
-    var point = {
-        x: Math.round((colorValue * this.canvas.width) / (options.range[options.range.length - 1] - options.range[0])),
-        y: 1
-    };
+    var options = this.options,
+        range = options.range,
+        colorValue = value - range[0],
+        point = {
+            x: Math.round((colorValue * this.canvas.width) / (range[range.length - 1] - range[0])),
+            y: 1
+        };
     return this.getRgbColor(point);
 };
 

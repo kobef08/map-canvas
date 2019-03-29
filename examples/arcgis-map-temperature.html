@@ -57,7 +57,7 @@
             parser.parse();
             map = new Map("mapCanvas", {
                 center: [104.35, 29.45],
-                zoom: 4,
+                zoom: 5,
                 basemap: "gray"
             });
 
@@ -70,18 +70,14 @@
                 map.addLayers([baseLayer]);
                 map.on("extent-change", redraw);
                 map.on("resize", redraw);
-                map.on("zoom-start", redraw);
-                map.on("pan-start", redraw);
+                // map.on("zoom-start", redraw);
+                // map.on("pan-end", redraw);
 
                 request.get('data/2019032412_2019032516-fsp-surface-level-wrf-27km.json', {
                     handleAs: "json"
                 }).then(function (result) {
                     var header = result[0].header,
                         data = result[0].data,
-                        ltlon = header.lo1, //左上角经度
-                        ltlat = header.la1, //左上角纬度
-                        rblon = header.lo2, //右下角经度
-                        rblat = header.la2, //右下角纬度
                         dx = header.dx / 1000, //x方向经度间隔度数
                         dy = header.dy / 1000, //y方向纬度间隔度数
                         ni = header.nx, //x方向网格数
@@ -98,24 +94,23 @@
                     }
 
                     temperature = new Temperature(map, {
-                        SpatialReference: SpatialReference,
+                        //[xmin,ymin,xmax,ymax]
+                        extent: [header.lo1, header.la1, header.lo2, header.la2],
+                        //x方向经度间隔度数
+                        dx: dx,
+                        //y方向纬度间隔度数
+                        dy: dy,
+                        data: grid,
                         Point: Point,
                         ScreenPoint: ScreenPoint,
                         webMercatorUtils: webMercatorUtils,
-                        leftTop: [ltlon, ltlat],
-                        rightBottom: [rblon, rblat],
-                        dx: header.dx / 1000,
-                        dy: header.dy / 1000,
-                        data: grid,
                         baseCanvas: baseLayer._element,
                     });
                     redraw();
-                    // console.log(grid);
                 });
             }
 
             function redraw() {
-
                 baseLayer._element.width = map.width;
                 baseLayer._element.height = map.height;
                 temperature.start();
