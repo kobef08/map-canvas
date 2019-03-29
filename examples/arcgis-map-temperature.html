@@ -32,12 +32,6 @@
 <body>
     <div id="mapCanvas">
     </div>
-    <div id='tooltips'
-        style="position: absolute; visibility: hidden; background-color: rgba(0, 0, 0, 0.7); transition: top 0.2s ease 0s, left 0.2s ease 0s; border-radius: 2px; color: rgb(255, 255, 255); line-height: 16px; padding: 5px 10px; left: 137px; top: 337.333px;">
-        2019-9-8<br>AQI
-        : 102<br><span
-            style="display:inline-block;margin-right:5px;border-radius:10px;width:9px;height:9px;background-color:rgba(197, 233, 0, 1);"></span>轻度污染
-    </div>
     <script>
         var map, baseLayer, animateLayer, temperature;
         require([
@@ -46,13 +40,12 @@
             "dojo/number",
             "dojo/json",
             "dojo/request",
-            "esri/SpatialReference",
             "esri/geometry/Point",
             "esri/geometry/ScreenPoint",
             "esri/geometry/webMercatorUtils",
             "extend/RasterLayer",
             "dojo/domReady!"
-        ], function (Map, parser, number, JSON, request, SpatialReference, Point, ScreenPoint, webMercatorUtils,
+        ], function (Map, parser, number, JSON, request, Point, ScreenPoint, webMercatorUtils,
             RasterLayer) {
             parser.parse();
             map = new Map("mapCanvas", {
