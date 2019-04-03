@@ -70,6 +70,10 @@ var demos = [{
     src: 'arcgis-map-temperature.js',
     name: 'Temperature',
     build: true
+}, {
+    src: 'amap-flashMarker.js',
+    name: 'FlashMarker',
+    build: false
 }];
 
 var module;

@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>高德地图－flashmarker</title>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="chrome=1">
+    <meta name="viewport" content="initial-scale=1.0, user-scalable=no, width=device-width">
+    <script type="text/javascript" src="https://webapi.amap.com/maps?v=1.4.2&key=c75741b6f2144f1c55dddbb864d76b4b"></script>
+    <style type="text/css">
+        body,
+        html,
+        #map {
+            height: 100%;
+            margin: 0px;
+            font: 12px Helvetica, 'Hiragino Sans GB', 'Microsoft Yahei', '微软雅黑', Arial;
+        }
+    </style>
+</head>
+
+<body>
+    <div id="map" tabindex="0"></div>
+    <script type="text/javascript" src="../build/amap-flashMarker.js"></script>
+    <script>
+        var map = new AMap.Map('map', {
+            zoom: 6,
+            center: [112.03956, 26.063677]
+        });
+        map.setMapStyle('amap://styles/blue');
+
+        var citys = [{
+            name: '北京',
+            lnglat: ['116.3', '39.9'],
+            color: '#5070FF',
+            type: 'circle',
+            speed: 0.5,
+        }, {
+            name: '上海',
+            lnglat: ['121.29', '31.11'],
+            color: '#6EE7FF',
+            type: 'ellipse',
+            speed: 1,
+            max: 40,
+        }, {
+            name: '福建',
+            lnglat: ['117.984943', '26.050118'],
+            color: '#90EE90',
+            type: 'circle',
+            speed: 0.45,
+        }, {
+            name: '广东',
+            lnglat: ['113.394818', '23.408004'],
+            color: '#f8983a',
+            type: 'circle',
+            speed: 0.9,
+        }, {
+            name: '广西',
+            lnglat: ['108.924274', '23.552255'],
+            color: '#FAFA32',
+            type: 'ellipse',
+            speed: 0.8,
+            max: 50,
+        }];
+
+        var flashMarkerLayer = new FlashMarker(map, citys);
+
+    </script>
+</body>
