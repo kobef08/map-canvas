@@ -126,7 +126,7 @@ Temperature.prototype.createMask = function () {
 
     var imageData = context.getImageData(0, 0, width, height);
     var data = imageData.data;
-    return {
+    var mask = this.mask = {
         imageData: imageData,
         isVisible: function isVisible(x, y) {
             var i = (y * width + x) * 4;
@@ -141,6 +141,7 @@ Temperature.prototype.createMask = function () {
             return this;
         }
     };
+    return mask;
 };
 
 Temperature.prototype.createView = function () {
@@ -176,7 +177,6 @@ Temperature.prototype.interpolateField = function () {
         xMax = this.width,
         yMax = this.height,
         opts = this.options,
-        mask = this.createMask(),
         view = this.createView(),
         extent = opts.extent,
         grid = opts.data,
@@ -184,6 +184,7 @@ Temperature.prototype.interpolateField = function () {
         x = 0,
         ScreenPoint = opts.ScreenPoint,
         webMercatorUtils = opts.webMercatorUtils;
+    var mask = this.mask || this.createMask();
 
     function interpolateColumn(x) {
         for (var y = 0; y < yMax; y += 2) {
