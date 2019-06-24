@@ -69,10 +69,18 @@ var demos = [{
 }, {
     src: 'arcgis-map-temperature.js',
     name: 'Temperature',
-    build: true
+    build: false
 }, {
     src: 'amap-flashMarker.js',
     name: 'FlashMarker',
+    build: true
+}, {
+    src: 'arcgis-map-lidar.js',
+    name: 'Lidar',
+    build: false
+}, {
+    src: 'arcgis-map-ring.js',
+    name: 'Ring',
     build: false
 }];
 

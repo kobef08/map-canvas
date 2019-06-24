@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>arcgis map lidar</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <meta name="viewport"
+        content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, user-scalable=no">
+    <link rel="stylesheet" href="https://js.arcgis.com/3.23/esri/css/esri.css">
+    <!-- <link rel="stylesheet" href="http://localhost/arcgis_js_api/library/3.17/3.17/esri/css/esri.css"> -->
+    <link rel="stylesheet" href="css/style.css">
+    <style>
+        #mapCanvas {
+            padding: 0;
+            height: 100%;
+        }
+    </style>
+    <script type="text/javascript">
+        dojoConfig = {
+            parseOnLoad: true,
+            packages: [{
+                name: 'extend',
+                location: this.location.pathname.replace(/\/[^/]+$/, "") + "/plugins"
+            }]
+        };
+    </script>
+    <script type="text/javascript" src="../build/arcgis-map-lidar.js"></script>
+    <script src="https://js.arcgis.com/3.23/"></script>
+    <!-- <script type="text/javascript" src="http://localhost/arcgis_js_api/library/3.17/3.17/init.js"></script> -->
+</head>
+
+<body>
+    <div id="mapCanvas">
+    </div>
+    <div id="loadingMsg" style="position:absolute;right: 0;top:0; width: 150px;height: 30px;color: red;"></div>
+    <script>
+        var map, baseLayer, animateLayer, Lidar;
+        require([
+            "esri/map",
+            "dojo/parser",
+            "dojo/number",
+            "dojo/json",
+            "dojo/request",
+            "esri/geometry/Point",
+            "esri/geometry/ScreenPoint",
+            "esri/geometry/webMercatorUtils",
+            "extend/RasterLayer",
+            "dojo/domReady!"
+        ], function (Map, parser, number, JSON, request, Point, ScreenPoint, webMercatorUtils,
+            RasterLayer) {
+                parser.parse();
+                map = new Map("mapCanvas", {
+                    center: [109.485, 30.279],
+                    zoom: 8,
+                    basemap: "gray"
+                });
+
+                map.on("load", mapLoaded);
+
+                function mapLoaded() {
+                    baseLayer = new RasterLayer(null, {
+                        opacity: 1
+                    });
+                    map.addLayers([baseLayer]);
+                    map.on("extent-change", redraw);
+                    map.on("resize", redraw);
+                    // map.on("zoom-start", redraw);
+                    // map.on("pan-end", redraw);
+
+                    request.get('data/lidar.csv', {
+                        handleAs: "csv"
+                    }).then(function (result) {
+                        result = result.split('\r\n');
+                        var dataset = [];
+                        result = result.slice(1, 181);
+                        for (let i = 0, len = result.length; i < len; i++) {
+                            const data = result[i].split(',').splice(3);
+                            dataset.push(data);
+                        }
+
+                        lidar = new Lidar(map, {
+                            //[xmin,ymin,xmax,ymax]
+                            center: [109.485, 30.279, 109.485, 30.5487966],
+                            //x方向经度间隔度数
+                            data: dataset,
+                            Point: Point,
+                            ScreenPoint: ScreenPoint,
+                            webMercatorUtils: webMercatorUtils,
+                            baseCanvas: baseLayer._element,
+                        });
+                        redraw();
+                    });
+                }
+
+                function redraw() {
+                    baseLayer._element.width = map.width;
+                    baseLayer._element.height = map.height;
+                    lidar.start();
+                }
+            });
+    </script>
+</body>
+
+</html>
