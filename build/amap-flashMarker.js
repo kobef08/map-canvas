@@ -30,7 +30,7 @@ CanvasLayer.prototype.initialize = function () {
     canvas.style.cssText = "position:absolute;" + "left:0;" + "top:0;" + "z-index:" + this.zIndex + ";";
     this.adjustSize();
     this.adjustRatio(ctx);
-    this.layer = new AMap.CanvasLayer({
+    this.layer = new AMap.CustomLayer(canvas, {
         canvas: canvas,
         bounds: map.getBounds(),
         zooms: [0, 22]
@@ -43,8 +43,8 @@ CanvasLayer.prototype.initialize = function () {
     map.on('zoomchange', function () {
         that.adjustSize();
     });
-    var bounds = map.getBounds();
-    this.layer.setBounds(bounds);
+    // var bounds = map.getBounds();
+    // this.layer.setBounds(bounds);
     return this.canvas;
 };
 
