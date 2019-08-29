@@ -44,5 +44,10 @@
     "rollup": "^0.41.5",
     "rollup-plugin-babel": "^2.7.1",
     "uglify-js": "^3.3.8"
+  },
+  "dependencies": {
+    "lodash": "^4.17.15",
+    "mixin-deep": "^2.0.1",
+    "set-value": "^3.0.1"
   }
 }
