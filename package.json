@@ -46,7 +46,7 @@
     "uglify-js": "^3.3.8"
   },
   "dependencies": {
-    "lodash": "^4.17.15",
+    "lodash": "^4.17.19",
     "mixin-deep": "^2.0.1",
     "set-value": "^3.0.1"
   }
