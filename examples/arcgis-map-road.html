@@ -6,6 +6,7 @@
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, user-scalable=no">
     <link rel="stylesheet" href="https://js.arcgis.com/3.23/esri/css/esri.css">
+    <!-- <link rel="stylesheet" href="http://localhost/arcgis_js_api/library/3.17/3.17/esri/css/esri.css"> -->
     <style>
         html,
         body {
@@ -31,6 +32,7 @@
     </script>
     <script type="text/javascript" src="../build/release/arcgis-map-moveLine.min.js"></script>
     <script src="https://js.arcgis.com/3.23/"></script>
+    <!-- <script src="http://localhost/arcgis_js_api/library/3.17/3.17/init.js"></script> -->
 </head>
 
 <body>
@@ -118,7 +120,7 @@
                                 moveline = new MoveLine(map, {
                                     lineWidth: 0.8, //线条宽度
                                     lineStyle: 'rgb(200, 40, 0)', //线条颜色
-                                    animateLineWidth: 1, //动画线条宽度
+                                    animateLineWidth: .8, //动画线条宽度
                                     animateLineStyle: '#ffff00', //动画线条颜色
                                     canvas: baseLayer._element,
                                     animateCanvas: animateLayer._element,
@@ -141,10 +143,6 @@
                 }
 
                 function redraw() {
-                    baseLayer._element.width = map.width;
-                    baseLayer._element.height = map.height;
-                    animateLayer._element.width = map.width;
-                    animateLayer._element.height = map.height;
                     moveline.start();
                 }
             });

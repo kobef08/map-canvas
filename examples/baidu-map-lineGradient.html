@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>baidu map lineGradients</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, user-scalable=no">
+    <link rel="stylesheet" href="css/style.css">
+    <script type="text/javascript" src="https://api.map.baidu.com/api?v=2.0&ak=nuWah68S1WieW2AEwiT8T3Ro&s=1"></script>
+    <script type="text/javascript" src="mapstyle/gray.js"></script>
+    <script type="text/javascript" src="js/jquery.min.js"></script>
+</head>
+
+<body>
+    <div id="map"></div>
+    <div id='tooltips' style="position: absolute; visibility: hidden; background-color: rgba(0, 0, 0, 0.7); transition: top 0.2s ease 0s, left 0.2s ease 0s; border-radius: 2px; color: rgb(255, 255, 255); line-height: 16px; padding: 5px 10px; left: 137px; top: 337.333px;">2019-9-8<br>AQI
+        : 102<br><span style="display:inline-block;margin-right:5px;border-radius:10px;width:9px;height:9px;background-color:rgba(197, 233, 0, 1);"></span>轻度污染</div>
+    <script type="text/javascript" src="../build/release/baidu-map-lineGradient.min.js"></script>
+    <script type="text/javascript">
+        var map = new BMap.Map('map', {
+            minZoom: 5
+        });
+        map.centerAndZoom(new BMap.Point(116.252, 31.557), 6);
+        map.enableScrollWheelZoom(true);
+        map.setMapStyle({
+            styleJson: styleJson
+        });
+
+        $.getJSON('data/line-gradients.json', function (result) {
+            console.log(result);
+            var dataset = [];
+            if (result) {
+                for (var key in result) {
+                    if (result.hasOwnProperty(key)) {
+                        var line = {
+                            name: key,
+                            data: []
+                        };
+                        const element = result[key];
+                        line.label = element[0].z == 100 ? '地面' : '高空' + Number(element[0].z) + '米';
+                        line.labelColor = key == '1' ? '#d01118' : (key == '2' ? '#058c29' : '#0e46b1');
+                        element.forEach(function (item, idx) {
+                            line.data.push({
+                                code: item.code,
+                                name: idx + 1,
+                                height: item.z,
+                                Latitude: item.y,
+                                Longitude: item.x,
+                                time: item.time,
+                                value: item.qy
+                            });
+                        });
+                        dataset.push(line);
+                    }
+                }
+                console.log(dataset);
+            }
+
+            var lineGradients = new LineGradient(map, {
+                //线条宽度
+                lineWidth: 4,
+                //线条颜色
+                lineStyle: '#F9815C',
+                //数据源
+                data: dataset,
+                //事件
+                methods: {
+                    mousemove: function (e, obj) {
+                        console.log('你当前点击的是' + obj);
+                        var tooltips = document.getElementById('tooltips');
+                        var content = obj.time + '<br>序号：' + obj.code + '<br>经度 : ' + obj.location.lat +'<br>纬度 : ' + obj.location.lng + '<br>高度 : ' + obj.height +'<br><span style="display:inline-block;margin-right:5px;border-radius:10px;width:9px;height:9px;background-color:' +obj.color + ';"></span>' + obj.value;
+                        tooltips.innerHTML = content;
+                        tooltips.style.visibility = 'visible';
+                        tooltips.style.left = e.clientX + 'px';
+                        tooltips.style.top = e.clientY + 'px';
+                    },
+                    // click: function (e, name) {
+                    //     console.log('你当前点击的是' + name);
+                    // }
+                }
+            });
+        })
+    </script>
+</body>

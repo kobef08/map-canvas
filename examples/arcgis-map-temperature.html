@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>arcgis map temperature</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <meta name="viewport"
+        content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, user-scalable=no">
+    <link rel="stylesheet" href="https://js.arcgis.com/3.23/esri/css/esri.css">
+    <!-- <link rel="stylesheet" href="http://localhost/arcgis_js_api/library/3.17/3.17/esri/css/esri.css"> -->
+    <link rel="stylesheet" href="css/style.css">
+    <style>
+        #mapCanvas {
+            padding: 0;
+            height: 100%;
+        }
+    </style>
+    <script type="text/javascript">
+        dojoConfig = {
+            parseOnLoad: true,
+            packages: [{
+                name: 'extend',
+                location: this.location.pathname.replace(/\/[^/]+$/, "") + "/plugins"
+            }]
+        };
+    </script>
+    <script type="text/javascript" src="../build/arcgis-map-temperature.js"></script>
+    <script src="https://js.arcgis.com/3.23/"></script>
+    <!-- <script type="text/javascript" src="http://localhost/arcgis_js_api/library/3.17/3.17/init.js"></script> -->
+</head>
+
+<body>
+    <div id="mapCanvas">
+    </div>
+    <script>
+        var map, baseLayer, animateLayer, temperature;
+        require([
+            "esri/map",
+            "dojo/parser",
+            "dojo/number",
+            "dojo/json",
+            "dojo/request",
+            "esri/geometry/Point",
+            "esri/geometry/ScreenPoint",
+            "esri/geometry/webMercatorUtils",
+            "extend/RasterLayer",
+            "dojo/domReady!"
+        ], function (Map, parser, number, JSON, request, Point, ScreenPoint, webMercatorUtils,
+            RasterLayer) {
+            parser.parse();
+            map = new Map("mapCanvas", {
+                center: [104.35, 29.45],
+                zoom: 5,
+                basemap: "gray"
+            });
+
+            map.on("load", mapLoaded);
+
+            function mapLoaded() {
+                baseLayer = new RasterLayer(null, {
+                    opacity: 1
+                });
+                map.addLayers([baseLayer]);
+                map.on("extent-change", redraw);
+                map.on("resize", redraw);
+                // map.on("zoom-start", redraw);
+                // map.on("pan-end", redraw);
+
+                request.get('data/2019032412_2019032516-fsp-surface-level-wrf-27km.json', {
+                    handleAs: "json"
+                }).then(function (result) {
+                    var header = result[0].header,
+                        data = result[0].data,
+                        dx = header.dx / 1000, //x方向经度间隔度数
+                        dy = header.dy / 1000, //y方向纬度间隔度数
+                        ni = header.nx, //x方向网格数
+                        nj = header.ny, //y方向网格数
+                        grid = [], //二维网格数组
+                        p = 0; //网格点索引
+
+                    for (let j = 0; j < nj; j++) {
+                        var row = [];
+                        for (let i = 0; i < ni; i++, p++) {
+                            row[i] = data[p];
+                        }
+                        grid[j] = row;
+                    }
+
+                    temperature = new Temperature(map, {
+                        //[xmin,ymin,xmax,ymax]
+                        extent: [header.lo1, header.la1, header.lo2, header.la2],
+                        //x方向经度间隔度数
+                        dx: dx,
+                        //y方向纬度间隔度数
+                        dy: dy,
+                        data: grid,
+                        Point: Point,
+                        ScreenPoint: ScreenPoint,
+                        webMercatorUtils: webMercatorUtils,
+                        baseCanvas: baseLayer._element,
+                    });
+                    redraw();
+                });
+            }
+
+            function redraw() {
+                baseLayer._element.width = map.width;
+                baseLayer._element.height = map.height;
+                temperature.start();
+            }
+        });
+    </script>
+</body>
+
+</html>

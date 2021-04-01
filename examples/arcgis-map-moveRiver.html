@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>arcgis map moveRiver</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, user-scalable=no">
+    <link rel="stylesheet" href="https://js.arcgis.com/3.23/esri/css/esri.css">
+    <!-- <link rel="stylesheet" href="http://localhost/arcgis_js_api/library/3.17/3.17/esri/css/esri.css"> -->
+    <style>
+        html,
+        body {
+            width: 100%;
+            height: 100%;
+            margin: 0;
+            padding: 0px 0 0 0;
+        }
+
+        #mapCanvas {
+            padding: 0;
+            height: 100%;
+        }
+    </style>
+    <script type="text/javascript">
+        dojoConfig = {
+            parseOnLoad: true,
+            packages: [{
+                name: 'extend',
+                location: this.location.pathname.replace(/\/[^/]+$/, "") + "/plugins"
+            }]
+        };
+    </script>
+    <script type="text/javascript" src="../build/arcgis-map-river.js"></script>
+    <script src="https://js.arcgis.com/3.23/"></script>
+    <!-- <script type="text/javascript" src="http://localhost/arcgis_js_api/library/3.17/3.17/init.js"></script> -->
+</head>
+
+<body>
+    <div id="mapCanvas">
+    </div>
+    <script>
+        var map, rasterLayer, moveRiver;
+        var canvasSupport;
+        require(["esri/map",
+                "esri/request",
+                "dojo/parser",
+                "dojo/number",
+                "dojo/json",
+                "esri/geometry/Point",
+                // "extend/TDTTilesLayer",
+                "extend/RasterLayer",
+                "dojo/domReady!"
+            ],
+            function (Map,
+                esriRequest,
+                parser,
+                number,
+                JSON,
+                Point,
+                // TDTTilesLayer,
+                RasterLayer
+            ) {
+                parser.parse();
+                canvasSupport = supports_canvas();
+                map = new Map("mapCanvas", {
+                    center: [113.6273634815216, 30.223849143981934],
+                    zoom: 11,
+                    basemap: "dark-gray-vector",
+                });
+
+                map.on("load", mapLoaded);
+
+                function mapLoaded() {
+                    // Add raster layer
+                    if (canvasSupport) {
+                        // var vec_c = new TDTTilesLayer("vec");
+                        // var cva_c = new TDTTilesLayer("cva"); //英文路网
+                        baseLayer = new RasterLayer(null, {
+                            opacity: .3
+                        });
+                        animateLayer = new RasterLayer(null, {
+                            opacity: 1
+                        });
+                        // map.addLayers([vec_c, cva_c, baseLayer, animateLayer]);
+                        map.addLayers([baseLayer, animateLayer]);
+                        map.on("extent-change", redraw);
+                        map.on("resize", function () {});
+                        map.on("zoom-start", redraw);
+                        map.on("pan-start", redraw);
+                        var layersRequest = esriRequest({
+                            url: 'data/river-point.json',
+                            content: {},
+                            handleAs: "json"
+                        });
+                        layersRequest.then(
+                            function (response) {
+                                var lines = [];
+                                var lnglats = [];
+                                var lnglats2 = [];
+                                for (var i = 0; i < response.features.length; i++) {
+                                    var feature = response.features[i];
+                                    var attribute = feature.attributes;
+                                    if (attribute.jmax == 3) {
+                                        lnglats.push(new Point({
+                                            "x": attribute.X_1_WGS198,
+                                            "y": attribute.Y_1_WGS198,
+                                            "spatialReference": {
+                                                "wkid": 4326
+                                            }
+                                        }));
+                                    } else if (attribute.jmax == 4) {
+                                        lnglats2.push(new Point({
+                                            "x": attribute.X_1_WGS198,
+                                            "y": attribute.Y_1_WGS198,
+                                            "spatialReference": {
+                                                "wkid": 4326
+                                            }
+                                        }));
+                                    }
+                                }
+                                lines.push(lnglats);
+                                // lines.push(lnglats2);
+                                moveRiver = new MoveLine(map, {
+                                    type: 'arrow', //点或箭头或圆点,point,arrow,circle
+                                    grap: 10, //粒子间隔倍数,数字越大显示的粒子越少
+                                    isShowBaseLine: true, //是否显示底层线条
+                                    lineWidth: .5, //底层线条宽度
+                                    lineStyle: '#C82800', //线条颜色
+                                    isShowTail: true, //是否显示粒子尾巴动画效果
+                                    tailOpacity: .4, //尾巴动画透明度
+                                    animateLineWidth: 2, //尾巴动画线条宽度
+                                    animateLineStyle: '#ffff00', //尾巴动画线条颜色
+                                    canvas: baseLayer._element,
+                                    animateCanvas: animateLayer._element,
+                                    data: lines
+                                });
+                                redraw();
+                            },
+                            function (error) {
+                                console.log("Error: ", error.message);
+                            });
+                    } else {
+                        dom.byId("mapCanvas").innerHTML =
+                            "This browser doesn't support canvas";
+                    }
+                }
+
+                // does the browser support canvas?
+                function supports_canvas() {
+                    return !!document.createElement("canvas").getContext;
+                }
+
+                function redraw() {
+                    baseLayer._element.width = map.width;
+                    baseLayer._element.height = map.height;
+                    animateLayer._element.width = map.width;
+                    animateLayer._element.height = map.height;
+                    moveRiver.start();
+                }
+            });
+    </script>
+</body>
+</html

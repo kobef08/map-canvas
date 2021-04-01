@@ -63,6 +63,7 @@ var Windy = function (options) {
         function interpolateColumn(x) {
             var column = [];
             for (var y = bounds.y; y < bounds.ymax; y += 2) {
+                console.log('x:' + x + ',y:' + y);
                 var wind = interpolate(x, y);
                 column[y + 1] = column[y] = wind;
             }

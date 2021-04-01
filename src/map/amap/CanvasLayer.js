@@ -16,11 +16,8 @@ function CanvasLayer(options) {
     this.show();
 }
 
-CanvasLayer.prototype.setMap = function (map) {
-
-}
-
 CanvasLayer.prototype.initialize = function () {
+    var map = this._map;
     var canvas = this.canvas = document.createElement('canvas');
     canvas.id = 'myCanvas';
     var ctx = this.ctx = this.canvas.getContext('2d');
@@ -30,14 +27,32 @@ CanvasLayer.prototype.initialize = function () {
         "z-index:" + this.zIndex + ";";
     this.adjustSize();
     this.adjustRatio(ctx);
-    map.plugin(['AMap.CustomLayer'], function () {
-        var canvasLayer123 = new AMap.CustomLayer(canvas);
-        canvasLayer123.setMap(map);
+    this.layer = new AMap.CustomLayer(canvas,{
+        canvas: canvas,
+        bounds: map.getBounds(),
+        zooms: [0, 22]
     });
-    // this._map.indoorMap.Ae.appendChild(canvas);
-
+    this.layer.setMap(map);
+    var that = this;
+    map.on('mapmove', function () {
+        that.adjustSize();
+    });
+    map.on('zoomchange', function () {
+        that.adjustSize();
+    });
+    // var bounds = map.getBounds();
+    // this.layer.setBounds(bounds);
     return this.canvas;
-}
+};
+
+CanvasLayer.prototype.adjustSize = function () {
+    var size = this._map.getSize();
+    var canvas = this.canvas;
+    canvas.width = size.width;
+    canvas.height = size.height;
+    canvas.style.width = canvas.width + "px";
+    canvas.style.height = canvas.height + "px";
+};
 
 CanvasLayer.prototype.adjustRatio = function (ctx) {
     var backingStore = ctx.backingStorePixelRatio ||
@@ -53,18 +68,8 @@ CanvasLayer.prototype.adjustRatio = function (ctx) {
     ctx.canvas.height = canvasHeight * pixelRatio;
     ctx.canvas.style.width = canvasWidth + 'px';
     ctx.canvas.style.height = canvasHeight + 'px';
-    console.log(ctx.canvas.height, canvasHeight);
     ctx.scale(pixelRatio, pixelRatio);
 };
-
-CanvasLayer.prototype.adjustSize = function () {
-    var size = this._map.getSize();
-    var canvas = this.canvas;
-    canvas.width = size.width;
-    canvas.height = size.height;
-    canvas.style.width = canvas.width + "px";
-    canvas.style.height = canvas.height + "px";
-}
 
 CanvasLayer.prototype.show = function () {
     this.initialize();
@@ -72,4 +77,6 @@ CanvasLayer.prototype.show = function () {
         this.initialize();
     }
     this.canvas.style.display = 'block';
-}
+};
+
+export default CanvasLayer;

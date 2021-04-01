@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>arcgis map flashmarker</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, user-scalable=no">
+    <link rel="stylesheet" href="https://js.arcgis.com/3.23/esri/css/esri.css">
+    <!-- <link rel="stylesheet" href="http://localhost/arcgis_js_api/library/3.17/3.17/esri/css/esri.css"> -->
+    <style>
+        html,
+        body {
+            width: 100%;
+            height: 100%;
+            margin: 0;
+            padding: 0px 0 0 0;
+        }
+
+        #mapCanvas {
+            padding: 0;
+            height: 100%;
+        }
+    </style>
+    <script type="text/javascript">
+        dojoConfig = {
+            parseOnLoad: true,
+            packages: [{
+                name: 'extend',
+                location: this.location.pathname.replace(/\/[^/]+$/, "") + "/plugins"
+            }]
+        };
+    </script>
+    <script src="https://js.arcgis.com/3.23/"></script>
+    <!-- <script src="http://localhost/arcgis_js_api/library/3.17/3.17/init.js"></script> -->
+</head>
+
+<body>
+    <div id="mapCanvas">
+    </div>
+    <script>
+        var map, rasterLayer, moveRiver, timer, animationId;
+        require(["esri/map", "esri/request", "dojo/parser", "dojo/number", "dojo/json", "esri/geometry/Point",
+            "extend/RasterLayer", "dojo/domReady!"
+        ], function (Map, esriRequest, parser, number, JSON, Point, RasterLayer) {
+            parser.parse();
+            map = new Map("mapCanvas", {
+                center: [112.91992, 30.450489],
+                zoom: 11,
+                basemap: "dark-gray-vector",
+            });
+
+            map.on("load", mapLoaded);
+
+            var lnglats = [], //经纬度点的集合
+                canvas = null, //定义canvas元素
+                context = null, //上下文，canvas的api都是从这个变量中去调用;
+                colors = ["#c1232b", "#27727b", "#fcce10", "#e87c25", "#b5c334", "#fe8463", "#9bca63",
+                    "#fad860", "#f3a43b", "#60c0dd", "#d7504b", "#c6e579", "#f4e001", "#f0805a", "#26c0c0"
+                ];
+
+            function mapLoaded() {
+                //定义一个canvas图层,叠加在地图上，用于绘制一些点、线基本图形
+                baseLayer = new RasterLayer(null, {
+                    opacity: 1
+                });
+                map.addLayers([baseLayer]);
+                canvas = baseLayer._element; //canvas元素赋值
+                context = canvas.getContext('2d'); //上下文赋值，canvas的api都是从这个变量中去调用
+
+                //这里触发地图的移动、放大、缩小事件时，将调用redraw方法，对canvas上的圆点进行重新绘制
+                map.on("extent-change", redraw);
+                map.on("resize", function () {});
+                map.on("zoom-start", redraw);
+                map.on("pan-start", redraw);
+
+                //加载河流经纬度点
+                var layersRequest = esriRequest({
+                    url: 'data/river-point.json',
+                    content: {},
+                    handleAs: "json"
+                });
+                layersRequest.then(
+                    function (response) {
+                        for (var i = 0; i < response.features.length; i++) {
+                            if (i % 50 == 0) {
+                                var feature = response.features[i];
+                                var attribute = feature.attributes;
+                                if (attribute.jmax == 3) {
+                                    lnglats.push(new Point({
+                                        "x": attribute.X_1_WGS198,
+                                        "y": attribute.Y_1_WGS198,
+                                        "spatialReference": {
+                                            "wkid": 4326
+                                        }
+                                    }));
+                                }
+                            }
+                        }
+                        redraw(); //调用重新绘制的方法
+                    }
+                );
+            };
+
+            //设置屏幕的缩放比例，防止文字太小
+            function resolutionScale(context) {
+                var devicePixelRatio = window.devicePixelRatio || 1;
+                context.canvas.width = context.canvas.width * devicePixelRatio;
+                context.canvas.height = context.canvas.height * devicePixelRatio;
+                context.canvas.style.width = context.canvas.width / devicePixelRatio + 'px';
+                context.canvas.style.height = context.canvas.height / devicePixelRatio + 'px';
+                context.scale(devicePixelRatio, devicePixelRatio);
+            };
+
+            function redraw() {
+                //每次重新绘制时先清除正在运行的动画
+                clearAnimation();
+
+                //将canvas图层的宽、高设置为地图的高、宽，防止地图经纬度点转canvas坐标时定位不准
+                canvas.width = map.width;
+                canvas.height = map.height;
+
+                //渲染环境在硬件设备上的缩放程度，防止图像、文字太小
+                resolutionScale(context);
+
+                //canvas只认识x，y坐标，对于arcgis、baidu、google各类地图的经纬度坐标识别不了
+                //因此这里需要将经纬度点转换成屏幕坐标x，y，也就是canvas坐标，才能在canvas上去绘制各种图形
+                //每种地图转换坐标的方法不同，但大同小异，这里使用的是arcgis地图，因此用的转换方法为map.toScreen(Point)
+                //定义一个类型为数组的points变量，用来存储转换为canvas坐标的点集合
+                var points = [];
+                lnglats.forEach(function (p) { //循环每一个经纬度点
+                    var _point = map.toScreen(p); //将经纬度点转为canvas坐标点
+                    points.push({
+                        pixel: _point,
+                        size: 0,
+                        speed: 0.5 + Math.random(),
+                        max: Math.floor(Math.random() * 80),
+                        color: colors[Math.floor(Math.random() * colors.length)]
+                    }); //将转换后的canvas坐标点添加到points数组中
+                });
+
+                /*======================点动画效果开始======================*/
+                function animate() {
+                    //点运动尾巴效果关键代码
+                    //每绘制一次动画，canvas图层的透明度变成0.9，第2次透明度为0.9*0.9,第3次透明度为0.9*0.9*0.9...,以此类推
+                    //这样重复绘制改变透明度后，已绘制的圆点将越来越透明
+                    context.fillStyle = "rgba(0,0,0,0.95)";
+                    var prev = context.globalCompositeOperation;
+                    context.globalCompositeOperation = "destination-in";
+                    context.fillRect(0, 0, self.map.width, self.map.height);
+                    context.globalCompositeOperation = prev;
+
+                    points.forEach(function (p) {
+                        context.beginPath();
+                        context.arc(p.pixel.x, p.pixel.y, p.size, 0, Math.PI * 2); //圆点x、y坐标，颜色等
+                        context.strokeStyle = p.color; //圆点颜色
+                        context.stroke();
+
+                        //圆绘制到最大时，从头开始
+                        p.size += p.speed;
+                        if (p.size > p.max) {
+                            p.size = 0;
+                        }
+                    });
+                }
+
+                (function drawFrame() {
+                    //用setTimeout是为了更好地控制动画的速度,每150毫秒绘制一次
+                    timer = setTimeout(function () {
+                        if (animationId) {
+                            cancelAnimationFrame(animationId); //每次运行动画前，先清除之前的
+                        }
+                        animationId = requestAnimationFrame(drawFrame); //循环更新动画
+                        animate();
+                    }, 150);
+                })();
+                /*======================点动画效果结束======================*/
+            }
+
+            //清除动画
+            function clearAnimation() {
+                if (animationId) {
+                    cancelAnimationFrame(animationId);
+                }
+                if (timer) {
+                    clearTimeout(timer);
+                }
+            }
+        })
+    </script>
+</body>
+
+</html>

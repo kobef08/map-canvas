@@ -71,23 +71,19 @@ Marker.prototype._drawEllipse = function (context) {
     context.stroke();
 }
 
-function FlashMarker(map, dataSet) {
+function FlashMarker(map, dataset) {
+    var self = this;
+
     var animationLayer = null,
         width = map.getSize().width,
         height = map.getSize().height,
-        animationFlag = true,
-        markers = [];
+        animationFlag = true;
+    var markers = this.markers = [];
 
-    var addMarker = function () {
-        if (markers.length > 0) return;
-        markers = [];
-        for (var i = 0; i < dataSet.length; i++) {
-            markers.push(new Marker(dataSet[i]));
-        }
-    };
 
     //上层canvas渲染，动画效果
-    var render = function () {
+    var render = function render() {
+        var markers = self.markers;
         var animationCtx = animationLayer.canvas.getContext('2d');
         if (!animationCtx) {
             return;
@@ -98,9 +94,7 @@ function FlashMarker(map, dataSet) {
             return;
         }
 
-        addMarker();
-
-        animationCtx.fillStyle = 'rgba(0,0,0,.95)';
+        animationCtx.fillStyle = 'rgba(0,0,0,0.95)';
         var prev = animationCtx.globalCompositeOperation;
         animationCtx.globalCompositeOperation = 'destination-in';
         animationCtx.fillRect(0, 0, width, height);
@@ -110,10 +104,10 @@ function FlashMarker(map, dataSet) {
             var marker = markers[i];
             marker.draw(animationCtx);
         }
-    }
+    };
 
     //鼠标事件
-    var mouseInteract = function () {
+    var mouseInteract = function mouseInteract() {
         map.addEventListener('movestart', function () {
             animationFlag = false;
         });
@@ -133,8 +127,19 @@ function FlashMarker(map, dataSet) {
         });
     };
 
+    var addMarker = function addMarker() {
+        var markers = self.markers;
+        var dataset = self.dataset;
+        dataset.forEach(function (item, i) {
+            var newMarker = new Marker(item);
+            markers.push(newMarker);
+        });
+    };
+
     //初始化
-    var init = function () {
+    var init = function init(map, dataset) {
+        self.dataset = dataset;
+
         animationLayer = new CanvasLayer({
             map: map,
             update: render
@@ -142,13 +147,25 @@ function FlashMarker(map, dataSet) {
 
         mouseInteract();
 
+        addMarker();
+
         (function drawFrame() {
             requestAnimationFrame(drawFrame);
             render();
-        }());
+        })();
     };
 
-    init();
-}
+    init(map, dataset);
+
+};
+
+FlashMarker.prototype.update = function (dataset) {
+    var self = this;
+    self.markers = [];
+    dataset.forEach(function (item, i) {
+        var newMarker = new Marker(item);
+        self.markers.push(newMarker);
+    });
+};
 
 export default FlashMarker;

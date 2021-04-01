@@ -37,5 +37,20 @@ export default {
         var tmp = _a * x - y + _b;
         var _s = tmp * tmp / (_a * _a + 1);
         return _s <= _l / 2 * _l / 2;
+    },
+    //是否在矩形内
+    isPointInRect(point, bound) {
+        var wn = bound.wn; //西北
+        var es = bound.es; //东南
+        return (point.x >= wn.x && point.x <= es.x && point.y >= wn.y && point.y <= es.y);
+    },
+    //是否在圆内
+    isPointInCircle(point, center, radius) {
+        var dis = this.getDistanceNew(point, center);
+        return dis <= radius;
+    },
+    //两点间距离
+    getDistanceNew(point1, point2) {
+        return Math.sqrt(Math.pow(point1.x - point2.x, 2) + Math.pow(point1.y - point2.y, 2));
     }
 }

@@ -1,0 +1,283 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta name="viewport" content="width=device-width" />
+    <title>颜色取色器colorPicker</title>
+    <style type="text/css">
+        html,
+        body {
+            margin: 0;
+            padding: 0;
+            font-size: 12px
+        }
+
+        #content {
+            margin: 20px auto;
+            width: 900px;
+            height: 300px
+        }
+
+        .content-left {
+            float: left;
+            width: 400px;
+            height: inherit
+        }
+
+        .content-right {
+            float: left;
+            width: 180px;
+            height: inherit;
+            margin-left: 18px
+        }
+
+        .canvas-scale {
+            height: 15px;
+            top: 25px;
+            padding: 0;
+            margin: 0;
+            float: left
+        }
+
+        .canvas-selColor {
+            float: left;
+            width: 100%;
+            height: 260px;
+            margin-top: 10px
+        }
+
+        #colorCanvas {
+            cursor: crosshair;
+            float: left
+        }
+
+        .content-rgb {
+            padding: 0 10px;
+            height: 20px;
+            line-height: 20px;
+            font-size: 14px;
+            float: left;
+            display: none
+        }
+    </style>
+</head>
+
+<body>
+    <div id="content">
+        <div class="content-left">
+            <canvas id="colorCanvas" width="400" height="15"></canvas>
+            <canvas id="rangeCanvas" width="400" height="55"></canvas>
+            <div class="canvas-selColor"></div>
+        </div>
+        <div class="content-right">
+            <input type="tel" name="colorValue" size="10" />值域<br /><br />
+            <input type="tel" name="position" size="10" />canvas坐标<br /><br />
+            <input type="text" name="rgb" size="10">rgb颜色值<br /><br />
+            <input type="text" name="color" size="10">16进制颜色码<br /><br />
+        </div>
+        <div class="content-right">
+            <input type="tel" name="Num" size="10" /><br /><br />
+            <input type="button" id="btnok" value="获取颜色">
+        </div>
+    </div>
+
+</body>
+
+</html>
+<script src="http://libs.baidu.com/jquery/2.0.0/jquery.min.js"></script>
+<script type="text/javascript">
+    var colorCanvas = document.getElementById("colorCanvas");
+    var context = colorCanvas.getContext("2d");
+    var pointColors = ['#FFD277', "#FFD579", "#FFD67A", "#FFE284", "#FFEF8D", "#FFF794", "#FFFD65", "#FFFF51", "#FDFF46", "#FFFE56", "#FFF794", "#FFED8C", "#FFEA8A", "#FFE888", "#FFE787", "#FFE687", "#FFE98A", "#FFEA8A", "#FFF290", "#FFF794", "#FFFA90"];
+    var colorGradient = {
+        0: 'rgba(100,255,51,1)',
+        0.167: 'rgba(153,255,51,1)',
+        0.333: 'rgba(204,255,51,1)',
+        0.5: 'rgba(255,255,71,0.8)',
+        0.667: 'rgba(255,250,150,1',
+        0.833: 'rgba(255,187,102,0.9)',
+        1: 'rgba(255,119,68,0.9)'
+    };
+    // var colorGradient = {
+    //     0.1: '#fe0000',
+    //     0.4: '#ffaa01',
+    //     0.7: '#b0e000',
+    //     1.0: '#38a702'
+    // };
+    var sortNumber = function (a, b) {
+        return a - b;
+    };
+    var Picker = function () {
+        // this.range = [0, 50, 100, 150, 200, 300];
+        this.range = [700, 750, 800, 850, 900, 950, 1000, 1050, 1100];
+        this.drawColor = function () {
+            var grad = context.createLinearGradient(0, 0, colorCanvas.width, colorCanvas.height);
+            for (var gradient in colorGradient) {
+                grad.addColorStop(gradient, colorGradient[gradient]);
+            }
+            context.fillStyle = grad;
+            context.fillRect(0, 0, colorCanvas.width, colorCanvas.height);
+        };
+        this.drawRange = function () {
+            var rangeCanvas = document.getElementById("rangeCanvas");
+            var width = rangeCanvas.width;
+            var ctx = rangeCanvas.getContext("2d");
+            var len = this.range.length;
+            var maxValue = this.range.sort(sortNumber)[len - 1]; //数组最大value
+            ctx.drawLine = function (beginX, beginY, endX, endY) {
+                this.moveTo(beginX, beginY);
+                this.lineTo(endX, endY);
+            };
+            ctx.fillText("0", 0, 14);
+            ctx.save();
+            ctx.translate(0.5, 0.5); //消除锯齿
+            ctx.lineWidth = 1;
+            ctx.beginPath();
+            ctx.drawLine(0, 0, 0, 4); //第一个刻度
+            for (var i = 0; i < len - 1; i++) {
+                var px = Math.round(width * this.range[i] / maxValue);
+                ctx.fillText(this.range[i], px - 8, 14);
+                ctx.drawLine(px, 0, px, 4);
+            }
+            var endPx = Math.round(width * this.range[len - 1] / maxValue);
+            ctx.fillText(this.range[len - 1], endPx - 18, 14);
+            ctx.drawLine(endPx - 1, 0, endPx - 1, 4); //最后一个刻度
+            ctx.stroke();
+        };
+        this.drawRange223 = function () {
+            var rangeCanvas = document.getElementById("rangeCanvas");
+            var width = rangeCanvas.width;
+            var ctx = rangeCanvas.getContext("2d");
+            var len = this.range.length;
+            var maxValue = this.range.sort(sortNumber)[len - 1]; //数组最大value
+            ctx.drawLine = function (beginX, beginY, endX, endY) {
+                this.moveTo(beginX, beginY);
+                this.lineTo(endX, endY);
+            };
+            // ctx.fillText("0", 0, 14);
+            ctx.save();
+            ctx.translate(0.5, 0.5); //消除锯齿
+            ctx.lineWidth = 1;
+            ctx.beginPath();
+            ctx.drawLine(0, 0, 0, 4); //第一个刻度
+            for (var i = 0; i < len - 1; i++) {
+                var px = Math.round(width * (this.range[i] - this.range[0]) / (maxValue - this.range[0]));
+                ctx.fillText(this.range[i], px - 8, 14);
+                ctx.drawLine(px, 0, px, 4);
+            }
+            var endPx = Math.round(width * this.range[len - 1] / maxValue);
+            ctx.fillText(this.range[len - 1], endPx - 18, 14);
+            ctx.drawLine(endPx - 1, 0, endPx - 1, 4); //最后一个刻度
+            ctx.stroke();
+        };
+        this.drawCircle = function (point, color) {
+            context.clearRect(0, 0, colorCanvas.width, colorCanvas.height);
+            this.drawColor();
+            context.beginPath();
+            context.arc(point.X, point.Y, 2, 0, 360, false);
+            context.fillStyle = color;
+            context.fill();
+            context.lineWidth = 1;
+            context.strokeStyle = "#000";
+            context.stroke();
+            context.save();
+            context.closePath();
+        };
+        this.d2Hex = function (d) {
+            // Converts a decimal number to a two digit Hex value
+            var hex = Number(d).toString(16);
+            while (hex.length < 2) {
+                hex = "0" + hex;
+            }
+            return hex.toUpperCase();
+        };
+        this.getRgbColor = function (point) {
+            var imageData = context.getImageData(0, 0, colorCanvas.width, colorCanvas.height);
+            var data = imageData.data;
+            var i = ((point.Y * colorCanvas.width) + point.X) * 4;
+            var rgb = [],
+                color = '#',
+                objRgbColor = {
+                    "rgb": rgb,
+                    "color": color
+                };
+            for (var j = 0; j < 3; j++) {
+                rgb.push(data[i + j]);
+                color += this.d2Hex(data[i + j]);
+            }
+            objRgbColor.color = color;
+            return objRgbColor;
+        };
+        this.getIntOffset = function (e) {
+            var evt = e || window.event;
+            var srcObj = evt.target || e.srcElement;
+            if (e.offsetX) {
+                return {
+                    X: parseInt(e.offsetX),
+                    Y: parseInt(e.offsetY)
+                };
+            } else {
+                var rect = srcObj.getBoundingClientRect();
+                return {
+                    X: parseInt(e.clientX - rect.left),
+                    Y: parseInt(e.clientY - rect.top)
+                };
+            }
+        };
+        this.getValue = function (point) {
+            return Math.round((this.range[this.range.length - 1] - this.range[0]) * point.X / colorCanvas.width);
+        };
+        this.setColor = function (point) {
+            var objRgbColor = this.getRgbColor(point);
+            var rgb = "rgb(" + objRgbColor.rgb.join(",") + ")";
+            var color = objRgbColor.color;
+            var colorValue = this.getValue(point);
+            this.drawCircle(point, color);
+            $(".canvas-selColor").css("background", rgb);
+            $("input[name='colorValue']").val(colorValue + this.range[0]);
+            $("input[name='position']").val(point.X + "," + point.Y);
+            $("input[name='rgb']").val(rgb);
+            $("input[name='color']").val(color);
+        };
+
+        this.getColor = function (value) {
+            var colorValue = value - this.range[0];
+            var point = Math.round((colorValue * colorCanvas.width) / (this.range[this.range.length - 1] - this.range[0]));
+            return this.getRgbColor({ X: point, Y: 1 });
+        };
+    };
+    var initPicker = function () {
+        var picker = new Picker();
+        picker.drawColor();
+        picker.drawRange223();
+        colorCanvas.onclick = function (e) {
+            var point = picker.getIntOffset(e);
+            picker.setColor(point);
+        };
+        document.getElementById('btnok').onclick = function (e) {
+            console.log(picker.getColor($("input[name='Num']").val()));
+        }
+    }
+    var drawLine = function () {
+        var canvas = document.getElementById("rangeCanvas");
+        var ctx = canvas.getContext("2d");
+
+        var index = 0;
+        for (var i = 0, len = pointColors.length; i < len - 1; i++) {
+            ctx.save();
+            ctx.beginPath();
+            // ctx.lineCap = "round";
+            ctx.lineJoin = "round";
+            ctx.lineWidth = 5;
+            ctx.strokeStyle = pointColors[i];
+            ctx.moveTo(index, 35);
+            ctx.lineTo(index + 4, 35);
+            ctx.stroke();
+            ctx.closePath();
+            ctx.restore();
+            index += 4;
+        }
+    }
+    initPicker();
+    drawLine();
+</script>

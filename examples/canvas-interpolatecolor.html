@@ -1,0 +1,125 @@
+﻿<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=Edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1" user-scalable="no">
+    <title>颜色插值</title>
+    <link rel="stylesheet" href="css/style.css">
+    <style type="text/css">
+        /* html,
+        body {
+            background: #000;
+        } */
+    </style>
+</head>
+
+<body>
+    <div id="display">
+
+    </div>
+    <canvas id="canvas"></canvas>
+
+    <script>
+        var layer = {
+            width: window.innerWidth,
+            height: window.innerHeight,
+            initialize: function () {
+                // var canvas = this.canvas = document.getElementById('canvas');
+                // var context = this.context = canvas.getContext('2d');
+
+                //this.adjustSize(); //调整canvas大小
+                //this.adjustRatio(); //调整canvas缩放比例
+                this.createMask();
+            },
+            adjustSize: function () {
+                var canvas = this.canvas;
+                canvas.width = this.width;
+                canvas.height = this.height;
+                canvas.style.width = this.width + 'px';
+                canvas.style.height = this.height + 'px';
+                canvas.style.cssText = "position:absolute;left:0;top:0;z-index:0;user-select:none;";
+            },
+            adjustRatio: function () {
+                var context = this.context;
+                var backingStore = context.backingStorePixelRatio ||
+                    context.webkitBackingStorePixelRatio ||
+                    context.mozBackingStorePixelRatio ||
+                    context.msBackingStorePixelRatio ||
+                    context.oBackingStorePixelRatio ||
+                    context.backingStorePixelRatio || 1;
+                var pixelRatio = (window.devicePixelRatio || 1) / backingStore;
+                var canvasWidth = context.canvas.width;
+                var canvasHeight = context.canvas.height;
+                context.canvas.width = canvasWidth * pixelRatio;
+                context.canvas.height = canvasHeight * pixelRatio;
+                context.canvas.style.width = canvasWidth + 'px';
+                context.canvas.style.height = canvasHeight + 'px';
+                // console.log(context.canvas.height, canvasHeight);
+                context.scale(pixelRatio, pixelRatio);
+            },
+            createMask: function () {
+                var canvas = document.createElement("canvas"),
+                    context = canvas.getContext("2d"),
+                    width = this.width,
+                    height = this.height;
+                canvas.width = width;
+                canvas.height = height;
+                context.fillStyle = "rgba(255, 0, 0, 1)";
+                context.fill();
+                // document.getElementById('display').appendChild(canvas);
+                var imageData = context.getImageData(0, 0, width, height);
+                var data = imageData.data;
+
+                return {
+                    imageData: imageData,
+                    isVisible: function (x, y) {
+                        var i = (y * width + x) * 4;
+                        return data[i + 3] > 0; // non-zero alpha means pixel is visible
+                    },
+                    set: function (x, y, rgba) {
+                        var i = (y * width + x) * 4;
+                        data[i] = rgba[0];
+                        data[i + 1] = rgba[1];
+                        data[i + 2] = rgba[2];
+                        data[i + 3] = rgba[3];
+                        return this;
+                    }
+                }
+            },
+            interpolateField: function () {
+                var _this = this;
+                var view = {
+                    x: 0,
+                    y: 0,
+                    width: _this.width,
+                    height: _this.height,
+                    xMax: _this.width,
+                    yMax: _this.height,
+                };
+                var mask = _this.createMask();
+                var columns = [];
+                var point = [];
+                var x = view.x;
+
+                function interpolateColumn(x) {
+                    var column = [];
+                    for (var y = view.y; y < view.yMax; y += 2) {
+                        if (mask.isVisible(x, y)) {
+                            point[0] = x;
+                            point[1] = y;
+
+                            var color = [0, 0, 0, 0];
+                            var wind = null;
+                        }
+                    }
+                }
+            }
+        }
+
+        layer.initialize();
+    </script>
+</body>
+
+</html>

@@ -39,6 +39,15 @@ var tool = {
     }
 };
 
+var resolutionScale = function (context) {
+    var devicePixelRatio = window.devicePixelRatio || 1;
+    context.canvas.width = context.canvas.width * devicePixelRatio;
+    context.canvas.height = context.canvas.height * devicePixelRatio;
+    context.canvas.style.width = context.canvas.width / devicePixelRatio + 'px';
+    context.canvas.style.height = context.canvas.height / devicePixelRatio + 'px';
+    context.scale(devicePixelRatio, devicePixelRatio);
+};
+
 var global = typeof window === 'undefined' ? {} : window;
 
 var requestAnimationFrame = global.requestAnimationFrame || global.mozRequestAnimationFrame || global.webkitRequestAnimationFrame || global.msRequestAnimationFrame || function (callback) {
@@ -94,7 +103,7 @@ MoveLine.prototype.animate = function () {
         return;
     }
 
-    animateCtx.fillStyle = "rgba(0,0,0,0.7)";
+    animateCtx.fillStyle = "rgba(0,0,0,0.8)";
     var prev = animateCtx.globalCompositeOperation;
     animateCtx.globalCompositeOperation = "destination-in";
     animateCtx.fillRect(0, 0, self.map.width, self.map.height);
@@ -106,9 +115,21 @@ MoveLine.prototype.animate = function () {
     });
 };
 
+MoveLine.prototype.adjustSize = function () {
+    var width = this.map.width;
+    var height = this.map.height;
+    this.baseCtx.canvas.width = width;
+    this.baseCtx.canvas.height = height;
+    this.animateCtx.canvas.width = width;
+    this.animateCtx.canvas.height = height;
+    resolutionScale(this.baseCtx);
+    resolutionScale(this.animateCtx);
+};
+
 MoveLine.prototype.start = function () {
     var self = this;
     self.stop();
+    self.adjustSize();
     self.addLine();
     self.render();
     (function drawFrame() {
