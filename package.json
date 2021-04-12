@@ -7,7 +7,7 @@
     "mini": "npm run build && uglifyjs build/baidu-map-lineGradient.js -c -m -o build/release/baidu-map-lineGradient.min.js",
     "build": "rollup -c",
     "watch": "npm-watch",
-    "test": "npm run build"
+    "test": "npm run build && http-server . -p 2021"
   },
   "watch": {
     "build": {
