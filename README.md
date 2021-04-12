@@ -1,7 +1,7 @@
 <!--
  * @Author: your name
  * @Date: 2017-03-15 21:36:45
- * @LastEditTime: 2021-04-12 23:45:38
+ * @LastEditTime: 2021-04-12 23:50:26
  * @LastEditors: Please set LastEditors
  * @Description: In User Settings Edit
  * @FilePath: \map-canvas\README.md
@@ -20,7 +20,7 @@
 |  [区域AQI渲染](https://kobef08.github.io/dazv/examples/arcgis-map-temperature.html)   | [数据眼](https://kobef08.github.io/dazv/examples/canvas-dataEye.html)  |
 |  <a href="https://kobef08.github.io/map-canvas/examples/arcgis-map-temperature.html" target="_blank"><img src="./asset/007.gif" width = "300" height = "200" alt="区域AQI渲染" align=center /></a>   | <a href="https://kobef08.github.io/map-canvas/examples/canvas-dataEye.html" target="_blank"><img src="./asset/008.gif" width = "300" height = "200" alt="数据眼" align=center /></a>  |
 |  [日历热力图-年度](https://kobef08.github.io/dazv/examples/canvas-calendar-year.html)   | [日历热力图-月度](https://kobef08.github.io/dazv/examples/canvas-calendar-month.html)  |
-|  <a href="https://kobef08.github.io/dazv/examples/canvas-calendar-year.html" target="_blank"><img src="./asset/canvas-calendar-year.png" width = "300" height = "200" alt="日历热力图-年度" align=center /></a>   | <a href="https://kobef08.github.io/dazv/examples/canvas-calendar-month.html" target="_blank"><img src="./asset/011.gif" width = "300" height = "200" alt="日历热力图-月度" align=center /></a>  |
+|  <a href="https://kobef08.github.io/dazv/examples/canvas-calendar-year.html" target="_blank"><img src="./asset/010.gif" width = "300" height = "200" alt="日历热力图-年度" align=center /></a>   | <a href="https://kobef08.github.io/dazv/examples/canvas-calendar-month.html" target="_blank"><img src="./asset/011.gif" width = "300" height = "200" alt="日历热力图-月度" align=center /></a>  |
 |  [日历风力图-月度](https://kobef08.github.io/dazv/examples/canvas-wind-month.html)   | [canvas-气泡](https://kobef08.github.io/map-canvas/examples/canvas-bubble.html)  |
 |  <a href="https://kobef08.github.io/dazv/examples/canvas-wind-month.html" target="_blank"><img src="./asset/012.gif" width = "300" height = "200" alt="日历风力图-月度" align=center /></a>   | <a href="https://kobef08.github.io/map-canvas/examples/canvas-bubble.html" target="_blank"><img src="./asset/canvas-bubble.png" width = "300" height = "200" alt="canvas-气泡" align=center /></a>  |
 |  [canvas-行星](https://kobef08.github.io/map-canvas/examples/canvas-planet.html)   |   |
