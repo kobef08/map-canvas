@@ -1,7 +1,7 @@
 <!--
  * @Author: your name
  * @Date: 2017-03-15 21:36:45
- * @LastEditTime: 2021-04-13 18:32:32
+ * @LastEditTime: 2021-04-13 18:44:39
  * @LastEditors: Please set LastEditors
  * @Description: In User Settings Edit
  * @FilePath: \map-canvas\README.md
@@ -14,7 +14,7 @@
 |  ----   | ----  |
 | <a href="https://kobef08.github.io/map-canvas/examples/baidu-map-flashmarker.html" target="_blank"><img src="./asset/001.gif" width = "300" height = "200" alt="百度地图-闪烁" align=center /></a>  | <a href="https://kobef08.github.io/map-canvas/examples/baidu-map-move.html" target="_blank"><img src="./asset/002.gif" width = "300" height = "200" alt="百度地图-迁徙" align=center /></a>  | 
 | [百度地图-台风](https://kobef08.github.io/map-canvas/examples/baidu-map-typhoon.html)  | [百度地图-风](https://kobef08.github.io/map-canvas/examples/baidu-map-wind.html) |
-|  <a href="https://kobef08.github.io/map-canvas/examples/baidu-map-typhoon.html" target="_blank"><img src="./asset/003.gif" width = "300" height = "200" alt="百度地图-台风" align=center /></a>   | <a href="https://kobef08.github.io/map-canvas/examples/baidu-map-wind.html" target="_blank"><img src="./asset/004.gif" width = "300" height = "200" alt="百度地图-风" align=center /></a>  |
+|  <a href="https://kobef08.github.io/map-canvas/examples/baidu-map-typhoon-old.html" target="_blank"><img src="./asset/003.gif" width = "300" height = "200" alt="百度地图-台风" align=center /></a>   | <a href="https://kobef08.github.io/map-canvas/examples/baidu-map-wind-old.html" target="_blank"><img src="./asset/004.gif" width = "300" height = "200" alt="百度地图-风" align=center /></a>  |
 |   [城市交通流量](https://kobef08.github.io/map-canvas/examples/arcgis-map-move.html)  |  [城市路网模拟](https://kobef08.github.io/map-canvas/examples/arcgis-map-road.html) |
 |  <a href="https://kobef08.github.io/map-canvas/examples/arcgis-map-move.html" target="_blank"><img src="./asset/005.gif" width = "300" height = "200" alt="城市交通流量" align=center /></a>   | <a href="https://kobef08.github.io/map-canvas/examples/arcgis-map-road.html" target="_blank"><img src="./asset/006.gif" width = "300" height = "200" alt="城市路网模拟" align=center /></a>  |
 |  [区域AQI渲染](https://kobef08.github.io/map-canvas/examples/arcgis-map-temperature.html)   | [数据眼](https://kobef08.github.io/map-canvas/examples/canvas-dataEye.html)  |
