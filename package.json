@@ -43,11 +43,13 @@
     "npm-watch": "^0.3.0",
     "rollup": "^0.41.5",
     "rollup-plugin-babel": "^2.7.1",
-    "uglify-js": "^3.3.8"
+    "uglify-js": "^3.13.4"
   },
   "dependencies": {
-    "lodash": "^4.17.19",
+    "lodash": "^4.17.21",
+    "minimist": ">=0.2.1",
     "mixin-deep": "^2.0.1",
-    "set-value": "^3.0.1"
+    "set-value": "^3.0.2",
+    "kind-of": ">=6.0.3"
   }
 }
