@@ -42,7 +42,7 @@
     "babel-preset-es2015-rollup": "^3.0.0",
     "npm-watch": "^0.3.0",
     "rollup": "^0.41.5",
-    "rollup-plugin-babel": "^2.7.1",
+    "rollup-plugin-babel": "^4.4.0",
     "uglify-js": "^3.13.4"
   },
   "dependencies": {
